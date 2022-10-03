@@ -166,11 +166,11 @@ class _LoginViewState extends State<LoginView> {
                               fontSize: 16, fontWeight: FontWeight.normal),
                         ),
                       ),
+                      const SizedBox(height: 20.0,),
                       RichText(
-                        text: const TextSpan(
+                        text: TextSpan(
                           text: "asdasdasd",
-                          style: TextStyle(),
-                          children: [],
+                          style: GoogleFonts.ibmPlexSansThai(fontSize: 16,color: Colors.black)
                         ),
                       ),
                     ],
