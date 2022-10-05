@@ -1,10 +1,34 @@
+import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:your_choices/services/auth/auth_provider.dart';
 import 'package:your_choices/services/auth/auth_user.dart';
 import 'package:your_choices/services/auth/auth_exception.dart';
 import 'package:firebase_auth/firebase_auth.dart'
     show FirebaseAuth, FirebaseAuthException;
+import 'package:your_choices/view/home_view.dart';
+import 'package:your_choices/view/login_view.dart';
+
 
 class FirebaseAuthProvider implements AuthProvider {
+
+  //google sign in
+  handleUserLogin(){
+    return StreamBuilder(
+      stream: FirebaseAuth.instance.authStateChanges(),
+      builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
+        if(snapshot.hasData) {
+          return const HomeView();
+        } else {
+          return const LoginView();
+        }
+      },
+    );
+  }
+
+  signInWithGoogle() async {
+
+  }
+
   @override
   Future<AuthUser> createUser({
     required String email,

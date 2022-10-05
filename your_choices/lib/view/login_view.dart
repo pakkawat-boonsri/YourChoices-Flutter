@@ -1,5 +1,9 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:your_choices/view/register_view.dart';
+
+import '../constants/routes.dart';
 
 class LoginView extends StatefulWidget {
   const LoginView({super.key});
@@ -166,11 +170,26 @@ class _LoginViewState extends State<LoginView> {
                               fontSize: 16, fontWeight: FontWeight.normal),
                         ),
                       ),
-                      const SizedBox(height: 20.0,),
+
+                      const SizedBox(
+                        height: 20.0,
+                      ),
                       RichText(
                         text: TextSpan(
-                          text: "asdasdasd",
-                          style: GoogleFonts.ibmPlexSansThai(fontSize: 16,color: Colors.black)
+                          text: "Already have an account? ",
+                          style: GoogleFonts.ibmPlexSansThai(
+                              fontSize: 16, color: Colors.black),
+                          children: [
+                            TextSpan(
+                              recognizer: TapGestureRecognizer()
+                                ..onTap = () => Navigator.of(context)
+                                    .pushNamedAndRemoveUntil(registerRoutes,
+                                        (Route<dynamic> route) => false),
+                              text: "Sign in",
+                              style: GoogleFonts.ibmPlexSansThai(
+                                  fontSize: 16, color: Colors.black),
+                            ),
+                          ],
                         ),
                       ),
                     ],
