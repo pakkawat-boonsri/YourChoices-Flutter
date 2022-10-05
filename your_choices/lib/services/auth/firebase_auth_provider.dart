@@ -1,22 +1,20 @@
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:your_choices/services/auth/auth_provider.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+// import 'package:your_choices/services/auth/auth_provider.dart';
 import 'package:your_choices/services/auth/auth_user.dart';
 import 'package:your_choices/services/auth/auth_exception.dart';
 import 'package:firebase_auth/firebase_auth.dart'
-    show FirebaseAuth, FirebaseAuthException;
+    show FirebaseAuth, FirebaseAuthException, GoogleAuthProvider;
 import 'package:your_choices/view/home_view.dart';
 import 'package:your_choices/view/login_view.dart';
 
-
-class FirebaseAuthProvider implements AuthProvider {
-
+class FirebaseAuthProvider {
   //google sign in
-  handleUserLogin(){
+  handleUserLogin() {
     return StreamBuilder(
       stream: FirebaseAuth.instance.authStateChanges(),
       builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
-        if(snapshot.hasData) {
+        if (snapshot.hasData) {
           return const HomeView();
         } else {
           return const LoginView();
@@ -26,10 +24,21 @@ class FirebaseAuthProvider implements AuthProvider {
   }
 
   signInWithGoogle() async {
+    final GoogleSignInAccount? googleUser =
+        await GoogleSignIn(scopes: <String>["email"]).signIn();
 
+    final GoogleSignInAuthentication googleAuth =
+        await googleUser!.authentication;
+
+    final credential = GoogleAuthProvider.credential(
+      accessToken: googleAuth.accessToken,
+      idToken: googleAuth.idToken,
+    );
+
+    return await FirebaseAuth.instance.signInWithCredential(credential);
   }
 
-  @override
+  // @override
   Future<AuthUser> createUser({
     required String email,
     required String password,
@@ -60,7 +69,7 @@ class FirebaseAuthProvider implements AuthProvider {
     }
   }
 
-  @override
+  // @override
   AuthUser? get currentUser {
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
@@ -70,7 +79,7 @@ class FirebaseAuthProvider implements AuthProvider {
     }
   }
 
-  @override
+  // @override
   Future<AuthUser> logIn({
     required String email,
     required String password,
@@ -99,7 +108,7 @@ class FirebaseAuthProvider implements AuthProvider {
     }
   }
 
-  @override
+  // @override
   Future<void> logOut() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
@@ -109,7 +118,7 @@ class FirebaseAuthProvider implements AuthProvider {
     }
   }
 
-  @override
+  // @override
   Future<void> sendEmailVerification() async {
     final user = FirebaseAuth.instance.currentUser;
 
