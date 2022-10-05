@@ -10,7 +10,7 @@ class EmailAlreadyInUse implements Exception {}
 
 class InvalidEmail implements Exception {}
 
-// generic exception 
+// generic exception
 
 class GenericException implements Exception {}
 
