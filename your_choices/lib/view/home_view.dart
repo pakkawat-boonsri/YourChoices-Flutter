@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:your_choices/view/Favorite_view.dart';
 import 'package:your_choices/view/restuarant_view.dart';
 
 class HomeView extends StatefulWidget {
@@ -10,36 +9,46 @@ class HomeView extends StatefulWidget {
 }
 
 class _HomeViewState extends State<HomeView> {
-  var currentIndex = 0;
+  int _currentIndex = 0;
 
-  List<Widget> pages = [
+  final page = [
     const HomeView(),
     const RestuarantView(),
-    const FavoriteView(),
   ];
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: pages[currentIndex],
-      bottomNavigationBar: BottomNavigationBar(
-        selectedItemColor: const Color(0xFFFF9c29),
-        currentIndex: currentIndex,
-        onTap: (int index) {
-          setState(() {
-            currentIndex = index;
-          });
-        },
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: "Home",
+    return SafeArea(
+      child: Scaffold(
+        body: const Center(
+          child: Text("HelloWorld"),
+        ),
+        bottomNavigationBar: ClipRRect(
+          borderRadius: const BorderRadius.only(
+            topLeft: Radius.circular(30.0),
+            topRight: Radius.circular(30.0),
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.restaurant),
-            label: "Restuarant",
+          child: BottomNavigationBar(
+            currentIndex: _currentIndex,
+            selectedItemColor: const Color(0xFFFF9C29),
+            unselectedItemColor: Colors.grey,
+            onTap: (index) {
+              setState(() {
+                _currentIndex = index;
+              });
+            },
+            items: const [
+              BottomNavigationBarItem(
+                icon: Icon(Icons.home),
+                label: "Home",
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.restaurant),
+                label: "Restuarant",
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
