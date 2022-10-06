@@ -19,26 +19,15 @@ class AuthService implements FirebaseAuthProvider {
   handleUserLogin() => provider.handleUserLogin();
 
   @override
-  Future<AuthUser> logIn({required String email, required String password}) {
-    // TODO: implement logIn
-    throw UnimplementedError();
-  }
+  Future<AuthUser> logIn({required String email, required String password}) =>
+      provider.logIn(email: email, password: password);
 
   @override
-  Future<void> logOut() {
-    // TODO: implement logOut
-    throw UnimplementedError();
-  }
+  Future<void> logOut() => provider.logOut();
 
   @override
-  Future<void> sendEmailVerification() {
-    // TODO: implement sendEmailVerification
-    throw UnimplementedError();
-  }
+  Future<void> sendEmailVerification() => provider.sendEmailVerification();
 
   @override
-  signInWithGoogle() {
-    // TODO: implement signInWithGoogle
-    throw UnimplementedError();
-  }
+  signInWithGoogle() => provider.signInWithGoogle();
 }
