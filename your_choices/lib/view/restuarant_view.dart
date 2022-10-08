@@ -12,7 +12,7 @@ class _RestuarantViewState extends State<RestuarantView> {
   Widget build(BuildContext context) {
     return const Scaffold(
       body: Center(
-        child: Text("Restuarant"),
+        child: Text("RestuarantView"),
       ),
     );
   }

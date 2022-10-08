@@ -5,7 +5,7 @@ import 'package:your_choices/services/auth/auth_user.dart';
 import 'package:your_choices/services/auth/auth_exception.dart';
 import 'package:firebase_auth/firebase_auth.dart'
     show FirebaseAuth, FirebaseAuthException, GoogleAuthProvider;
-import 'package:your_choices/view/home_view.dart';
+import 'package:your_choices/view/main_view.dart';
 import 'package:your_choices/view/login_view.dart';
 
 class FirebaseAuthProvider {
@@ -15,7 +15,7 @@ class FirebaseAuthProvider {
       stream: FirebaseAuth.instance.authStateChanges(),
       builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
         if (snapshot.hasData) {
-          return const HomeView();
+          return const MainView();
         } else {
           return const LoginView();
         }
