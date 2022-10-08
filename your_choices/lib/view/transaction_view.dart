@@ -2,14 +2,14 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-class HomeView extends StatefulWidget {
-  const HomeView({super.key});
+class TransactionView extends StatefulWidget {
+  const TransactionView({super.key});
 
   @override
-  State<HomeView> createState() => _HomeViewState();
+  State<TransactionView> createState() => _TransactionViewState();
 }
 
-class _HomeViewState extends State<HomeView> {
+class _TransactionViewState extends State<TransactionView> {
   NetworkImage img = const NetworkImage(
       "https://team.mithesports.com/static/profiles/NoctisAK47-ceb7c4dfd3c7a223cea238e666499958.jpg");
   final balance = 2347.23;

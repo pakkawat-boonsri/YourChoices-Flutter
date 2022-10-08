@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:your_choices/view/home_view.dart';
+import 'package:your_choices/view/transaction_view.dart';
 import 'package:your_choices/view/restuarant_view.dart';
 
 class MainView extends StatefulWidget {
@@ -13,7 +13,7 @@ class _MainViewState extends State<MainView> {
   int _currentIndex = 0;
 
   final views = [
-    const HomeView(),
+    const TransactionView(),
     const RestuarantView(),
   ];
 
