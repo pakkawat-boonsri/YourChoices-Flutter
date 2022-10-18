@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 
-class RestuarantView extends StatefulWidget {
-  const RestuarantView({super.key});
+class RestaurantView extends StatefulWidget {
+  const RestaurantView({super.key});
 
   @override
-  State<RestuarantView> createState() => _RestuarantViewState();
+  State<RestaurantView> createState() => _RestaurantViewState();
 }
 
-class _RestuarantViewState extends State<RestuarantView> {
+class _RestaurantViewState extends State<RestaurantView> {
   @override
   Widget build(BuildContext context) {
     return const Scaffold(

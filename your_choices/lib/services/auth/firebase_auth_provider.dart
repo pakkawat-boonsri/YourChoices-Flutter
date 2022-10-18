@@ -6,7 +6,7 @@ import 'package:your_choices/services/auth/auth_exception.dart';
 import 'package:firebase_auth/firebase_auth.dart'
     show FirebaseAuth, FirebaseAuthException, GoogleAuthProvider;
 import 'package:your_choices/view/main_view.dart';
-import 'package:your_choices/view/login_view.dart';
+import 'package:your_choices/view/login_view/login_view.dart';
 
 class FirebaseAuthProvider {
   //google sign in

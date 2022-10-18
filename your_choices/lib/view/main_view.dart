@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:your_choices/view/transaction_view.dart';
-import 'package:your_choices/view/restuarant_view.dart';
+import 'package:your_choices/view/transaction_view/transaction_view.dart';
+import 'package:your_choices/view/restaurant_view/restaurant_view.dart';
 
 class MainView extends StatefulWidget {
   const MainView({super.key});
@@ -14,7 +14,7 @@ class _MainViewState extends State<MainView> {
 
   final views = [
     const TransactionView(),
-    const RestuarantView(),
+    const RestaurantView(),
   ];
 
   @override
@@ -43,7 +43,7 @@ class _MainViewState extends State<MainView> {
             ),
             BottomNavigationBarItem(
               icon: Icon(Icons.restaurant),
-              label: "Restuarant",
+              label: "Restaurant",
             ),
           ],
         ),
