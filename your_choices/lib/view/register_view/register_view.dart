@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:your_choices/utilities/reuseable_widget.dart';
 
 class RegisterView extends StatefulWidget {
   const RegisterView({super.key});
@@ -9,6 +10,13 @@ class RegisterView extends StatefulWidget {
 }
 
 class _RegisterViewState extends State<RegisterView> {
+  final _regisKey = GlobalKey<FormState>();
+
+  final username = TextEditingController();
+  final email = TextEditingController();
+  final password = TextEditingController();
+  final comfirmPassword = TextEditingController();
+
   @override
   Widget build(BuildContext context) {
     Size size = MediaQuery.of(context).size;
@@ -35,7 +43,31 @@ class _RegisterViewState extends State<RegisterView> {
                       child: Column(
                         children: [
                           HeaderWelcome(size: size),
-                          
+                          const SizedBox(
+                            height: 20,
+                          ),
+                          Form(
+                            key: _regisKey,
+                            child: Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 30),
+                              child: Column(
+                                children: [
+                                  TextFormField(
+                                    decoration: const InputDecoration(
+                                      hintText: "Username",
+                                      labelText: "Username",
+                                      border: OutlineInputBorder(
+                                        borderRadius: BorderRadius.all(
+                                          Radius.circular(15),
+                                        ),
+                                      ),
+                                    ),
+                                  )
+                                ],
+                              ),
+                            ),
+                          ),
                         ],
                       ),
                     ),
@@ -68,20 +100,43 @@ class HeaderWelcome extends StatelessWidget {
       padding: const EdgeInsets.only(top: 90, left: 35),
       child: SizedBox(
         width: size.width,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          crossAxisAlignment: CrossAxisAlignment.start,
+        child: Row(
           children: [
-            Text(
-              "Welcome",
-              style: GoogleFonts.ibmPlexSansThai(
-                  fontSize: 48,
-                  fontWeight: FontWeight.bold),
+            Column(
+              mainAxisAlignment: MainAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  "Welcome",
+                  style: GoogleFonts.ibmPlexSansThai(
+                      fontSize: 48, fontWeight: FontWeight.bold),
+                ),
+                Text(
+                  "Sign up for your account",
+                  style: GoogleFonts.ibmPlexSansThai(fontSize: 18),
+                ),
+              ],
             ),
-            Text(
-              "Sign up for your account",
-              style: GoogleFonts.ibmPlexSansThai(
-                  fontSize: 18),
+            const SizedBox(
+              width: 15,
+            ),
+            Stack(
+              children: [
+                Expanded(
+                  child: Container(
+                    padding: const EdgeInsets.only(left: 12),
+                    width: MediaQuery.of(context).size.width / 3 - 20,
+                    decoration: BoxDecoration(
+                        color: Colors.white,
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          boxShadow(),
+                        ]),
+                    child: Image.asset("assets/images/inage_picker.png",
+                        scale: 1.1),
+                  ),
+                ),
+              ],
             ),
           ],
         ),

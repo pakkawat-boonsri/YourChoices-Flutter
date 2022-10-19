@@ -1,8 +1,10 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:your_choices/constants/routes.dart';
 import 'package:your_choices/view/login_view/login_view.dart';
 import 'package:your_choices/view/register_view/register_view.dart';
+import 'package:your_choices/view_model/login_view_model/login_view_model.dart';
 import 'firebase_options.dart';
 
 void main() async {
@@ -23,17 +25,24 @@ class YourChoices extends StatefulWidget {
 class _YourChoicesState extends State<YourChoices> {
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        scaffoldBackgroundColor: const Color(0xFF34312f),
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(
+          create: (context) => LoginViewModel(),
+        )
+      ],
+      child: MaterialApp(
+        debugShowCheckedModeBanner: false,
+        theme: ThemeData(
+          scaffoldBackgroundColor: const Color(0xFF34312f),
+        ),
+        title: "YourChoices",
+        home: const LoginView(),
+        routes: {
+          loginRoutes: (context) => const LoginView(),
+          registerRoutes: (context) => const RegisterView(),
+        },
       ),
-      title: "YourChoices",
-      home: const RegisterView(),
-      routes: {
-        loginRoutes: (context) => const LoginView(),
-        registerRoutes: (context) => const RegisterView(),
-      },
     );
   }
 }

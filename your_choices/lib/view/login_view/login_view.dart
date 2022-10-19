@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:your_choices/utilities/reuseable_widget.dart';
+import 'package:your_choices/utilities/hex_color.dart';
+import 'package:your_choices/view/register_view/register_view.dart';
 
 class LoginView extends StatefulWidget {
   const LoginView({super.key});
@@ -12,6 +13,7 @@ class LoginView extends StatefulWidget {
 class _LoginViewState extends State<LoginView> {
   final email = TextEditingController();
   final password = TextEditingController();
+  final _formkey = GlobalKey<FormState>();
 
   @override
   void dispose() {
@@ -23,9 +25,9 @@ class _LoginViewState extends State<LoginView> {
   @override
   Widget build(BuildContext context) {
     Size size = MediaQuery.of(context).size;
-    return SafeArea(
-      child: Scaffold(
-        body: SingleChildScrollView(
+    return Scaffold(
+      body: SafeArea(
+        child: SingleChildScrollView(
           child: Stack(
             alignment: Alignment.topCenter,
             children: [
@@ -47,12 +49,123 @@ class _LoginViewState extends State<LoginView> {
                       const SizedBox(
                         height: 25,
                       ),
-                      EmailPasswordTextFormField(
-                          email: email, password: password),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 35),
+                        child: Form(
+                          key: _formkey,
+                          child: Column(
+                            children: [
+                              TextFormField(
+                                controller: email,
+                                keyboardType: TextInputType.emailAddress,
+                                autocorrect: false,
+                                enableSuggestions: false,
+                                decoration: InputDecoration(
+                                  hintText: "Email",
+                                  labelText: "Email",
+                                  enabledBorder: OutlineInputBorder(
+                                    borderSide: BorderSide(
+                                      color: Colors.amber.shade900,
+                                      width: 1.5,
+                                    ),
+                                    borderRadius: const BorderRadius.all(
+                                      Radius.circular(15.0),
+                                    ),
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderSide: BorderSide(
+                                      color: Colors.amber.shade900,
+                                      width: 1.5,
+                                    ),
+                                    borderRadius: const BorderRadius.all(
+                                      Radius.circular(15.0),
+                                    ),
+                                  ),
+                                  prefixIcon: const Icon(
+                                    Icons.mail_outline,
+                                    color: Colors.black,
+                                  ),
+                                ),
+                                validator: (value) {
+                                  if (value!.isEmpty) {
+                                    return "Please enter your Email.";
+                                  }
+                                  return null;
+                                },
+                              ),
+                              const SizedBox(
+                                height: 20,
+                              ),
+                              TextFormField(
+                                controller: password,
+                                keyboardType: TextInputType.visiblePassword,
+                                autocorrect: false,
+                                obscureText: true,
+                                enableSuggestions: false,
+                                decoration: InputDecoration(
+                                  hintText: "Password",
+                                  labelText: "Password",
+                                  enabledBorder: OutlineInputBorder(
+                                    borderSide: BorderSide(
+                                      color: Colors.amber.shade900,
+                                      width: 1.5,
+                                    ),
+                                    borderRadius: const BorderRadius.all(
+                                      Radius.circular(15.0),
+                                    ),
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderSide: BorderSide(
+                                      color: Colors.amber.shade900,
+                                      width: 1.5,
+                                    ),
+                                    borderRadius: const BorderRadius.all(
+                                      Radius.circular(15.0),
+                                    ),
+                                  ),
+                                  prefixIcon: const Icon(
+                                    Icons.lock_outline,
+                                    color: Colors.black,
+                                  ),
+                                ),
+                                validator: (value) {
+                                  if (value!.isEmpty) {
+                                    return "Please enter your password.";
+                                  }
+                                  return null;
+                                },
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
                       const SizedBox(
                         height: 20,
                       ),
-                      const SignInButton(),
+                      ElevatedButton(
+                        onPressed: () {
+                          // final checkText = context.read<LoginViewModel>();
+                          if (_formkey.currentState!.validate()) {}
+                        },
+                        style: ButtonStyle(
+                          backgroundColor: MaterialStateProperty.all<Color>(
+                              Colors.amber.shade900),
+                          padding: MaterialStateProperty.all<EdgeInsets>(
+                            const EdgeInsets.symmetric(horizontal: 100.0),
+                          ),
+                          shape:
+                              MaterialStateProperty.all<RoundedRectangleBorder>(
+                            RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10.0),
+                            ),
+                          ),
+                        ),
+                        child: Text(
+                          "Sign In",
+                          style: GoogleFonts.ibmPlexSansThai(
+                              fontSize: 16, fontWeight: FontWeight.normal),
+                        ),
+                      ),
                       const SizedBox(
                         height: 20.0,
                       ),
@@ -169,14 +282,20 @@ class RichTextNavigatorText extends StatelessWidget {
                 "Already have an account? ",
                 style: GoogleFonts.ibmPlexSansThai(
                   fontSize: 16,
-                  color: Colors.black,
+                  color: "130B71".toColor(),
                 ),
               ),
               const SizedBox(
                 height: 10,
               ),
               GestureDetector(
-                onTap: () {},
+                onTap: () {
+                  Navigator.of(context).pushAndRemoveUntil(
+                      MaterialPageRoute(
+                        builder: (context) => const RegisterView(),
+                      ),
+                      (route) => false);
+                },
                 child: Text(
                   "Sign in",
                   style: GoogleFonts.ibmPlexSansThai(
@@ -188,66 +307,6 @@ class RichTextNavigatorText extends StatelessWidget {
             ],
           ),
         ],
-      ),
-    );
-  }
-}
-
-class SignInButton extends StatelessWidget {
-  const SignInButton({
-    Key? key,
-  }) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return ElevatedButton(
-      onPressed: () {},
-      style: ButtonStyle(
-        backgroundColor:
-            MaterialStateProperty.all<Color>(Colors.amber.shade900),
-        padding: MaterialStateProperty.all<EdgeInsets>(
-          const EdgeInsets.symmetric(horizontal: 100.0),
-        ),
-        shape: MaterialStateProperty.all<RoundedRectangleBorder>(
-          RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10.0),
-          ),
-        ),
-      ),
-      child: Text(
-        "Sign In",
-        style: GoogleFonts.ibmPlexSansThai(
-            fontSize: 16, fontWeight: FontWeight.normal),
-      ),
-    );
-  }
-}
-
-class EmailPasswordTextFormField extends StatelessWidget {
-  const EmailPasswordTextFormField({
-    Key? key,
-    required this.email,
-    required this.password,
-  }) : super(key: key);
-
-  final TextEditingController email;
-  final TextEditingController password;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 35),
-      child: SizedBox(
-        child: Column(
-          children: [
-            reuseableTextFormField(email, false, "Email", Icons.mail_outline),
-            const SizedBox(
-              height: 20,
-            ),
-            reuseableTextFormField(
-                password, true, "Password", Icons.lock_outline)
-          ],
-        ),
       ),
     );
   }
