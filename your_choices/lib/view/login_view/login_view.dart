@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
+
 import 'package:your_choices/utilities/hex_color.dart';
 import 'package:your_choices/view/register_view/register_view.dart';
+import 'package:your_choices/view_model/login_view_model/login_view_model.dart';
 
 class LoginView extends StatefulWidget {
   const LoginView({super.key});
@@ -16,6 +19,11 @@ class _LoginViewState extends State<LoginView> {
   final _formkey = GlobalKey<FormState>();
 
   @override
+  void initState() {
+    super.initState();
+  }
+
+  @override
   void dispose() {
     email.dispose();
     password.dispose();
@@ -28,6 +36,7 @@ class _LoginViewState extends State<LoginView> {
     return Scaffold(
       body: SafeArea(
         child: SingleChildScrollView(
+          reverse: context.watch<LoginViewModel>().getIsClick,
           child: Stack(
             alignment: Alignment.topCenter,
             children: [
@@ -56,6 +65,7 @@ class _LoginViewState extends State<LoginView> {
                           child: Column(
                             children: [
                               TextFormField(
+                                onTap: context.read<LoginViewModel>().setIsClick(true),
                                 controller: email,
                                 keyboardType: TextInputType.emailAddress,
                                 autocorrect: false,
@@ -97,6 +107,7 @@ class _LoginViewState extends State<LoginView> {
                                 height: 20,
                               ),
                               TextFormField(
+                                onTap: context.read<LoginViewModel>().setIsClick(true),
                                 controller: password,
                                 keyboardType: TextInputType.visiblePassword,
                                 autocorrect: false,
@@ -144,7 +155,6 @@ class _LoginViewState extends State<LoginView> {
                       ),
                       ElevatedButton(
                         onPressed: () {
-                          // final checkText = context.read<LoginViewModel>();
                           if (_formkey.currentState!.validate()) {}
                         },
                         style: ButtonStyle(
@@ -279,7 +289,7 @@ class RichTextNavigatorText extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                "Already have an account? ",
+                "Don't have an account yet? ",
                 style: GoogleFonts.ibmPlexSansThai(
                   fontSize: 16,
                   color: "130B71".toColor(),
@@ -290,14 +300,14 @@ class RichTextNavigatorText extends StatelessWidget {
               ),
               GestureDetector(
                 onTap: () {
-                  Navigator.of(context).pushAndRemoveUntil(
+                  Navigator.of(context).pushReplacement(
                       MaterialPageRoute(
                         builder: (context) => const RegisterView(),
                       ),
-                      (route) => false);
+                      result: (route) => false);
                 },
                 child: Text(
-                  "Sign in",
+                  "Sign up",
                   style: GoogleFonts.ibmPlexSansThai(
                     fontSize: 16,
                     color: Colors.black,
@@ -322,10 +332,8 @@ class HeaderText extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(top: 100, left: 35),
       child: Column(
-        // crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SizedBox(
-            // color: Colors.redAccent,
             width: double.maxFinite,
             child:
                 Column(crossAxisAlignment: CrossAxisAlignment.start, children: [

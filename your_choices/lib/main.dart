@@ -5,6 +5,7 @@ import 'package:your_choices/constants/routes.dart';
 import 'package:your_choices/view/login_view/login_view.dart';
 import 'package:your_choices/view/register_view/register_view.dart';
 import 'package:your_choices/view_model/login_view_model/login_view_model.dart';
+import 'package:your_choices/view_model/register_view_model/register_view_model.dart';
 import 'firebase_options.dart';
 
 void main() async {
@@ -29,7 +30,10 @@ class _YourChoicesState extends State<YourChoices> {
       providers: [
         ChangeNotifierProvider(
           create: (context) => LoginViewModel(),
-        )
+        ),
+        ChangeNotifierProvider(
+          create: (context) => RegisterViewModel(),
+        ),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
