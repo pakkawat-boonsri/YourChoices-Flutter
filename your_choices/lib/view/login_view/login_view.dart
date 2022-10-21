@@ -65,7 +65,9 @@ class _LoginViewState extends State<LoginView> {
                           child: Column(
                             children: [
                               TextFormField(
-                                onTap: context.read<LoginViewModel>().setIsClick(true),
+                                onTap: context
+                                    .read<LoginViewModel>()
+                                    .setIsClick(true),
                                 controller: email,
                                 keyboardType: TextInputType.emailAddress,
                                 autocorrect: false,
@@ -73,6 +75,14 @@ class _LoginViewState extends State<LoginView> {
                                 decoration: InputDecoration(
                                   hintText: "Email",
                                   labelText: "Email",
+                                  suffixIcon: email.text.isNotEmpty
+                                      ? IconButton(
+                                          icon: const Icon(Icons.clear),
+                                          onPressed: () {
+                                            password.clear();
+                                          },
+                                        )
+                                      : const SizedBox(),
                                   enabledBorder: OutlineInputBorder(
                                     borderSide: BorderSide(
                                       color: Colors.amber.shade900,
@@ -107,7 +117,9 @@ class _LoginViewState extends State<LoginView> {
                                 height: 20,
                               ),
                               TextFormField(
-                                onTap: context.read<LoginViewModel>().setIsClick(true),
+                                onTap: context
+                                    .read<LoginViewModel>()
+                                    .setIsClick(true),
                                 controller: password,
                                 keyboardType: TextInputType.visiblePassword,
                                 autocorrect: false,
@@ -116,6 +128,14 @@ class _LoginViewState extends State<LoginView> {
                                 decoration: InputDecoration(
                                   hintText: "Password",
                                   labelText: "Password",
+                                  suffixIcon: email.text.isNotEmpty
+                                      ? IconButton(
+                                          icon: const Icon(Icons.clear),
+                                          onPressed: () {
+                                            password.clear();
+                                          },
+                                        )
+                                      : const SizedBox(),
                                   enabledBorder: OutlineInputBorder(
                                     borderSide: BorderSide(
                                       color: Colors.amber.shade900,
@@ -155,7 +175,11 @@ class _LoginViewState extends State<LoginView> {
                       ),
                       ElevatedButton(
                         onPressed: () {
-                          if (_formkey.currentState!.validate()) {}
+                          if (_formkey.currentState!.validate()) {
+                            final user = context.read<LoginViewModel>();
+                            user.signInWithEmaillAndPassword(
+                                email.text, password.text, context);
+                          }
                         },
                         style: ButtonStyle(
                           backgroundColor: MaterialStateProperty.all<Color>(
@@ -184,7 +208,10 @@ class _LoginViewState extends State<LoginView> {
                         height: 20.0,
                       ),
                       InkWell(
-                        onTap: () {},
+                        onTap: () {
+                          final googleSignIn = context.read<LoginViewModel>();
+                          googleSignIn.signInWithGoogle();
+                        },
                         child: Container(
                           width: size.width / 2 + 20,
                           padding: const EdgeInsets.symmetric(

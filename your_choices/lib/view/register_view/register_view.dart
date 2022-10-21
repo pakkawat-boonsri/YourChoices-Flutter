@@ -87,6 +87,14 @@ class _RegisterViewState extends State<RegisterView> {
                                   decoration: InputDecoration(
                                     hintText: "Username",
                                     labelText: "Username",
+                                    suffixIcon: email.text.isNotEmpty
+                                        ? IconButton(
+                                            icon: const Icon(Icons.clear),
+                                            onPressed: () {
+                                              password.clear();
+                                            },
+                                          )
+                                        : const SizedBox(),
                                     enabledBorder: OutlineInputBorder(
                                       borderSide: BorderSide(
                                         color: Colors.amber.shade900,
@@ -132,6 +140,14 @@ class _RegisterViewState extends State<RegisterView> {
                                   decoration: InputDecoration(
                                     hintText: "Email",
                                     labelText: "Email",
+                                    suffixIcon: email.text.isNotEmpty
+                                        ? IconButton(
+                                            icon: const Icon(Icons.clear),
+                                            onPressed: () {
+                                              password.clear();
+                                            },
+                                          )
+                                        : const SizedBox(),
                                     enabledBorder: OutlineInputBorder(
                                       borderSide: BorderSide(
                                         color: Colors.amber.shade900,
@@ -177,6 +193,14 @@ class _RegisterViewState extends State<RegisterView> {
                                   decoration: InputDecoration(
                                     hintText: "Password",
                                     labelText: "Password",
+                                    suffixIcon: password.text.isNotEmpty
+                                        ? IconButton(
+                                            icon: const Icon(Icons.clear),
+                                            onPressed: () {
+                                              password.clear();
+                                            },
+                                          )
+                                        : const SizedBox(),
                                     enabledBorder: OutlineInputBorder(
                                       borderSide: BorderSide(
                                         color: Colors.amber.shade900,
@@ -222,6 +246,14 @@ class _RegisterViewState extends State<RegisterView> {
                                   decoration: InputDecoration(
                                     hintText: "Confirm password",
                                     labelText: "Confirm password",
+                                    suffixIcon: email.text.isNotEmpty
+                                        ? IconButton(
+                                            icon: const Icon(Icons.clear),
+                                            onPressed: () {
+                                              password.clear();
+                                            },
+                                          )
+                                        : const SizedBox(),
                                     enabledBorder: OutlineInputBorder(
                                       borderSide: BorderSide(
                                         color: Colors.amber.shade900,
@@ -257,44 +289,31 @@ class _RegisterViewState extends State<RegisterView> {
                                 const SizedBox(
                                   height: 10,
                                 ),
-                                Consumer<RegisterViewModel>(
-                                    builder: (context, viewModel, _) {
-                                  return CheckboxListTile(
-                                    controlAffinity:
-                                        ListTileControlAffinity.leading,
-                                    title: Text(
-                                      "Customer",
-                                      style: GoogleFonts.ibmPlexSansThai(
-                                        fontSize: 15,
-                                      ),
-                                    ),
-                                    value: viewModel.getCustomerCheck,
-                                    onChanged: (value) {
-                                      viewModel.setCustomerCheck(value!);
-                                    },
-                                  );
-                                }),
-                                Consumer<RegisterViewModel>(
-                                  builder: (context, viewModel, _) {
-                                    return CheckboxListTile(
-                                      controlAffinity:
-                                          ListTileControlAffinity.leading,
-                                      title: Text(
-                                        "Retaurant",
-                                        style: GoogleFonts.ibmPlexSansThai(
-                                          fontSize: 15,
-                                        ),
-                                      ),
-                                      value: viewModel.getRestaurantCheck,
-                                      onChanged: (value) {
-                                        viewModel.setRestaurantCheck(value!);
+                                Row(
+                                  children: [
+                                    Consumer<RegisterViewModel>(
+                                      builder: (context, viewModel, _) {
+                                        return const SizedBox();
                                       },
-                                    );
-                                  },
+                                    ),
+                                    Consumer<RegisterViewModel>(
+                                      builder: (context, viewModel, _) {
+                                        return const SizedBox();
+                                      },
+                                    ),
+                                  ],
                                 ),
                                 ElevatedButton(
                                   onPressed: () {
-                                    if (_regisKey.currentState!.validate()) {}
+                                    if (_regisKey.currentState!.validate()) {
+                                      context
+                                          .read<RegisterViewModel>()
+                                          .createUserWithEmailAndpassword(
+                                              context,
+                                              username.text,
+                                              email.text,
+                                              password.text);
+                                    }
                                   },
                                   style: ButtonStyle(
                                     backgroundColor:

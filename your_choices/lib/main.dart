@@ -5,6 +5,7 @@ import 'package:your_choices/constants/routes.dart';
 import 'package:your_choices/view/login_view/login_view.dart';
 import 'package:your_choices/view/register_view/register_view.dart';
 import 'package:your_choices/view_model/login_view_model/login_view_model.dart';
+import 'package:your_choices/view_model/main_view_model/main_view_model.dart';
 import 'package:your_choices/view_model/register_view_model/register_view_model.dart';
 import 'firebase_options.dart';
 
@@ -34,6 +35,9 @@ class _YourChoicesState extends State<YourChoices> {
         ChangeNotifierProvider(
           create: (context) => RegisterViewModel(),
         ),
+        ChangeNotifierProvider(
+          create: (context) => MainViewModel(),
+        )
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
@@ -41,7 +45,7 @@ class _YourChoicesState extends State<YourChoices> {
           scaffoldBackgroundColor: const Color(0xFF34312f),
         ),
         title: "YourChoices",
-        home: const LoginView(),
+        home: context.watch<LoginViewModel>().handleUserLogin(),
         routes: {
           loginRoutes: (context) => const LoginView(),
           registerRoutes: (context) => const RegisterView(),

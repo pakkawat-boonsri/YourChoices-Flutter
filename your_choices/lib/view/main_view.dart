@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:your_choices/view/transaction_view/transaction_view.dart';
+import 'package:provider/provider.dart';
 import 'package:your_choices/view/restaurant_view/restaurant_view.dart';
+import 'package:your_choices/view/transaction_view/transaction_view.dart';
+import 'package:your_choices/view_model/main_view_model/main_view_model.dart';
 
 class MainView extends StatefulWidget {
   const MainView({super.key});
@@ -10,8 +12,6 @@ class MainView extends StatefulWidget {
 }
 
 class _MainViewState extends State<MainView> {
-  int _currentIndex = 0;
-
   final views = [
     const TransactionView(),
     const RestaurantView(),
@@ -19,8 +19,9 @@ class _MainViewState extends State<MainView> {
 
   @override
   Widget build(BuildContext context) {
+    var provider = Provider.of<MainViewModel>(context);
     return Scaffold(
-      body: SafeArea(child: views[_currentIndex]),
+      body: SafeArea(child: views[provider.currentIndex]),
       bottomNavigationBar: ClipRRect(
         borderRadius: const BorderRadius.only(
           topLeft: Radius.circular(30.0),
@@ -28,12 +29,12 @@ class _MainViewState extends State<MainView> {
         ),
         child: BottomNavigationBar(
           type: BottomNavigationBarType.shifting,
-          currentIndex: _currentIndex,
+          currentIndex: provider.currentIndex,
           selectedItemColor: const Color(0xFFFF9C29),
           unselectedItemColor: Colors.grey,
           onTap: (index) {
             setState(() {
-              _currentIndex = index;
+              provider.currentIndex = index;
             });
           },
           items: const [
