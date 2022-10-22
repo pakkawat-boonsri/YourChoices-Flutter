@@ -18,17 +18,11 @@ class _RegisterViewState extends State<RegisterView> {
   final username = TextEditingController();
   final email = TextEditingController();
   final password = TextEditingController();
-  final comfirmPassword = TextEditingController();
+  final confirmPassword = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    // Timer(
-    //   const Duration(seconds: 2),
-    //   () {
-    //     context.watch<RegisterViewModel>().isLoading = true;
-    //   },
-    // );
   }
 
   @override
@@ -36,7 +30,7 @@ class _RegisterViewState extends State<RegisterView> {
     username.dispose();
     email.dispose();
     password.dispose();
-    comfirmPassword.dispose();
+    confirmPassword.dispose();
     super.dispose();
   }
 
@@ -87,14 +81,14 @@ class _RegisterViewState extends State<RegisterView> {
                                   decoration: InputDecoration(
                                     hintText: "Username",
                                     labelText: "Username",
-                                    suffixIcon: email.text.isNotEmpty
+                                    suffixIcon: username.text.isNotEmpty
                                         ? IconButton(
                                             icon: const Icon(Icons.clear),
                                             onPressed: () {
-                                              password.clear();
+                                              username.clear();
                                             },
                                           )
-                                        : const SizedBox(),
+                                        : const SizedBox.shrink(),
                                     enabledBorder: OutlineInputBorder(
                                       borderSide: BorderSide(
                                         color: Colors.amber.shade900,
@@ -126,7 +120,7 @@ class _RegisterViewState extends State<RegisterView> {
                                   },
                                 ),
                                 const SizedBox(
-                                  height: 20,
+                                  height: 10,
                                 ),
                                 TextFormField(
                                   onTap: context
@@ -144,7 +138,8 @@ class _RegisterViewState extends State<RegisterView> {
                                         ? IconButton(
                                             icon: const Icon(Icons.clear),
                                             onPressed: () {
-                                              password.clear();
+                                              email.clear();
+                                              Navigator.pop(context);
                                             },
                                           )
                                         : const SizedBox(),
@@ -175,11 +170,15 @@ class _RegisterViewState extends State<RegisterView> {
                                     if (value!.isEmpty) {
                                       return "Please enter your Email.";
                                     }
+                                    String pattern = r'\w+@\w+\.\w+';
+                                    if (!RegExp(pattern).hasMatch(value)) {
+                                      return 'Invalid E-mail Address format.';
+                                    }
                                     return null;
                                   },
                                 ),
                                 const SizedBox(
-                                  height: 20,
+                                  height: 10,
                                 ),
                                 TextFormField(
                                   onTap: context
@@ -232,13 +231,13 @@ class _RegisterViewState extends State<RegisterView> {
                                   },
                                 ),
                                 const SizedBox(
-                                  height: 20,
+                                  height: 10,
                                 ),
                                 TextFormField(
                                   onTap: context
                                       .read<RegisterViewModel>()
                                       .setIsClick(true),
-                                  controller: comfirmPassword,
+                                  controller: confirmPassword,
                                   keyboardType: TextInputType.name,
                                   autocorrect: false,
                                   obscureText: true,
@@ -246,11 +245,11 @@ class _RegisterViewState extends State<RegisterView> {
                                   decoration: InputDecoration(
                                     hintText: "Confirm password",
                                     labelText: "Confirm password",
-                                    suffixIcon: email.text.isNotEmpty
+                                    suffixIcon: confirmPassword.text.isNotEmpty
                                         ? IconButton(
                                             icon: const Icon(Icons.clear),
                                             onPressed: () {
-                                              password.clear();
+                                              confirmPassword.clear();
                                             },
                                           )
                                         : const SizedBox(),
@@ -280,7 +279,7 @@ class _RegisterViewState extends State<RegisterView> {
                                   validator: (value) {
                                     if (value!.isEmpty) {
                                       return "Please enter your Password.";
-                                    } else if (password != comfirmPassword) {
+                                    } else if (password != confirmPassword) {
                                       return "Your comfirm password is not correct!.";
                                     }
                                     return null;
@@ -290,16 +289,64 @@ class _RegisterViewState extends State<RegisterView> {
                                   height: 10,
                                 ),
                                 Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceEvenly,
                                   children: [
-                                    Consumer<RegisterViewModel>(
-                                      builder: (context, viewModel, _) {
-                                        return const SizedBox();
-                                      },
+                                    Row(
+                                      children: [
+                                        Consumer<RegisterViewModel>(
+                                          builder:
+                                              (context, registerViewModel, _) {
+                                            return FormField(
+                                              builder: (_) {
+                                                return Radio(
+                                                  value: 1,
+                                                  groupValue: registerViewModel
+                                                      .getSelectedType,
+                                                  onChanged: ((value) {
+                                                    registerViewModel
+                                                        .setSelectedType(value);
+                                                  }),
+                                                );
+                                              },
+                                            );
+                                          },
+                                        ),
+                                        const Text("Customer"),
+                                      ],
                                     ),
-                                    Consumer<RegisterViewModel>(
-                                      builder: (context, viewModel, _) {
-                                        return const SizedBox();
-                                      },
+                                    Column(
+                                      children: [
+                                        Row(
+                                          children: [
+                                            Consumer<RegisterViewModel>(
+                                              builder:
+                                                  (context, registerViewModel, _) {
+                                                return FormField(
+                                                  validator: (value) {
+                                                    if (value == null ||
+                                                        value.toString().isEmpty) {
+                                                      return "Please select Customer or Restaurant";
+                                                    }
+                                                  },
+                                                  builder: (_) {
+                                                    return Radio(
+                                                      value: 2,
+                                                      groupValue: registerViewModel
+                                                          .getSelectedType,
+                                                      onChanged: ((value) {
+                                                        registerViewModel
+                                                            .setSelectedType(value);
+                                                      }),
+                                                    );
+                                                  },
+                                                );
+                                              },
+                                            ),
+                                            const Text("Restaurant"),
+                                          ],
+                                        ),
+                                      ],
                                     ),
                                   ],
                                 ),
@@ -454,19 +501,17 @@ class HeaderWelcome extends StatelessWidget {
             ),
             Stack(
               children: [
-                Expanded(
-                  child: Container(
-                    padding: const EdgeInsets.only(left: 12),
-                    width: MediaQuery.of(context).size.width / 3 - 20,
-                    decoration: BoxDecoration(
-                        color: Colors.white,
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          boxShadow(),
-                        ]),
-                    child: Image.asset("assets/images/inage_picker.png",
-                        scale: 1.1),
-                  ),
+                Container(
+                  padding: const EdgeInsets.only(left: 12),
+                  width: MediaQuery.of(context).size.width / 3 - 20,
+                  decoration: BoxDecoration(
+                      color: Colors.white,
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        boxShadow(),
+                      ]),
+                  child:
+                      Image.asset("assets/images/inage_picker.png", scale: 1.1),
                 ),
               ],
             ),

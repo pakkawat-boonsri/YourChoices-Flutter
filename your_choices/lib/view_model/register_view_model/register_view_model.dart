@@ -3,8 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:your_choices/utilities/show_snack_bar.dart';
 
 class RegisterViewModel extends ChangeNotifier {
-  var _isCustomerCheck = 1;
-  var _isRestaurantCheck = 2;
+  int? _selectedType;
   bool _isLoading = false;
   bool _isClick = false;
   final auth = FirebaseAuth.instance;
@@ -20,19 +19,17 @@ class RegisterViewModel extends ChangeNotifier {
     _isClick = value;
   }
 
-  get getCustomerCheck => _isCustomerCheck;
+  get getSelectedType => _selectedType;
 
-  set setCustomerCheck(checked) {
-    _isCustomerCheck = checked;
+  setSelectedType(checked) {
+    _selectedType = checked;
     notifyListeners();
   }
 
-  get getRestaurantCheck => _isRestaurantCheck;
-
-  setRestaurantCheck(checked) {
-    _isRestaurantCheck = checked;
-    notifyListeners();
-  }
+  final List<Map> data = [
+    {'value': 1, 'display': 'Customer'},
+    {'value': 2, 'display': 'Restaurant'},
+  ];
 
   createUserWithEmailAndpassword(BuildContext context, String username,
       String email, String password) async {
@@ -42,10 +39,9 @@ class RegisterViewModel extends ChangeNotifier {
           .then(
         (value) async {
           final currentUser = auth.currentUser;
-          
-          if (getCustomerCheck == 1) {
 
-          } else if (getRestaurantCheck == 2) {}
+          if (_selectedType == 1) {
+          } else if (_selectedType == 2) {}
         },
       );
     } on FirebaseAuthException catch (e) {

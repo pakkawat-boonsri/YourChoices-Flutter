@@ -3,7 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:your_choices/utilities/show_snack_bar.dart';
 import 'package:your_choices/view/login_view/login_view.dart';
-import 'package:your_choices/view/main_view.dart';
+import 'package:your_choices/bottom_nav_bar.dart';
 
 class LoginViewModel extends ChangeNotifier {
   bool _isLoading = false;
@@ -27,7 +27,7 @@ class LoginViewModel extends ChangeNotifier {
       stream: FirebaseAuth.instance.authStateChanges(),
       builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
         if (snapshot.hasData) {
-          return const MainView();
+          return const BottomNavBar();
         } else {
           return const LoginView();
         }

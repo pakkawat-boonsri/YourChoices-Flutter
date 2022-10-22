@@ -2,16 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:your_choices/view/restaurant_view/restaurant_view.dart';
 import 'package:your_choices/view/transaction_view/transaction_view.dart';
-import 'package:your_choices/view_model/main_view_model/main_view_model.dart';
+import 'package:your_choices/view_model/bottom_nav_view_model/bottom_nav_bar_view_model.dart';
 
-class MainView extends StatefulWidget {
-  const MainView({super.key});
+class BottomNavBar extends StatefulWidget {
+  const BottomNavBar({super.key});
 
   @override
-  State<MainView> createState() => _MainViewState();
+  State<BottomNavBar> createState() => _BottomNavBarState();
 }
 
-class _MainViewState extends State<MainView> {
+class _BottomNavBarState extends State<BottomNavBar> {
   final views = [
     const TransactionView(),
     const RestaurantView(),
