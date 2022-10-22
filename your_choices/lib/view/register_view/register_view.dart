@@ -61,7 +61,7 @@ class _RegisterViewState extends State<RegisterView> {
                       children: [
                         HeaderWelcome(size: size),
                         const SizedBox(
-                          height: 20,
+                          height: 10,
                         ),
                         Form(
                           key: _regisKey,
@@ -108,7 +108,7 @@ class _RegisterViewState extends State<RegisterView> {
                                       ),
                                     ),
                                     prefixIcon: const Icon(
-                                      Icons.lock_outline,
+                                      Icons.person,
                                       color: Colors.black,
                                     ),
                                   ),
@@ -162,7 +162,7 @@ class _RegisterViewState extends State<RegisterView> {
                                       ),
                                     ),
                                     prefixIcon: const Icon(
-                                      Icons.lock_outline,
+                                      Icons.mail_outline,
                                       color: Colors.black,
                                     ),
                                   ),
@@ -280,7 +280,7 @@ class _RegisterViewState extends State<RegisterView> {
                                     if (value!.isEmpty) {
                                       return "Please enter your Password.";
                                     } else if (password != confirmPassword) {
-                                      return "Your comfirm password is not correct!.";
+                                      return "Your confirm password is not correct!.";
                                     }
                                     return null;
                                   },
@@ -288,55 +288,76 @@ class _RegisterViewState extends State<RegisterView> {
                                 const SizedBox(
                                   height: 10,
                                 ),
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceEvenly,
+                                Column(
                                   children: [
                                     Row(
-                                      children: [
-                                        Consumer<RegisterViewModel>(
-                                          builder:
-                                              (context, registerViewModel, _) {
-                                            return FormField(
-                                              builder: (_) {
-                                                return Radio(
-                                                  value: 1,
-                                                  groupValue: registerViewModel
-                                                      .getSelectedType,
-                                                  onChanged: ((value) {
-                                                    registerViewModel
-                                                        .setSelectedType(value);
-                                                  }),
-                                                );
-                                              },
-                                            );
-                                          },
-                                        ),
-                                        const Text("Customer"),
-                                      ],
-                                    ),
-                                    Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceEvenly,
                                       children: [
                                         Row(
                                           children: [
                                             Consumer<RegisterViewModel>(
-                                              builder:
-                                                  (context, registerViewModel, _) {
+                                              builder: (context,
+                                                  registerViewModel, _) {
                                                 return FormField(
                                                   validator: (value) {
                                                     if (value == null ||
-                                                        value.toString().isEmpty) {
+                                                        value
+                                                            .toString()
+                                                            .isEmpty) {
                                                       return "Please select Customer or Restaurant";
                                                     }
+                                                    return null;
                                                   },
-                                                  builder: (_) {
+                                                  builder: (state) {
                                                     return Radio(
-                                                      value: 2,
-                                                      groupValue: registerViewModel
-                                                          .getSelectedType,
+                                                      value: 1,
+                                                      groupValue:
+                                                          registerViewModel
+                                                              .getSelectedType,
                                                       onChanged: ((value) {
                                                         registerViewModel
-                                                            .setSelectedType(value);
+                                                            .setSelectedType(
+                                                                value);
+                                                        print(state.hasError);
+                                                        registerViewModel
+                                                            .setRadioState(
+                                                                state.hasError);
+
+                                                      }),
+                                                    );
+                                                  },
+                                                );
+                                              },
+                                            ),
+                                            const Text("Customer"),
+                                          ],
+                                        ),
+                                        Row(
+                                          children: [
+                                            Consumer<RegisterViewModel>(
+                                              builder: (context,
+                                                  registerViewModel, _) {
+                                                return FormField(
+                                                  validator: (value) {
+                                                    if (value == null ||
+                                                        value
+                                                            .toString()
+                                                            .isEmpty) {
+                                                      return "Please select Customer or Restaurant";
+                                                    }
+                                                    return null;
+                                                  },
+                                                  builder: (state) {
+                                                    return Radio(
+                                                      value: 2,
+                                                      groupValue:
+                                                          registerViewModel
+                                                              .getSelectedType,
+                                                      onChanged: ((value) {
+                                                        registerViewModel
+                                                            .setSelectedType(
+                                                                value);
                                                       }),
                                                     );
                                                   },
@@ -511,7 +532,7 @@ class HeaderWelcome extends StatelessWidget {
                         boxShadow(),
                       ]),
                   child:
-                      Image.asset("assets/images/inage_picker.png", scale: 1.1),
+                      Image.asset("assets/images/image_picker.png", scale: 1.1),
                 ),
               ],
             ),

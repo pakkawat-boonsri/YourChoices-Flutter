@@ -6,7 +6,22 @@ class RegisterViewModel extends ChangeNotifier {
   int? _selectedType;
   bool _isLoading = false;
   bool _isClick = false;
+  bool _checkRadioError = false ;
+  String _state = "" ;
   final auth = FirebaseAuth.instance;
+
+  get getRadioState => _checkRadioError ;
+
+  setRadioState(bool value) {
+    _checkRadioError = value ;
+  }
+
+  get getStateValue => _state ;
+
+  setRadioValue(String value) {
+    _state = value ;
+  }
+
   bool get getIsLoading => _isLoading;
 
   setIsLoading(bool value) {
@@ -25,11 +40,6 @@ class RegisterViewModel extends ChangeNotifier {
     _selectedType = checked;
     notifyListeners();
   }
-
-  final List<Map> data = [
-    {'value': 1, 'display': 'Customer'},
-    {'value': 2, 'display': 'Restaurant'},
-  ];
 
   createUserWithEmailAndpassword(BuildContext context, String username,
       String email, String password) async {
