@@ -56,6 +56,7 @@ class LoginViewModel extends ChangeNotifier {
 
         User? user = userCredential.user;
 
+        // ignore: use_build_context_synchronously
         final role = Provider.of<RegisterViewModel>(context, listen: false);
 
         if (user != null) {
