@@ -1,27 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:your_choices/view/restaurant_view/restaurant_view.dart';
-import 'package:your_choices/view/transaction_view/transaction_view.dart';
 import 'package:your_choices/view_model/bottom_nav_view_model/bottom_nav_bar_view_model.dart';
 
-class BottomNavBar extends StatefulWidget {
-  const BottomNavBar({super.key});
+class BottomNavBarView extends StatefulWidget {
+  const BottomNavBarView({super.key});
 
   @override
-  State<BottomNavBar> createState() => _BottomNavBarState();
+  State<BottomNavBarView> createState() => _BottomNavBarViewState();
 }
 
-class _BottomNavBarState extends State<BottomNavBar> {
-  final views = [
-    const TransactionView(),
-    const RestaurantView(),
-  ];
-
+class _BottomNavBarViewState extends State<BottomNavBarView> {
   @override
   Widget build(BuildContext context) {
-    var provider = Provider.of<MainViewModel>(context);
+    var provider = Provider.of<BottomNavBarViewModel>(context);
     return Scaffold(
-      body: SafeArea(child: views[provider.currentIndex]),
+      body: SafeArea(
+        child: Consumer<BottomNavBarViewModel>(
+          builder: (context, value, child) {
+            return value.views[value.currentIndex];
+          },
+        ),
+      ),
       bottomNavigationBar: ClipRRect(
         borderRadius: const BorderRadius.only(
           topLeft: Radius.circular(30.0),

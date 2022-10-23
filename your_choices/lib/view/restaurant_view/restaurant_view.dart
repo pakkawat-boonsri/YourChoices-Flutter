@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:your_choices/view_model/login_view_model/login_view_model.dart';
 
 class RestaurantView extends StatefulWidget {
   const RestaurantView({super.key});
@@ -10,9 +12,17 @@ class RestaurantView extends StatefulWidget {
 class _RestaurantViewState extends State<RestaurantView> {
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
+    return Scaffold(
       body: Center(
-        child: Text("RestuarantView"),
+        child: Consumer<LoginViewModel>(
+          builder: (context, value, child) {
+            return ElevatedButton(
+                onPressed: () {
+                  value.signOut(context);
+                },
+                child: const Text("Sign Out"));
+          },
+        ),
       ),
     );
   }

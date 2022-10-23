@@ -1,31 +1,38 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:your_choices/utilities/show_snack_bar.dart';
 
 class RegisterViewModel extends ChangeNotifier {
   int? _selectedType;
-  bool _isLoading = false;
   bool _isClick = false;
-  bool _checkRadioError = false ;
-  String _state = "" ;
+  bool _checkRadioError = false;
+  bool isShowUsername = false;
+  bool isShowEmail = false;
+  bool isShowPassword = false;
+  bool isShowConfirmPassword = false;
+  String _state = "";
+
+  bool _obscureText = true;
   final auth = FirebaseAuth.instance;
+  final db = FirebaseFirestore.instance;
 
-  get getRadioState => _checkRadioError ;
+  get getObscureText => _obscureText;
 
-  setRadioState(bool value) {
-    _checkRadioError = value ;
+  setObscureText(bool value) {
+    _obscureText = value;
   }
 
-  get getStateValue => _state ;
+  get getRadioState => _checkRadioError;
+
+  set setRadioState(bool value) {
+    _checkRadioError = value;
+  }
+
+  get getStateValue => _state;
 
   setRadioValue(String value) {
-    _state = value ;
-  }
-
-  bool get getIsLoading => _isLoading;
-
-  setIsLoading(bool value) {
-    _isLoading = value;
+    _state = value;
   }
 
   bool get getIsClick => _isClick;
@@ -49,9 +56,25 @@ class RegisterViewModel extends ChangeNotifier {
           .then(
         (value) async {
           final currentUser = auth.currentUser;
-
           if (_selectedType == 1) {
-          } else if (_selectedType == 2) {}
+            db.collection("customer").doc(currentUser!.uid).set({
+              "balance": 0,
+              "username": username,
+              "imgAvatar": "",
+              "role": "101",
+              "transaction": [{}],
+            });
+          } else if (_selectedType == 2) {
+            db.collection("restaurant").doc(currentUser!.uid).set({
+              "res_name": "",
+              "description": "",
+              "menu_list": [{}],
+              "username": username,
+              "imgAvatar": "",
+              "role": "101",
+              "transaction": [{}],
+            });
+          }
         },
       );
     } on FirebaseAuthException catch (e) {

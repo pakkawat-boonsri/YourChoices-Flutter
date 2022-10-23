@@ -1,14 +1,17 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:provider/provider.dart';
 import 'package:your_choices/utilities/show_snack_bar.dart';
-import 'package:your_choices/view/login_view/login_view.dart';
-import 'package:your_choices/bottom_nav_bar.dart';
+import 'package:your_choices/view_model/register_view_model/register_view_model.dart';
 
 class LoginViewModel extends ChangeNotifier {
   bool _isLoading = false;
   bool _isClick = false;
   final auth = FirebaseAuth.instance;
+  final firestoreDB = FirebaseFirestore.instance;
 
   bool get getIsLoading => _isLoading;
 
@@ -22,18 +25,7 @@ class LoginViewModel extends ChangeNotifier {
     _isClick = value;
   }
 
-  handleUserLogin() {
-    return StreamBuilder(
-      stream: FirebaseAuth.instance.authStateChanges(),
-      builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
-        if (snapshot.hasData) {
-          return const BottomNavBar();
-        } else {
-          return const LoginView();
-        }
-      },
-    );
-  }
+  Stream<User?> get authState => auth.authStateChanges();
 
   signInWithEmaillAndPassword(
       String email, String password, BuildContext context) async {
@@ -48,18 +40,52 @@ class LoginViewModel extends ChangeNotifier {
     }
   }
 
-  signInWithGoogle() async {
-    final GoogleSignInAccount? googleUser =
-        await GoogleSignIn(scopes: <String>["email"]).signIn();
+  Future<void> signInWithGoogle(BuildContext context) async {
+    // bool result = false;
+    try {
+      final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
+      final GoogleSignInAuthentication? googleAuth =
+          await googleUser?.authentication;
 
-    final GoogleSignInAuthentication googleAuth =
-        await googleUser!.authentication;
+      if (googleAuth?.idToken != null && googleAuth?.accessToken != null) {
+        final credential = GoogleAuthProvider.credential(
+            idToken: googleAuth?.idToken, accessToken: googleAuth?.accessToken);
 
-    final credential = GoogleAuthProvider.credential(
-      accessToken: googleAuth.accessToken,
-      idToken: googleAuth.idToken,
-    );
+        UserCredential userCredential =
+            await auth.signInWithCredential(credential);
 
-    return await FirebaseAuth.instance.signInWithCredential(credential);
+        User? user = userCredential.user;
+
+        final role = Provider.of<RegisterViewModel>(context, listen: false);
+
+        if (user != null) {
+          if (userCredential.additionalUserInfo!.isNewUser) {
+            if (role.getSelectedType == 1) {
+              await firestoreDB.collection("customer").doc(user.uid).set({
+              "balance": 0,
+              "username": user.displayName,
+              "imgAvatar": user.photoURL,
+              "role": "101",
+              "transaction": [{}],
+              });
+            } else if (role.getSelectedType == 2) {
+              await firestoreDB.collection("restaurant").doc(user.uid).set({
+                
+              });
+            }
+          }
+        }
+      }
+    } on FirebaseAuthException catch (e) {
+      showSnackbar(context, e.message!);
+    }
+  }
+
+  Future signOut(BuildContext context) async {
+    try {
+      auth.signOut();
+    } on FirebaseAuthException catch (e) {
+      showSnackbar(context, e.message!);
+    }
   }
 }

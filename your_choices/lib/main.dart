@@ -1,6 +1,7 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:your_choices/auth_warpper.dart';
 import 'package:your_choices/constants/routes.dart';
 import 'package:your_choices/view/login_view/login_view.dart';
 import 'package:your_choices/view/register_view/register_view.dart';
@@ -36,7 +37,11 @@ class _YourChoicesState extends State<YourChoices> {
           create: (context) => RegisterViewModel(),
         ),
         ChangeNotifierProvider(
-          create: (context) => MainViewModel(),
+          create: (context) => BottomNavBarViewModel(),
+        ),
+        StreamProvider(
+          initialData: null,
+          create: (context) => context.read<LoginViewModel>().authState,
         ),
       ],
       child: MaterialApp(
@@ -45,11 +50,7 @@ class _YourChoicesState extends State<YourChoices> {
           scaffoldBackgroundColor: const Color(0xFF34312f),
         ),
         title: "YourChoices",
-        home: Consumer<LoginViewModel>(
-          builder: (context, loginViewModel, child) {
-            return loginViewModel.handleUserLogin();
-          },
-        ),
+        home: const AuthWrapper(),
         routes: {
           loginRoutes: (context) => const LoginView(),
           registerRoutes: (context) => const RegisterView(),

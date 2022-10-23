@@ -15,7 +15,7 @@ class FirebaseAuthProvider {
       stream: FirebaseAuth.instance.authStateChanges(),
       builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
         if (snapshot.hasData) {
-          return const BottomNavBar();
+          return const BottomNavBarView();
         } else {
           return const LoginView();
         }

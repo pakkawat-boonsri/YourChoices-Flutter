@@ -52,6 +52,7 @@ class DefaultFirebaseOptions {
     messagingSenderId: '609224872147',
     projectId: 'your-choices-project',
     authDomain: 'your-choices-project.firebaseapp.com',
+    databaseURL: 'https://your-choices-project-default-rtdb.asia-southeast1.firebasedatabase.app',
     storageBucket: 'your-choices-project.appspot.com',
   );
 
@@ -60,6 +61,7 @@ class DefaultFirebaseOptions {
     appId: '1:609224872147:android:865a41efdd55f43d420426',
     messagingSenderId: '609224872147',
     projectId: 'your-choices-project',
+    databaseURL: 'https://your-choices-project-default-rtdb.asia-southeast1.firebasedatabase.app',
     storageBucket: 'your-choices-project.appspot.com',
   );
 
@@ -68,7 +70,9 @@ class DefaultFirebaseOptions {
     appId: '1:609224872147:ios:e28e000c369efec0420426',
     messagingSenderId: '609224872147',
     projectId: 'your-choices-project',
+    databaseURL: 'https://your-choices-project-default-rtdb.asia-southeast1.firebasedatabase.app',
     storageBucket: 'your-choices-project.appspot.com',
+    androidClientId: '609224872147-lsls5g96l4q70ip4ueq1ubsr3k4agvo8.apps.googleusercontent.com',
     iosClientId: '609224872147-ngfmvr7rf9rbv1pequh16te29im0pc6i.apps.googleusercontent.com',
     iosBundleId: 'com.yourchoices.yourChoices',
   );

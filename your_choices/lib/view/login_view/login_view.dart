@@ -210,7 +210,7 @@ class _LoginViewState extends State<LoginView> {
                       InkWell(
                         onTap: () {
                           final googleSignIn = context.read<LoginViewModel>();
-                          googleSignIn.signInWithGoogle();
+                          googleSignIn.signInWithGoogle(context);
                         },
                         child: Container(
                           width: size.width / 2 + 20,

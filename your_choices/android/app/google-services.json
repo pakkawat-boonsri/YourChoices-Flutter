@@ -1,6 +1,7 @@
 {
   "project_info": {
     "project_number": "609224872147",
+    "firebase_url": "https://your-choices-project-default-rtdb.asia-southeast1.firebasedatabase.app",
     "project_id": "your-choices-project",
     "storage_bucket": "your-choices-project.appspot.com"
   },
@@ -13,6 +14,14 @@
         }
       },
       "oauth_client": [
+        {
+          "client_id": "609224872147-lsls5g96l4q70ip4ueq1ubsr3k4agvo8.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.your_choices.your_choices",
+            "certificate_hash": "336528c6dba0161d508cbf673524f581721a3154"
+          }
+        },
         {
           "client_id": "609224872147-8jhrl52um707kdmc3d3mll7tt97bkafd.apps.googleusercontent.com",
           "client_type": 3
@@ -29,6 +38,13 @@
             {
               "client_id": "609224872147-8jhrl52um707kdmc3d3mll7tt97bkafd.apps.googleusercontent.com",
               "client_type": 3
+            },
+            {
+              "client_id": "609224872147-ngfmvr7rf9rbv1pequh16te29im0pc6i.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.yourchoices.yourChoices"
+              }
             }
           ]
         }

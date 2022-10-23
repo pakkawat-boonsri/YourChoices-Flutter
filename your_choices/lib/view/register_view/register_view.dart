@@ -70,25 +70,25 @@ class _RegisterViewState extends State<RegisterView> {
                             child: Column(
                               children: [
                                 TextFormField(
-                                  onTap: context
-                                      .read<RegisterViewModel>()
-                                      .setIsClick(true),
                                   controller: username,
                                   keyboardType: TextInputType.name,
                                   autocorrect: false,
-                                  obscureText: false,
                                   enableSuggestions: false,
                                   decoration: InputDecoration(
                                     hintText: "Username",
                                     labelText: "Username",
-                                    suffixIcon: username.text.isNotEmpty
+                                    suffixIcon: context
+                                            .watch<RegisterViewModel>()
+                                            .isShowUsername
                                         ? IconButton(
-                                            icon: const Icon(Icons.clear),
                                             onPressed: () {
+                                              context
+                                                  .read<RegisterViewModel>()
+                                                  .isShowUsername = false;
                                               username.clear();
                                             },
-                                          )
-                                        : const SizedBox.shrink(),
+                                            icon: const Icon(Icons.clear))
+                                        : const SizedBox(),
                                     enabledBorder: OutlineInputBorder(
                                       borderSide: BorderSide(
                                         color: Colors.amber.shade900,
@@ -112,6 +112,17 @@ class _RegisterViewState extends State<RegisterView> {
                                       color: Colors.black,
                                     ),
                                   ),
+                                  onChanged: (value) {
+                                    if (value.isNotEmpty) {
+                                      context
+                                          .read<RegisterViewModel>()
+                                          .isShowUsername = true;
+                                    } else if (value.isEmpty) {
+                                      context
+                                          .read<RegisterViewModel>()
+                                          .isShowUsername = false;
+                                    }
+                                  },
                                   validator: (value) {
                                     if (value!.isEmpty) {
                                       return "Please enter your Username.";
@@ -123,25 +134,24 @@ class _RegisterViewState extends State<RegisterView> {
                                   height: 10,
                                 ),
                                 TextFormField(
-                                  onTap: context
-                                      .read<RegisterViewModel>()
-                                      .setIsClick(true),
                                   controller: email,
                                   keyboardType: TextInputType.name,
                                   autocorrect: false,
-                                  obscureText: false,
                                   enableSuggestions: false,
                                   decoration: InputDecoration(
                                     hintText: "Email",
                                     labelText: "Email",
-                                    suffixIcon: email.text.isNotEmpty
+                                    suffixIcon: context
+                                            .watch<RegisterViewModel>()
+                                            .isShowEmail
                                         ? IconButton(
-                                            icon: const Icon(Icons.clear),
                                             onPressed: () {
+                                              context
+                                                  .read<RegisterViewModel>()
+                                                  .isShowEmail = false;
                                               email.clear();
-                                              Navigator.pop(context);
                                             },
-                                          )
+                                            icon: const Icon(Icons.clear))
                                         : const SizedBox(),
                                     enabledBorder: OutlineInputBorder(
                                       borderSide: BorderSide(
@@ -166,6 +176,17 @@ class _RegisterViewState extends State<RegisterView> {
                                       color: Colors.black,
                                     ),
                                   ),
+                                  onChanged: (value) {
+                                    if (value.isNotEmpty) {
+                                      context
+                                          .read<RegisterViewModel>()
+                                          .isShowEmail = true;
+                                    } else if (value.isEmpty) {
+                                      context
+                                          .read<RegisterViewModel>()
+                                          .isShowEmail = false;
+                                    }
+                                  },
                                   validator: (value) {
                                     if (value!.isEmpty) {
                                       return "Please enter your Email.";
@@ -181,24 +202,27 @@ class _RegisterViewState extends State<RegisterView> {
                                   height: 10,
                                 ),
                                 TextFormField(
-                                  onTap: context
-                                      .read<RegisterViewModel>()
-                                      .setIsClick(true),
                                   controller: password,
                                   keyboardType: TextInputType.name,
                                   autocorrect: false,
-                                  obscureText: true,
+                                  obscureText: context
+                                      .watch<RegisterViewModel>()
+                                      .getObscureText,
                                   enableSuggestions: false,
                                   decoration: InputDecoration(
                                     hintText: "Password",
                                     labelText: "Password",
-                                    suffixIcon: password.text.isNotEmpty
+                                    suffixIcon: context
+                                            .watch<RegisterViewModel>()
+                                            .isShowPassword
                                         ? IconButton(
-                                            icon: const Icon(Icons.clear),
                                             onPressed: () {
+                                              context
+                                                  .read<RegisterViewModel>()
+                                                  .isShowPassword = false;
                                               password.clear();
                                             },
-                                          )
+                                            icon: const Icon(Icons.clear))
                                         : const SizedBox(),
                                     enabledBorder: OutlineInputBorder(
                                       borderSide: BorderSide(
@@ -223,6 +247,17 @@ class _RegisterViewState extends State<RegisterView> {
                                       color: Colors.black,
                                     ),
                                   ),
+                                  onChanged: (value) {
+                                    if (value.isNotEmpty) {
+                                      context
+                                          .read<RegisterViewModel>()
+                                          .isShowPassword = true;
+                                    } else if (value.isEmpty) {
+                                      context
+                                          .read<RegisterViewModel>()
+                                          .isShowPassword = false;
+                                    }
+                                  },
                                   validator: (value) {
                                     if (value!.isEmpty) {
                                       return "Please enter your Password.";
@@ -234,9 +269,6 @@ class _RegisterViewState extends State<RegisterView> {
                                   height: 10,
                                 ),
                                 TextFormField(
-                                  onTap: context
-                                      .read<RegisterViewModel>()
-                                      .setIsClick(true),
                                   controller: confirmPassword,
                                   keyboardType: TextInputType.name,
                                   autocorrect: false,
@@ -245,13 +277,18 @@ class _RegisterViewState extends State<RegisterView> {
                                   decoration: InputDecoration(
                                     hintText: "Confirm password",
                                     labelText: "Confirm password",
-                                    suffixIcon: confirmPassword.text.isNotEmpty
+                                    suffixIcon: context
+                                            .watch<RegisterViewModel>()
+                                            .isShowConfirmPassword
                                         ? IconButton(
-                                            icon: const Icon(Icons.clear),
                                             onPressed: () {
+                                              context
+                                                      .read<RegisterViewModel>()
+                                                      .isShowConfirmPassword =
+                                                  false;
                                               confirmPassword.clear();
                                             },
-                                          )
+                                            icon: const Icon(Icons.clear))
                                         : const SizedBox(),
                                     enabledBorder: OutlineInputBorder(
                                       borderSide: BorderSide(
@@ -276,10 +313,22 @@ class _RegisterViewState extends State<RegisterView> {
                                       color: Colors.black,
                                     ),
                                   ),
+                                  onChanged: (value) {
+                                    if (value.isNotEmpty) {
+                                      context
+                                          .read<RegisterViewModel>()
+                                          .isShowConfirmPassword = true;
+                                    } else if (value.isEmpty) {
+                                      context
+                                          .read<RegisterViewModel>()
+                                          .isShowConfirmPassword = false;
+                                    }
+                                  },
                                   validator: (value) {
                                     if (value!.isEmpty) {
                                       return "Please enter your Password.";
-                                    } else if (password != confirmPassword) {
+                                    } else if (password.text !=
+                                        confirmPassword.text) {
                                       return "Your confirm password is not correct!.";
                                     }
                                     return null;
@@ -319,11 +368,6 @@ class _RegisterViewState extends State<RegisterView> {
                                                         registerViewModel
                                                             .setSelectedType(
                                                                 value);
-                                                        print(state.hasError);
-                                                        registerViewModel
-                                                            .setRadioState(
-                                                                state.hasError);
-
                                                       }),
                                                     );
                                                   },
@@ -381,6 +425,12 @@ class _RegisterViewState extends State<RegisterView> {
                                               username.text,
                                               email.text,
                                               password.text);
+                                      Navigator.of(context).pushAndRemoveUntil(
+                                          MaterialPageRoute(
+                                            builder: (context) =>
+                                                const LoginView(),
+                                          ),
+                                          (route) => false);
                                     }
                                   },
                                   style: ButtonStyle(
@@ -401,7 +451,7 @@ class _RegisterViewState extends State<RegisterView> {
                                     ),
                                   ),
                                   child: Text(
-                                    "Sign In",
+                                    "Sign Up",
                                     style: GoogleFonts.ibmPlexSansThai(
                                         fontSize: 16,
                                         fontWeight: FontWeight.normal),
@@ -471,7 +521,7 @@ class RichTextNavigatorText extends StatelessWidget {
                       (route) => false);
                 },
                 child: Text(
-                  "Sign in",
+                  "Sign In",
                   style: GoogleFonts.ibmPlexSansThai(
                     fontSize: 16,
                     color: Colors.black,
