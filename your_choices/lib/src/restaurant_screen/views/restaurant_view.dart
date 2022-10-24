@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:your_choices/view_model/login_view_model/login_view_model.dart';
+import 'package:your_choices/src/login_screen/view_models/login_view_model.dart';
 
 class RestaurantView extends StatefulWidget {
   const RestaurantView({super.key});

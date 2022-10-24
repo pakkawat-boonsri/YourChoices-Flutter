@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
-import 'package:your_choices/view/restaurant_view/restaurant_view.dart';
-import 'package:your_choices/view/transaction_view/transaction_view.dart';
+import 'package:your_choices/src/restaurant_screen/views/restaurant_view.dart';
+import 'package:your_choices/src/transaction_screen/views/transaction_view.dart';
 
 class BottomNavBarViewModel with ChangeNotifier {
   int _currentIndex = 0;

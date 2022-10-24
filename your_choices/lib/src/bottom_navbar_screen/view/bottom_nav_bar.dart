@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:your_choices/view_model/bottom_nav_view_model/bottom_nav_bar_view_model.dart';
+import 'package:your_choices/src/bottom_navbar_screen/view_model/bottom_nav_bar_view_model.dart';
 
 class BottomNavBarView extends StatefulWidget {
   const BottomNavBarView({super.key});

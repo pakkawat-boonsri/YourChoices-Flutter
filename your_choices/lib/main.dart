@@ -1,13 +1,14 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:your_choices/auth_warpper.dart';
-import 'package:your_choices/constants/routes.dart';
-import 'package:your_choices/view/login_view/login_view.dart';
-import 'package:your_choices/view/register_view/register_view.dart';
-import 'package:your_choices/view_model/login_view_model/login_view_model.dart';
-import 'package:your_choices/view_model/bottom_nav_view_model/bottom_nav_bar_view_model.dart';
-import 'package:your_choices/view_model/register_view_model/register_view_model.dart';
+import 'package:your_choices/src/bottom_navbar_screen/view/bottom_nav_bar.dart';
+import 'package:your_choices/src/constants/routes.dart';
+import 'package:your_choices/src/login_screen/views/login_view.dart';
+import 'package:your_choices/src/register_screen/views/register_view.dart';
+import 'package:your_choices/src/login_screen/view_models/login_view_model.dart';
+import 'package:your_choices/src/bottom_navbar_screen/view_model/bottom_nav_bar_view_model.dart';
+import 'package:your_choices/src/register_screen/view_model/register_view_model.dart';
 import 'firebase_options.dart';
 
 void main() async {
@@ -39,10 +40,6 @@ class _YourChoicesState extends State<YourChoices> {
         ChangeNotifierProvider(
           create: (context) => BottomNavBarViewModel(),
         ),
-        StreamProvider(
-          initialData: null,
-          create: (context) => context.read<LoginViewModel>().authState,
-        ),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
@@ -50,7 +47,16 @@ class _YourChoicesState extends State<YourChoices> {
           scaffoldBackgroundColor: const Color(0xFF34312f),
         ),
         title: "YourChoices",
-        home: const AuthWrapper(),
+        home: StreamBuilder(
+          stream: FirebaseAuth.instance.authStateChanges(),
+          builder: (context, snapshot) {
+            if (snapshot.hasData) {
+              return const BottomNavBarView();
+            } else {
+              return const LoginView();
+            }
+          },
+        ),
         routes: {
           loginRoutes: (context) => const LoginView(),
           registerRoutes: (context) => const RegisterView(),
