@@ -12,7 +12,6 @@ class BottomNavBarView extends StatefulWidget {
 class _BottomNavBarViewState extends State<BottomNavBarView> {
   @override
   Widget build(BuildContext context) {
-    var provider = Provider.of<BottomNavBarViewModel>(context);
     return Scaffold(
       body: SafeArea(
         child: Consumer<BottomNavBarViewModel>(
@@ -28,13 +27,11 @@ class _BottomNavBarViewState extends State<BottomNavBarView> {
         ),
         child: BottomNavigationBar(
           type: BottomNavigationBarType.shifting,
-          currentIndex: provider.currentIndex,
+          currentIndex: context.watch<BottomNavBarViewModel>().currentIndex,
           selectedItemColor: const Color(0xFFFF9C29),
           unselectedItemColor: Colors.grey,
           onTap: (index) {
-            setState(() {
-              provider.currentIndex = index;
-            });
+            context.read<BottomNavBarViewModel>().setcurrentIndex(index);
           },
           items: const [
             BottomNavigationBarItem(

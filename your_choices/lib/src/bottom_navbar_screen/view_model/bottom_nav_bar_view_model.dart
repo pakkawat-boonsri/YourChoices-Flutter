@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:your_choices/src/restaurant_screen/views/restaurant_view.dart';
-import 'package:your_choices/src/transaction_screen/views/transaction_view.dart';
+import 'package:your_choices/src/customer_screen/views/customer_view.dart';
 
 class BottomNavBarViewModel with ChangeNotifier {
   int _currentIndex = 0;
@@ -8,11 +8,11 @@ class BottomNavBarViewModel with ChangeNotifier {
   int get currentIndex => _currentIndex;
 
   final views = [
-    const TransactionView(),
+    const CustomerView(),
     const RestaurantView(),
   ];
 
-  set currentIndex(int index) {
+  setcurrentIndex(int index) {
     _currentIndex = index;
     notifyListeners();
   }

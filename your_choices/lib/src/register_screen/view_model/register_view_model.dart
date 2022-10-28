@@ -1,7 +1,11 @@
+import 'dart:developer';
+import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:your_choices/src/utilities/show_snack_bar.dart';
+import 'package:flutter/services.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:your_choices/utilities/show_snack_bar.dart';
 
 class RegisterViewModel extends ChangeNotifier {
   String _selectedType = "customer";
@@ -9,17 +13,25 @@ class RegisterViewModel extends ChangeNotifier {
   bool _obscureText = true;
   final auth = FirebaseAuth.instance;
   final db = FirebaseFirestore.instance;
-
   get getObscureText => _obscureText;
+
+  File? imageFile;
+
+  setImageFile(File file) {
+    imageFile = file;
+    notifyListeners();
+  }
 
   setObscureText(bool value) {
     _obscureText = value;
+    notifyListeners();
   }
 
   bool get getIsClick => _isClick;
 
   setIsClick(bool value) {
     _isClick = value;
+    notifyListeners();
   }
 
   get getSelectedType => _selectedType;
@@ -29,32 +41,47 @@ class RegisterViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future pickImageFromGallery() async {
+    try {
+      final file = await ImagePicker().pickImage(source: ImageSource.gallery);
+      if (file == null) {
+        return null;
+      } else {
+        imageFile = File(file.path);
+        notifyListeners();
+      }
+    } on PlatformException catch (e) {
+      log('Failed to pick image: $e');
+    }
+  }
+
   createUserWithEmailAndpassword(BuildContext context, String username,
-      String email, String password , String type) async {
+      String email, String password, String type) async {
     try {
       await auth
           .createUserWithEmailAndPassword(email: email, password: password)
           .then(
         (value) async {
-          final currentUser = auth.currentUser;
           if (type == "customer") {
-            await db.collection("customer").doc(currentUser!.uid).set({
+            await db.collection("customer").doc(value.user!.uid).set({
               "balance": 0,
               "username": username,
-              "imgAvatar": "",
+              "imgAvatar": imageFile!.path,
               "role": "101",
               "transaction": [{}],
             });
           } else if (type == "restaurant") {
-            await db.collection("restaurant").doc(currentUser!.uid).set({
-              "res_name": "",
-              "description": "",
-              "menu_list": [{}],
-              "username": username,
-              "imgAvatar": "",
-              "role": "101",
-              "transaction": [{}],
-            });
+            await db.collection("restaurant").doc(value.user!.uid).set(
+              {
+                "res_name": "",
+                "description": "",
+                "menu_list": [{}],
+                "username": username,
+                "imgAvatar": imageFile!.path,
+                "role": "101",
+                "transaction": [{}],
+              },
+            );
           }
         },
       );
