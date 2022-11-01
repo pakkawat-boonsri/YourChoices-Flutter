@@ -1,257 +1,523 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:provider/provider.dart';
-import 'package:your_choices/src/customer_screen/view_model/customer_view_model.dart';
+import 'package:your_choices/constants/date_format.dart';
+import 'package:your_choices/src/customer_screen/bloc/customer_bloc.dart';
+import 'package:your_choices/src/customer_screen/repository/customer_repository.dart';
 import 'package:your_choices/utilities/hex_color.dart';
 
-class CustomerView extends StatelessWidget {
+class CustomerView extends StatefulWidget {
   const CustomerView({super.key});
+
+  @override
+  State<StatefulWidget> createState() => _CustomerViewState();
+}
+
+class _CustomerViewState extends State<CustomerView> {
+  @override
+  void initState() {
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
     Size size = MediaQuery.of(context).size;
-    return Scaffold(
+    return BlocProvider(
+      create: (context) =>
+          CustomerBloc(RepositoryProvider.of<CustomerRepository>(context))
+            ..add(FetchDataEvent()),
+      child: Scaffold(
         body: SafeArea(
-      child: Column(
-        children: [
-          Container(
-            height: size.height / 2,
-            decoration: const BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.only(
-                bottomLeft: Radius.circular(15),
-                bottomRight: Radius.circular(15),
-              ),
-            ),
+          child: SingleChildScrollView(
+            physics: const ScrollPhysics(),
             child: Column(
               children: [
-                FutureBuilder(
-                  future: context.read<CustomerViewModel>().getUserData(),
-                  builder: (context, snapshot) {
-                    switch (snapshot.connectionState) {
-                      case ConnectionState.done:
-                        return Padding(
-                          padding: const EdgeInsets.all(12.0),
-                          child: Column(
-                            children: [
-                              Row(
-                                children: [
-                                  SizedBox(
-                                    width: 50,
-                                    height: 50,
-                                    child: ClipRRect(
-                                      borderRadius: const BorderRadius.all(
-                                        Radius.circular(100),
-                                      ),
-                                      child: Image.file(
-                                        File(snapshot.data!.imgAvatar),
-                                        fit: BoxFit.cover,
-                                      ),
+                Container(
+                  height: size.height * 0.5,
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.only(
+                      bottomLeft: Radius.circular(15),
+                      bottomRight: Radius.circular(15),
+                    ),
+                  ),
+                  child: Column(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.all(12.0),
+                        child: Column(
+                          children: [
+                            Row(
+                              children: [
+                                SizedBox(
+                                  width: 50,
+                                  height: 50,
+                                  child: ClipRRect(
+                                    borderRadius: const BorderRadius.all(
+                                      Radius.circular(100),
+                                    ),
+                                    child: BlocBuilder<CustomerBloc,
+                                        CustomerState>(
+                                      builder: (context, state) {
+                                        if (state is CustomerLoading) {
+                                          return const Center(
+                                            child: CircularProgressIndicator(),
+                                          );
+                                        }
+                                        if (state is CustomerLoadedState) {
+                                          return Image.file(
+                                            File(state.model.imgAvatar!),
+                                            fit: BoxFit.cover,
+                                          );
+                                        }
+                                        return Container();
+                                      },
                                     ),
                                   ),
-                                  const SizedBox(
-                                    width: 15,
+                                ),
+                                const SizedBox(
+                                  width: 15,
+                                ),
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      "สวัสดี ยินดีต้อนรับ",
+                                      style: GoogleFonts.ibmPlexSansThai(
+                                        fontSize: 13,
+                                        color: Colors.grey,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    const SizedBox(
+                                      height: 5,
+                                    ),
+                                    BlocBuilder<CustomerBloc, CustomerState>(
+                                      builder: (context, state) {
+                                        if (state is CustomerLoading) {
+                                          return const Center(
+                                            child: CircularProgressIndicator(),
+                                          );
+                                        }
+                                        if (state is CustomerLoadedState) {
+                                          return Text(
+                                            state.model.username!,
+                                            style: GoogleFonts.ibmPlexSansThai(
+                                              fontSize: 14,
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.black,
+                                            ),
+                                          );
+                                        }
+                                        return Container();
+                                      },
+                                    )
+                                  ],
+                                )
+                              ],
+                            ),
+                            const SizedBox(
+                              height: 20,
+                            ),
+                            Container(
+                              width: size.width,
+                              height: size.height / 4,
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                    begin: Alignment.centerLeft,
+                                    end: Alignment.centerRight,
+                                    colors: [
+                                      "#0F2027".toColor(),
+                                      "#203A43".toColor(),
+                                      "#2C5364".toColor(),
+                                    ]),
+                                borderRadius: const BorderRadius.all(
+                                  Radius.circular(15),
+                                ),
+                              ),
+                              child: Padding(
+                                padding:
+                                    const EdgeInsets.only(top: 20, left: 30),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      "เงินในบัญชี : ",
+                                      style: GoogleFonts.ibmPlexSansThai(
+                                        fontSize: 30,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                    Padding(
+                                      padding: const EdgeInsets.only(right: 35),
+                                      child: SizedBox(
+                                        width: size.width,
+                                        height: size.height / 7,
+                                        child: Column(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.end,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.end,
+                                          children: [
+                                            BlocBuilder<CustomerBloc,
+                                                CustomerState>(
+                                              builder: (context, state) {
+                                                if (state is CustomerLoading) {
+                                                  return const Center(
+                                                    child:
+                                                        CircularProgressIndicator(),
+                                                  );
+                                                }
+                                                if (state
+                                                    is CustomerLoadedState) {
+                                                  return Text(
+                                                    state.model.balance
+                                                        .toString(),
+                                                    style: GoogleFonts
+                                                        .ibmPlexSansThai(
+                                                      fontSize: 36,
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                      color: Colors.white,
+                                                    ),
+                                                  );
+                                                }
+                                                return Container();
+                                              },
+                                            )
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            )
+                          ],
+                        ),
+                      ),
+                      Row(
+                        children: [
+                          GestureDetector(
+                            onTap: () {},
+                            child: Padding(
+                              padding: const EdgeInsets.only(top: 10),
+                              child: Row(
+                                children: [
+                                  Padding(
+                                    padding: const EdgeInsets.only(left: 20),
+                                    child: Container(
+                                      width: size.width / 6,
+                                      height: size.height / 12,
+                                      decoration: BoxDecoration(
+                                        color: "78A017".toColor(),
+                                        borderRadius: const BorderRadius.only(
+                                          topLeft: Radius.circular(15),
+                                          bottomLeft: Radius.circular(15),
+                                        ),
+                                      ),
+                                      child: Image.asset(
+                                          "assets/images/deposit.png"),
+                                    ),
                                   ),
-                                  Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        "สวัสดี ยินดีต้อนรับ",
+                                  Container(
+                                    width: size.width / 4,
+                                    height: size.height / 12,
+                                    decoration: BoxDecoration(
+                                      color: "34312F".toColor(),
+                                      borderRadius: const BorderRadius.only(
+                                        topRight: Radius.circular(15),
+                                        bottomRight: Radius.circular(15),
+                                      ),
+                                    ),
+                                    child: Center(
+                                      child: Text(
+                                        "ฝากเงิน",
                                         style: GoogleFonts.ibmPlexSansThai(
-                                          fontSize: 13,
-                                          color: Colors.grey,
+                                          color: Colors.white,
+                                          fontSize: 20,
                                           fontWeight: FontWeight.bold,
                                         ),
                                       ),
-                                      const SizedBox(
-                                        height: 5,
-                                      ),
-                                      Text(
-                                        snapshot.data!.username,
-                                        style: GoogleFonts.ibmPlexSansThai(
-                                          fontSize: 14,
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.black,
-                                        ),
-                                      ),
-                                    ],
+                                    ),
                                   )
                                 ],
                               ),
-                              const SizedBox(
-                                height: 20,
-                              ),
-                              Container(
-                                width: size.width,
-                                height: size.height / 4,
-                                decoration: BoxDecoration(
-                                  gradient: LinearGradient(
-                                      begin: Alignment.centerLeft,
-                                      end: Alignment.centerRight,
-                                      colors: [
-                                        "#0F2027".toColor(),
-                                        "#203A43".toColor(),
-                                        "#2C5364".toColor(),
-                                      ]),
-                                  borderRadius: const BorderRadius.all(
-                                    Radius.circular(15),
+                            ),
+                          ),
+                          GestureDetector(
+                            onTap: () {},
+                            child: Padding(
+                              padding: const EdgeInsets.only(top: 10),
+                              child: Row(
+                                children: [
+                                  Padding(
+                                    padding: const EdgeInsets.only(left: 20),
+                                    child: Container(
+                                      width: size.width / 6,
+                                      height: size.height / 12,
+                                      decoration: BoxDecoration(
+                                        color: "FE7144".toColor(),
+                                        borderRadius: const BorderRadius.only(
+                                          topLeft: Radius.circular(15),
+                                          bottomLeft: Radius.circular(15),
+                                        ),
+                                      ),
+                                      child: Image.asset(
+                                          "assets/images/withdraw.png"),
+                                    ),
                                   ),
-                                ),
-                                child: Padding(
-                                  padding:
-                                      const EdgeInsets.only(top: 20, left: 30),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        "เงินในบัญชี : ",
+                                  Container(
+                                    width: size.width / 4,
+                                    height: size.height / 12,
+                                    decoration: BoxDecoration(
+                                      color: "34312F".toColor(),
+                                      borderRadius: const BorderRadius.only(
+                                        topRight: Radius.circular(15),
+                                        bottomRight: Radius.circular(15),
+                                      ),
+                                    ),
+                                    child: Center(
+                                      child: Text(
+                                        "ถอนเงิน",
                                         style: GoogleFonts.ibmPlexSansThai(
-                                          fontSize: 30,
-                                          fontWeight: FontWeight.bold,
                                           color: Colors.white,
+                                          fontSize: 20,
+                                          fontWeight: FontWeight.bold,
                                         ),
                                       ),
-                                      Padding(
-                                        padding:
-                                            const EdgeInsets.only(right: 35),
-                                        child: SizedBox(
-                                          width: size.width,
-                                          height: size.height / 7,
-                                          child: Column(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.end,
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.end,
-                                            children: [
-                                              Text(
-                                                snapshot.data!.balance
-                                                    .toString(),
-                                                style:
-                                                    GoogleFonts.ibmPlexSansThai(
-                                                  fontSize: 36,
-                                                  fontWeight: FontWeight.bold,
-                                                  color: Colors.white,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      ),
-                                    ],
+                                    ),
                                   ),
-                                ),
-                              )
-                            ],
-                          ),
-                        );
-                      case ConnectionState.waiting:
-                        return const Center(
-                          child: CircularProgressIndicator(),
-                        );
-                      default:
-                    }
-                    return const SizedBox();
-                  },
-                ),
-                Row(
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.only(top: 10),
-                      child: Row(
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.only(left: 20),
-                            child: Container(
-                              width: size.width / 6,
-                              height: size.height / 12,
-                              decoration: BoxDecoration(
-                                color: "78A017".toColor(),
-                                borderRadius: const BorderRadius.only(
-                                  topLeft: Radius.circular(15),
-                                  bottomLeft: Radius.circular(15),
-                                ),
-                              ),
-                              child: Image.asset("assets/images/deposit.png"),
-                            ),
-                          ),
-                          Container(
-                            width: size.width / 4,
-                            height: size.height / 12,
-                            decoration: BoxDecoration(
-                              color: "34312F".toColor(),
-                              borderRadius: const BorderRadius.only(
-                                topRight: Radius.circular(15),
-                                bottomRight: Radius.circular(15),
-                              ),
-                            ),
-                            child: Center(
-                              child: Text(
-                                "ฝากเงิน",
-                                style: GoogleFonts.ibmPlexSansThai(
-                                  color: Colors.white,
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
-                                ),
+                                ],
                               ),
                             ),
                           )
                         ],
                       ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.only(top: 10),
+                    ],
+                  ),
+                ),
+                const SizedBox(
+                  height: 15,
+                ),
+                Column(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    Container(
+                      margin: const EdgeInsets.symmetric(horizontal: 16),
+                      width: double.maxFinite,
                       child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Padding(
-                            padding: const EdgeInsets.only(left: 20),
-                            child: Container(
-                              width: size.width / 6,
-                              height: size.height / 12,
-                              decoration: BoxDecoration(
-                                color: "FE7144".toColor(),
-                                borderRadius: const BorderRadius.only(
-                                  topLeft: Radius.circular(15),
-                                  bottomLeft: Radius.circular(15),
-                                ),
-                              ),
-                              child: Image.asset("assets/images/withdraw.png"),
-                            ),
+                          Text(
+                            "ธุรกรรมต่างๆ",
+                            style: GoogleFonts.ibmPlexSansThai(
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white),
                           ),
-                          Container(
-                            width: size.width / 4,
-                            height: size.height / 12,
-                            decoration: BoxDecoration(
-                              color: "34312F".toColor(),
-                              borderRadius: const BorderRadius.only(
-                                topRight: Radius.circular(15),
-                                bottomRight: Radius.circular(15),
-                              ),
-                            ),
-                            child: Center(
-                              child: Text(
-                                "ถอนเงิน",
-                                style: GoogleFonts.ibmPlexSansThai(
-                                  color: Colors.white,
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                          ),
+                          Text(
+                            "see all",
+                            style: GoogleFonts.ibmPlexSansThai(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white),
+                          )
                         ],
                       ),
+                    ),
+                    const SizedBox(
+                      height: 10,
+                    ),
+                    BlocBuilder<CustomerBloc, CustomerState>(
+                      bloc: CustomerBloc(RepositoryProvider.of(context))
+                        ..add(FetchTransactionEvent()),
+                      builder: (context, state) {
+                        if (state is TransactionLoadingState) {
+                          return const Center(
+                            child: CircularProgressIndicator(),
+                          );
+                        } else if (state is TransactionLoadedState) {
+                          return ListView.builder(
+                            shrinkWrap: true,
+                            scrollDirection: Axis.vertical,
+                            physics: const ScrollPhysics(),
+                            itemCount: state.transaction.length,
+                            itemBuilder: (context, index) {
+                              final date = DateConverter.dateFormat(
+                                  state.transaction[index].date!);
+                              return Padding(
+                                padding: const EdgeInsets.only(left: 15.0),
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Container(
+                                          width: size.width * 0.3,
+                                          height: 100,
+                                          decoration: BoxDecoration(
+                                            color:
+                                                state.transaction[index].type ==
+                                                        "deposit"
+                                                    ? Colors.green
+                                                    : Colors.redAccent,
+                                            borderRadius:
+                                                const BorderRadius.only(
+                                              topLeft: Radius.circular(15),
+                                              bottomLeft: Radius.circular(15),
+                                            ),
+                                          ),
+                                          child: Center(
+                                            child: Builder(
+                                              builder: (_) {
+                                                if (state.transaction[index]
+                                                        .type ==
+                                                    "deposit") {
+                                                  return Image.asset(
+                                                    "assets/images/deposit.png",
+                                                    scale: 0.7,
+                                                  );
+                                                } else if (state
+                                                        .transaction[index]
+                                                        .type ==
+                                                    "withdraw") {
+                                                  return Image.asset(
+                                                    "assets/images/withdraw.png",
+                                                    scale: 0.8,
+                                                  );
+                                                } else {
+                                                  return Image.asset(
+                                                    "assets/images/rice_pic.png",
+                                                    scale: 0.8,
+                                                  );
+                                                }
+                                              },
+                                            ),
+                                          ),
+                                        ),
+                                        Container(
+                                          width: size.width * 0.63,
+                                          height: 100,
+                                          decoration: const BoxDecoration(
+                                            color: Colors.white,
+                                            borderRadius: BorderRadius.only(
+                                              topRight: Radius.circular(10),
+                                              bottomRight: Radius.circular(10),
+                                            ),
+                                          ),
+                                          child: Padding(
+                                            padding:
+                                                const EdgeInsets.only(left: 10),
+                                            child: Column(
+                                              children: [
+                                                Row(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment.end,
+                                                  children: [
+                                                    Text(date),
+                                                  ],
+                                                ),
+                                                Column(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment
+                                                          .spaceEvenly,
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.start,
+                                                  children: [
+                                                    if (state.transaction[index]
+                                                            .type ==
+                                                        "deposit") ...[
+                                                      Text(
+                                                        state.transaction[index]
+                                                            .name!,
+                                                        style: GoogleFonts
+                                                            .ibmPlexSansThai(
+                                                          fontSize: 18,
+                                                          fontWeight:
+                                                              FontWeight.w500,
+                                                        ),
+                                                      )
+                                                    ]
+                                                  ],
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(
+                                      height: 13,
+                                    )
+                                  ],
+                                ),
+                              );
+                            },
+                          );
+                        } else {
+                          return const Center(
+                            child: Text("ไม่มีการทำธุรกรรม ณ ขระนี้"),
+                          );
+                        }
+                      },
                     )
                   ],
-                )
+                ),
               ],
             ),
           ),
-        ],
+        ),
       ),
-    ));
+    );
   }
 }
+
+// ListView.builder(
+//                                shrinkWrap: true,
+//                               scrollDirection: Axis.vertical,
+//                                physics: const ScrollPhysics(),
+//                               itemCount: ,
+//                                                       itemBuilder: ((context, index) {
+//                                                         return Padding(
+//                                                           padding: const EdgeInsets.only(left: 15.0),
+//                                                           child: Column(
+//                                                             mainAxisAlignment: MainAxisAlignment.center,
+//                                                             children: [
+//                                                               Row(
+//                                                                 children: [
+//                                                                   Container(
+//                                                                     width: size.width * 0.3,
+//                                                                     height: 100,
+//                                                                     decoration: const BoxDecoration(
+//                                                                       color: Colors.redAccent,
+//                                                                       borderRadius: BorderRadius.only(
+//                                                                         topLeft: Radius.circular(15),
+//                                                                         bottomLeft: Radius.circular(15),
+//                                                                       ),
+//                                                                     ),
+//                                                                   ),
+//                                                                   Container(
+//                                                                     width: size.width * 0.63,
+//                                                                     height: 100,
+//                                                                     decoration: const BoxDecoration(
+//                                                                       color: ,
+//                                                                       borderRadius: BorderRadius.only(
+//                                                                         topRight: Radius.circular(10),
+//                                                                         bottomRight: Radius.circular(10),
+//                                                                       ),
+//                                                                     ),
+//                                                                   ),
+//                                                                 ],
+//                                                               ),
+//                                                               const SizedBox(
+//                                                                 height: 13,
+//                                                               )
+//                                                             ],
+//                                                           ),
+//                                                         );
+//                                                       }),
+//                                                     );

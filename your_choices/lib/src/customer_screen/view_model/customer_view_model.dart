@@ -1,12 +1,19 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:your_choices/src/customer_screen/model/customer_model.dart';
 import 'package:your_choices/src/customer_screen/repository/customer_repository.dart';
 
 class CustomerViewModel extends ChangeNotifier {
-  final customerRepo = CustomerRepository(FirebaseAuth.instance);
+  CustomerModel? model;
 
-  Future<CustomerModel?> getUserData() async{
-    return await customerRepo.fetchData();
+  CustomerRepository repo = CustomerRepository();
+
+  CustomerViewModel() {
+    repo.fetchData();
+  }
+
+  Future<CustomerModel?> fetchData() async {
+    final data = await CustomerRepository().fetchData();
+    model = data;
+    return null;
   }
 }

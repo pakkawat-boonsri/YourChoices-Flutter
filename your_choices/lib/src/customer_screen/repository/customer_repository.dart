@@ -3,18 +3,14 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:your_choices/src/customer_screen/model/customer_model.dart';
 
 class CustomerRepository {
-  CustomerRepository(this.auth);
-
-  FirebaseAuth auth;
+  final auth = FirebaseAuth.instance.currentUser!.uid;
   final db = FirebaseFirestore.instance;
 
-  Future<CustomerModel?> fetchData() async {
-    final data = db.collection("customer").doc(auth.currentUser!.uid);
-    final snapshot = await data.get();
-
-    if (snapshot.exists) {
-      return CustomerModel.fromJson(snapshot.data()!);
-    }
-    return null;
+  Future<CustomerModel?> fetchData() {
+    return db
+        .collection("customer")
+        .doc(auth)
+        .get()
+        .then((value) => CustomerModel.fromJson(value.data()!));
   }
 }

@@ -39,15 +39,14 @@ dependencies:
   firebase_core: ^1.24.0
   firebase_auth: ^3.11.1
   flutter_launcher_icons: ^0.10.0
-  google_sign_in: ^5.4.2
   image_picker: ^0.8.6
   firebase_storage: ^10.3.11
   cloud_firestore: ^3.5.1
   provider: ^6.0.4
-  drop_shadow: ^0.0.1+4
   flutter_bloc: ^8.1.1
-  bloc: ^8.1.0
   equatable: ^2.0.5
+  get: ^4.6.5
+  intl: ^0.17.0
 
 dev_dependencies:
   flutter_lints: ^2.0.1
