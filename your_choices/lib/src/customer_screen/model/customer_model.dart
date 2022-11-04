@@ -83,7 +83,7 @@ class Transaction extends Equatable {
     date = json['date'];
     menuName = json['menuName'];
     totalPrice = checkDouble(json['totalPrice']);
-    resName = json['res_name'];
+    resName = json['resName'];
     type = json['type'];
     name = json['name'];
     deposit = json['deposit'];
@@ -95,7 +95,7 @@ class Transaction extends Equatable {
     data['date'] = date;
     data['menuName'] = menuName;
     data['totalPrice'] = totalPrice;
-    data['res_name'] = resName;
+    data['resName'] = resName;
     data['type'] = type;
     data['name'] = name;
     data['deposit'] = deposit;

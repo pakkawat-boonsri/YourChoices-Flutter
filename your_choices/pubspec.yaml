@@ -47,6 +47,8 @@ dependencies:
   equatable: ^2.0.5
   get: ^4.6.5
   intl: ^0.17.0
+  buddhist_datetime_dateformat_sns: ^1.0.7
+  bloc: ^8.1.0
 
 dev_dependencies:
   flutter_lints: ^2.0.1

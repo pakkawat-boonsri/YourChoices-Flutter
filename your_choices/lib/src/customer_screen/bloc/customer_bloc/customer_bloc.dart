@@ -20,6 +20,13 @@ class CustomerBloc extends Bloc<CustomerEvent, CustomerState> {
       final data = await customerRepo.fetchData();
       final transaction = data?.transaction;
       if (transaction != null) {
+        transaction.sort(
+          (a, b) {
+            final newA = a.date!.toDate();
+            final newB = b.date!.toDate();
+            return newA.compareTo(newB);
+          },
+        );
         emit(TransactionLoadedState(transaction));
       } else {
         return;
