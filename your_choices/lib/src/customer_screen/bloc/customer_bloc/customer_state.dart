@@ -4,7 +4,12 @@ abstract class CustomerState extends Equatable {
   const CustomerState();
 }
 
-class CustomerLoading extends CustomerState {
+class CustomerInitial extends CustomerState {
+  @override
+  List<Object?> get props => [];
+
+}
+class CustomerLoadingState extends CustomerState {
   @override
   List<Object?> get props => [];
 }

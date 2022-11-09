@@ -6,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:your_choices/constants/date_format.dart';
 import 'package:your_choices/src/customer_screen/bloc/customer_bloc/customer_bloc.dart';
 import 'package:your_choices/src/customer_screen/views/deposit_view.dart';
+import 'package:your_choices/src/customer_screen/views/withdraw_view.dart';
 import 'package:your_choices/utilities/hex_color.dart';
 
 class CustomerView extends StatefulWidget {
@@ -16,7 +17,12 @@ class CustomerView extends StatefulWidget {
 }
 
 class _CustomerViewState extends State<CustomerView> {
-  
+  @override
+  void initState() {
+    context.read<CustomerBloc>().add(FetchDataEvent());
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     Size size = MediaQuery.of(context).size;
@@ -53,7 +59,7 @@ class _CustomerViewState extends State<CustomerView> {
                                   child:
                                       BlocBuilder<CustomerBloc, CustomerState>(
                                     builder: (context, state) {
-                                      if (state is CustomerLoading) {
+                                      if (state is CustomerLoadingState) {
                                         return const Center(
                                           child: CircularProgressIndicator(),
                                         );
@@ -63,8 +69,9 @@ class _CustomerViewState extends State<CustomerView> {
                                           File(state.model.imgAvatar!),
                                           fit: BoxFit.cover,
                                         );
+                                      } else {
+                                        return Container();
                                       }
-                                      return Container();
                                     },
                                   ),
                                 ),
@@ -88,7 +95,7 @@ class _CustomerViewState extends State<CustomerView> {
                                   ),
                                   BlocBuilder<CustomerBloc, CustomerState>(
                                     builder: (context, state) {
-                                      if (state is CustomerLoading) {
+                                      if (state is CustomerLoadingState) {
                                         return const Center(
                                           child: CircularProgressIndicator(),
                                         );
@@ -156,7 +163,8 @@ class _CustomerViewState extends State<CustomerView> {
                                           BlocBuilder<CustomerBloc,
                                               CustomerState>(
                                             builder: (context, state) {
-                                              if (state is CustomerLoading) {
+                                              if (state
+                                                  is CustomerLoadingState) {
                                                 return const Center(
                                                   child:
                                                       CircularProgressIndicator(),
@@ -165,8 +173,7 @@ class _CustomerViewState extends State<CustomerView> {
                                               if (state
                                                   is CustomerLoadedState) {
                                                 return Text(
-                                                  state.model.balance
-                                                      .toString(),
+                                                  "฿ ${state.model.balance}",
                                                   style: GoogleFonts
                                                       .ibmPlexSansThai(
                                                     fontSize: 36,
@@ -246,7 +253,13 @@ class _CustomerViewState extends State<CustomerView> {
                           ),
                         ),
                         GestureDetector(
-                          onTap: () {},
+                          onTap: () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (context) => const WithDrawView(),
+                              ),
+                            );
+                          },
                           child: Padding(
                             padding: const EdgeInsets.only(top: 10),
                             child: Row(
@@ -347,21 +360,22 @@ class _CustomerViewState extends State<CustomerView> {
                             final date = DateConverter.dateFormat(
                                 state.transaction[index].date!);
                             return Padding(
-                              padding: const EdgeInsets.only(left: 15.0),
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 10),
                               child: Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   Row(
                                     children: [
                                       Container(
-                                        width: size.width * 0.3,
+                                        width: size.width * 0.23,
                                         height: 100,
                                         decoration: BoxDecoration(
                                           color:
                                               state.transaction[index].type ==
                                                       "deposit"
-                                                  ? Colors.green
-                                                  : Colors.redAccent,
+                                                  ? "78A017".toColor()
+                                                  : "FE7144".toColor(),
                                           borderRadius: const BorderRadius.only(
                                             topLeft: Radius.circular(15),
                                             bottomLeft: Radius.circular(15),
@@ -395,233 +409,247 @@ class _CustomerViewState extends State<CustomerView> {
                                           ),
                                         ),
                                       ),
-                                      Container(
-                                        width: size.width * 0.63,
-                                        height: 100,
-                                        decoration: const BoxDecoration(
-                                          color: Colors.white,
-                                          borderRadius: BorderRadius.only(
-                                            topRight: Radius.circular(10),
-                                            bottomRight: Radius.circular(10),
+                                      Expanded(
+                                        child: Container(
+                                          width: size.width,
+                                          height: 100,
+                                          decoration: const BoxDecoration(
+                                            color: Colors.white,
+                                            borderRadius: BorderRadius.only(
+                                              topRight: Radius.circular(10),
+                                              bottomRight: Radius.circular(10),
+                                            ),
                                           ),
-                                        ),
-                                        child: Padding(
-                                          padding:
-                                              const EdgeInsets.only(left: 10),
-                                          child: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              if (state.transaction[index]
-                                                      .type ==
-                                                  "deposit") ...[
-                                                Padding(
-                                                  padding:
-                                                      const EdgeInsets.only(
-                                                          right: 10, top: 5),
-                                                  child: Row(
+                                          child: Padding(
+                                            padding:
+                                                const EdgeInsets.only(left: 10),
+                                            child: Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                if (state.transaction[index]
+                                                        .type ==
+                                                    "deposit") ...[
+                                                  Padding(
+                                                    padding:
+                                                        const EdgeInsets.only(
+                                                            right: 10, top: 5),
+                                                    child: Row(
+                                                      mainAxisAlignment:
+                                                          MainAxisAlignment.end,
+                                                      children: [
+                                                        Text(
+                                                          date,
+                                                          style: GoogleFonts
+                                                              .ibmPlexSansThai(
+                                                            fontSize: 12,
+                                                            fontWeight:
+                                                                FontWeight.w500,
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                  Padding(
+                                                    padding:
+                                                        const EdgeInsets.only(
+                                                            top: 10),
+                                                    child: Text(
+                                                      state.transaction[index]
+                                                          .name!,
+                                                      style: GoogleFonts
+                                                          .ibmPlexSansThai(
+                                                        fontSize: 20,
+                                                        fontWeight:
+                                                            FontWeight.w500,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                  Row(
                                                     mainAxisAlignment:
                                                         MainAxisAlignment.end,
                                                     children: [
-                                                      Text(
-                                                        date,
-                                                        style: GoogleFonts
-                                                            .ibmPlexSansThai(
-                                                          fontSize: 12,
-                                                          fontWeight:
-                                                              FontWeight.w500,
+                                                      Image.asset(
+                                                        "assets/images/money.png",
+                                                        scale: 1,
+                                                      ),
+                                                      const SizedBox(
+                                                        width: 10,
+                                                      ),
+                                                      Padding(
+                                                        padding:
+                                                            const EdgeInsets
+                                                                    .only(
+                                                                right: 10),
+                                                        child: Text(
+                                                          "฿ ${state.transaction[index].deposit}",
+                                                          style: GoogleFonts
+                                                              .ibmPlexSansThai(
+                                                            fontSize: 16,
+                                                            fontWeight:
+                                                                FontWeight.w500,
+                                                          ),
                                                         ),
                                                       ),
                                                     ],
-                                                  ),
-                                                ),
-                                                Padding(
-                                                  padding:
-                                                      const EdgeInsets.only(
-                                                          top: 10),
-                                                  child: Text(
-                                                    state.transaction[index]
-                                                        .name!,
-                                                    style: GoogleFonts
-                                                        .ibmPlexSansThai(
-                                                      fontSize: 20,
-                                                      fontWeight:
-                                                          FontWeight.w500,
-                                                    ),
-                                                  ),
-                                                ),
-                                                Row(
-                                                  mainAxisAlignment:
-                                                      MainAxisAlignment.end,
-                                                  children: [
-                                                    Image.asset(
-                                                      "assets/images/money.png",
-                                                      scale: 1,
-                                                    ),
-                                                    const SizedBox(
-                                                      width: 10,
-                                                    ),
-                                                    Padding(
-                                                      padding:
-                                                          const EdgeInsets.only(
-                                                              right: 10),
-                                                      child: Text(
-                                                        "฿ ${state.transaction[index].deposit}",
-                                                        style: GoogleFonts
-                                                            .ibmPlexSansThai(
-                                                          fontSize: 16,
-                                                          fontWeight:
-                                                              FontWeight.w500,
+                                                  )
+                                                ] else if (state
+                                                        .transaction[index]
+                                                        .type ==
+                                                    "withdraw") ...[
+                                                  Padding(
+                                                    padding:
+                                                        const EdgeInsets.only(
+                                                            right: 10, top: 5),
+                                                    child: Row(
+                                                      mainAxisAlignment:
+                                                          MainAxisAlignment.end,
+                                                      children: [
+                                                        Text(
+                                                          date,
+                                                          style: GoogleFonts
+                                                              .ibmPlexSansThai(
+                                                            fontSize: 12,
+                                                            fontWeight:
+                                                                FontWeight.w500,
+                                                          ),
                                                         ),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                  Padding(
+                                                    padding:
+                                                        const EdgeInsets.only(
+                                                            top: 6),
+                                                    child: Text(
+                                                      state.transaction[index]
+                                                          .name!,
+                                                      style: GoogleFonts
+                                                          .ibmPlexSansThai(
+                                                        fontSize: 20,
+                                                        fontWeight:
+                                                            FontWeight.w500,
                                                       ),
                                                     ),
-                                                  ],
-                                                )
-                                              ] else if (state
-                                                      .transaction[index]
-                                                      .type ==
-                                                  "withdraw") ...[
-                                                Padding(
-                                                  padding:
-                                                      const EdgeInsets.only(
-                                                          right: 10, top: 5),
-                                                  child: Row(
+                                                  ),
+                                                  Row(
                                                     mainAxisAlignment:
                                                         MainAxisAlignment.end,
                                                     children: [
-                                                      Text(
-                                                        date,
-                                                        style: GoogleFonts
-                                                            .ibmPlexSansThai(
-                                                          fontSize: 12,
-                                                          fontWeight:
-                                                              FontWeight.w500,
+                                                      Image.asset(
+                                                        "assets/images/money.png",
+                                                        scale: 1,
+                                                      ),
+                                                      const SizedBox(
+                                                        width: 10,
+                                                      ),
+                                                      Padding(
+                                                        padding:
+                                                            const EdgeInsets
+                                                                    .only(
+                                                                right: 10),
+                                                        child: Text(
+                                                          "฿ ${state.transaction[index].withdraw}",
+                                                          style: GoogleFonts
+                                                              .ibmPlexSansThai(
+                                                            fontSize: 16,
+                                                            fontWeight:
+                                                                FontWeight.w500,
+                                                          ),
                                                         ),
                                                       ),
                                                     ],
-                                                  ),
-                                                ),
-                                                Padding(
-                                                  padding:
-                                                      const EdgeInsets.only(
-                                                          top: 6),
-                                                  child: Text(
-                                                    state.transaction[index]
-                                                        .name!,
-                                                    style: GoogleFonts
-                                                        .ibmPlexSansThai(
-                                                      fontSize: 20,
-                                                      fontWeight:
-                                                          FontWeight.w500,
-                                                    ),
-                                                  ),
-                                                ),
-                                                Row(
-                                                  mainAxisAlignment:
-                                                      MainAxisAlignment.end,
-                                                  children: [
-                                                    Image.asset(
-                                                      "assets/images/money.png",
-                                                      scale: 1,
-                                                    ),
-                                                    const SizedBox(
-                                                      width: 10,
-                                                    ),
-                                                    Padding(
-                                                      padding:
-                                                          const EdgeInsets.only(
-                                                              right: 10),
-                                                      child: Text(
-                                                        "฿ ${state.transaction[index].withdraw}",
-                                                        style: GoogleFonts
-                                                            .ibmPlexSansThai(
-                                                          fontSize: 16,
-                                                          fontWeight:
-                                                              FontWeight.w500,
+                                                  )
+                                                ] else if (state
+                                                        .transaction[index]
+                                                        .type ==
+                                                    'paid') ...[
+                                                  Padding(
+                                                    padding:
+                                                        const EdgeInsets.only(
+                                                            right: 10, top: 5),
+                                                    child: Row(
+                                                      mainAxisAlignment:
+                                                          MainAxisAlignment
+                                                              .spaceBetween,
+                                                      children: [
+                                                        Flexible(
+                                                          child: Text(
+                                                            state
+                                                                    .transaction[
+                                                                        index]
+                                                                    .resName ??
+                                                                "",
+                                                            style: GoogleFonts
+                                                                .ibmPlexSansThai(
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .bold,
+                                                            ),
+                                                            maxLines: 1,
+                                                            overflow:
+                                                                TextOverflow
+                                                                    .ellipsis,
+                                                          ),
                                                         ),
+                                                        Text(
+                                                          date,
+                                                          style: GoogleFonts
+                                                              .ibmPlexSansThai(
+                                                            fontSize: 12,
+                                                            fontWeight:
+                                                                FontWeight.w500,
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                  Padding(
+                                                    padding:
+                                                        const EdgeInsets.only(
+                                                            top: 6),
+                                                    child: Text(
+                                                      state.transaction[index]
+                                                          .menuName!,
+                                                      style: GoogleFonts
+                                                          .ibmPlexSansThai(
+                                                        fontSize: 20,
+                                                        fontWeight:
+                                                            FontWeight.w500,
                                                       ),
                                                     ),
-                                                  ],
-                                                )
-                                              ] else if (state
-                                                      .transaction[index]
-                                                      .type ==
-                                                  'paid') ...[
-                                                Padding(
-                                                  padding:
-                                                      const EdgeInsets.only(
-                                                          right: 10, top: 5),
-                                                  child: Row(
+                                                  ),
+                                                  Row(
                                                     mainAxisAlignment:
-                                                        MainAxisAlignment
-                                                            .spaceBetween,
+                                                        MainAxisAlignment.end,
                                                     children: [
-                                                      Text(
-                                                        state.transaction[index]
-                                                                .resName ??
-                                                            "",
-                                                        style: GoogleFonts
-                                                            .ibmPlexSansThai(
-                                                          fontWeight:
-                                                              FontWeight.w600,
-                                                        ),
+                                                      Image.asset(
+                                                        "assets/images/money.png",
+                                                        scale: 1,
                                                       ),
-                                                      Text(
-                                                        date,
-                                                        style: GoogleFonts
-                                                            .ibmPlexSansThai(
-                                                          fontSize: 12,
-                                                          fontWeight:
-                                                              FontWeight.w500,
+                                                      const SizedBox(
+                                                        width: 10,
+                                                      ),
+                                                      Padding(
+                                                        padding:
+                                                            const EdgeInsets
+                                                                    .only(
+                                                                right: 10),
+                                                        child: Text(
+                                                          "฿ ${state.transaction[index].totalPrice}",
+                                                          style: GoogleFonts
+                                                              .ibmPlexSansThai(
+                                                            fontSize: 16,
+                                                            fontWeight:
+                                                                FontWeight.w500,
+                                                          ),
                                                         ),
                                                       ),
                                                     ],
-                                                  ),
-                                                ),
-                                                Padding(
-                                                  padding:
-                                                      const EdgeInsets.only(
-                                                          top: 6),
-                                                  child: Text(
-                                                    state.transaction[index]
-                                                        .menuName!,
-                                                    style: GoogleFonts
-                                                        .ibmPlexSansThai(
-                                                      fontSize: 20,
-                                                      fontWeight:
-                                                          FontWeight.w500,
-                                                    ),
-                                                  ),
-                                                ),
-                                                Row(
-                                                  mainAxisAlignment:
-                                                      MainAxisAlignment.end,
-                                                  children: [
-                                                    Image.asset(
-                                                      "assets/images/money.png",
-                                                      scale: 1,
-                                                    ),
-                                                    const SizedBox(
-                                                      width: 10,
-                                                    ),
-                                                    Padding(
-                                                      padding:
-                                                          const EdgeInsets.only(
-                                                              right: 10),
-                                                      child: Text(
-                                                        "฿ ${state.transaction[index].totalPrice}",
-                                                        style: GoogleFonts
-                                                            .ibmPlexSansThai(
-                                                          fontSize: 16,
-                                                          fontWeight:
-                                                              FontWeight.w500,
-                                                        ),
-                                                      ),
-                                                    ),
-                                                  ],
-                                                )
-                                              ]
-                                            ],
+                                                  )
+                                                ]
+                                              ],
+                                            ),
                                           ),
                                         ),
                                       ),
