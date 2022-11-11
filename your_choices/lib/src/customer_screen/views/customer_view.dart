@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:your_choices/constants/date_format.dart';
+import 'package:your_choices/constants/text_style.dart';
 import 'package:your_choices/src/customer_screen/bloc/customer_bloc/customer_bloc.dart';
 import 'package:your_choices/src/customer_screen/views/deposit_view.dart';
 import 'package:your_choices/src/customer_screen/views/withdraw_view.dart';
@@ -22,6 +23,10 @@ class _CustomerViewState extends State<CustomerView> {
     context.read<CustomerBloc>().add(FetchDataEvent());
     super.initState();
   }
+
+  // Future<void> _refreshData() async {
+  //   context.read<CustomerBloc>().add(FetchDataEvent());
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -63,8 +68,7 @@ class _CustomerViewState extends State<CustomerView> {
                                         return const Center(
                                           child: CircularProgressIndicator(),
                                         );
-                                      }
-                                      if (state is CustomerLoadedState) {
+                                      } else if (state is CustomerLoadedState) {
                                         return Image.file(
                                           File(state.model.imgAvatar!),
                                           fit: BoxFit.cover,
@@ -353,6 +357,7 @@ class _CustomerViewState extends State<CustomerView> {
                       } else if (state is TransactionLoadedState) {
                         return ListView.builder(
                           shrinkWrap: true,
+                          
                           scrollDirection: Axis.vertical,
                           physics: const ScrollPhysics(),
                           itemCount: state.transaction.length,
@@ -664,8 +669,12 @@ class _CustomerViewState extends State<CustomerView> {
                           },
                         );
                       } else {
-                        return const Center(
-                          child: Text("ไม่มีการทำธุรกรรม ณ ขระนี้"),
+                        return Center(
+                          child: Text(
+                            "ไม่มีการทำธุรกรรม ณ ขระนี้",
+                            style: AppTextStyle.googleFont(
+                                Colors.white, 24, FontWeight.bold),
+                          ),
                         );
                       }
                     },

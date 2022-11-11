@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -19,20 +21,23 @@ class _DepositViewState extends State<DepositView> {
 
   bool _isValidate = false;
 
+  didChange() {
+    log(_amount.text);
+    if (_formkey.currentState!.validate()) {
+      setState(() {
+        _isValidate = true;
+      });
+    } else {
+      setState(() {
+        _isValidate = false;
+      });
+    }
+  }
+
   @override
   void initState() {
-    _amount = TextEditingController();
-    _amount.addListener(() {
-      if (_formkey.currentState!.validate()) {
-        setState(() {
-          _isValidate = true;
-        });
-      } else {
-        setState(() {
-          _isValidate = false;
-        });
-      }
-    });
+    _amount = TextEditingController(text: "0");
+    _amount.addListener(didChange);
     BlocProvider.of<DepositBloc>(context).add(
       const SelectingIndexEvent(selectedIndex: -1),
     );
@@ -57,7 +62,7 @@ class _DepositViewState extends State<DepositView> {
           centerTitle: true,
           shape: const RoundedRectangleBorder(
             borderRadius: BorderRadius.vertical(
-              bottom: Radius.circular(30),
+              bottom: Radius.circular(15),
             ),
           ),
           backgroundColor: "FE7144".toColor(),
@@ -71,7 +76,7 @@ class _DepositViewState extends State<DepositView> {
                   Container(
                     margin: const EdgeInsets.all(18),
                     width: size.width,
-                    height: size.height * 0.425,
+                    height: size.height * 0.41,
                     decoration: BoxDecoration(
                       color: "46413E".toColor(),
                       borderRadius: BorderRadius.circular(15),
@@ -79,7 +84,6 @@ class _DepositViewState extends State<DepositView> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                       
                         Padding(
                           padding: const EdgeInsets.only(top: 12.0, left: 25),
                           child: Text(
@@ -131,9 +135,12 @@ class _DepositViewState extends State<DepositView> {
                                                       selectedIndex: index),
                                                 );
 
-                                            _amount.text =
-                                                "${(index + 1) * 100}";
+                                            setState(() {
+                                              _amount.text =
+                                                  "${(index + 1) * 100}";
+                                            });
                                           },
+                                          // "${(index + 1) * 100}"
                                         ),
                                       );
                                     } else if (state is SelectedIndexState) {
@@ -170,8 +177,10 @@ class _DepositViewState extends State<DepositView> {
                                                       selectedIndex: index),
                                                 );
 
-                                            _amount.text =
-                                                "${(index + 1) * 100}";
+                                            setState(() {
+                                              _amount.text =
+                                                  "${(index + 1) * 100}";
+                                            });
                                           },
                                         ),
                                       );
@@ -203,20 +212,24 @@ class _DepositViewState extends State<DepositView> {
                               ],
                               onTap: () {
                                 context.read<DepositBloc>().add(
-                                    const SelectingIndexEvent(
-                                        selectedIndex: -1));
+                                      const SelectingIndexEvent(
+                                          selectedIndex: -1),
+                                    );
                               },
                               keyboardType: TextInputType.number,
                               onFieldSubmitted: (value) {
                                 if (_formkey.currentState!.validate()) {
-                                  _isValidate = true;
+                                  setState(() {
+                                    _isValidate = true;
+                                  });
                                 } else {
-                                  _isValidate = false;
+                                  setState(() {
+                                    _isValidate = false;
+                                  });
                                 }
                               },
                               validator: (value) {
-                                if (value != null &&
-                                    RegExp(r"^[0-9]*$").hasMatch(value)) {
+                                if (value != null) {
                                   int? newValue = int.tryParse(value);
                                   if (newValue != null) {
                                     if (newValue % 100 != 0) {
@@ -238,6 +251,8 @@ class _DepositViewState extends State<DepositView> {
                               controller: _amount,
                               autocorrect: false,
                               decoration: InputDecoration(
+                                contentPadding: const EdgeInsets.symmetric(
+                                    vertical: 10.0, horizontal: 10),
                                 errorStyle: AppTextStyle.googleFont(
                                     Colors.red, 16, FontWeight.w500),
                                 isDense: true,

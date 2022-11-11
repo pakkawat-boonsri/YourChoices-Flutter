@@ -13,8 +13,8 @@ class CustomerBloc extends Bloc<CustomerEvent, CustomerState> {
 
   CustomerBloc(this.customerRepo) : super(CustomerInitial()) {
     on<FetchDataEvent>((event, emit) async {
-      emit(CustomerLoadingState());
-      await Future.delayed(const Duration(seconds: 1));
+      // emit(CustomerLoadingState());
+      // await Future.delayed(const Duration(seconds: 1));
       final data = await customerRepo.fetchData();
       if (data != null) {
         emit(CustomerLoadedState(data));

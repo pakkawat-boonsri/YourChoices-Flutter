@@ -20,20 +20,23 @@ class _WithDrawViewState extends State<WithDrawView> {
   final _formkey = GlobalKey<FormState>();
 
   bool _isValidate = false;
+
+  didChange() {
+    if (_formkey.currentState!.validate()) {
+      setState(() {
+        _isValidate = true;
+      });
+    } else {
+      setState(() {
+        _isValidate = false;
+      });
+    }
+  }
+
   @override
   void initState() {
-    _amount = TextEditingController();
-    _amount.addListener(() {
-      if (_formkey.currentState!.validate()) {
-        setState(() {
-          _isValidate = true;
-        });
-      } else {
-        setState(() {
-          _isValidate = false;
-        });
-      }
-    });
+    _amount = TextEditingController(text: "0");
+    _amount.addListener(didChange);
     context.read<CustomerBloc>().add(FetchDataEvent());
     context.read<WithdrawBloc>().add(const OnSelectingEvent(index: -1));
     super.initState();
@@ -75,7 +78,7 @@ class _WithDrawViewState extends State<WithDrawView> {
       centerTitle: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(
-          bottom: Radius.circular(30),
+          bottom: Radius.circular(15),
         ),
       ),
       backgroundColor: "FE7144".toColor(),
@@ -213,6 +216,9 @@ class _WithDrawViewState extends State<WithDrawView> {
             indent: 20,
             endIndent: 20,
           ),
+          const SizedBox(
+            height: 10,
+          ),
           Form(
             key: _formkey,
             child: Column(
@@ -237,8 +243,7 @@ class _WithDrawViewState extends State<WithDrawView> {
                       }
                     },
                     validator: (value) {
-                      if (value != null &&
-                          RegExp(r"^[0-9]*$").hasMatch(value)) {
+                      if (value != null) {
                         int? newValue = int.tryParse(value);
                         if (newValue != null) {
                           if (newValue % 100 != 0) {
@@ -260,6 +265,8 @@ class _WithDrawViewState extends State<WithDrawView> {
                     controller: _amount,
                     autocorrect: false,
                     decoration: InputDecoration(
+                      contentPadding: const EdgeInsets.symmetric(
+                          vertical: 10.0, horizontal: 10),
                       errorStyle: AppTextStyle.googleFont(
                           Colors.red, 16, FontWeight.w500),
                       isDense: true,

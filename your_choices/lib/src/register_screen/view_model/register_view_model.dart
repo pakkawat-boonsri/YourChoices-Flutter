@@ -1,11 +1,13 @@
 import 'dart:developer';
 import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:your_choices/utilities/show_snack_bar.dart';
+import 'package:uuid/uuid.dart';
 
 class RegisterViewModel extends ChangeNotifier {
   String _selectedType = "customer";
@@ -55,6 +57,23 @@ class RegisterViewModel extends ChangeNotifier {
     }
   }
 
+  Future<bool> uploadImage({
+    required File file,
+    required String userId,
+  }) =>
+      FirebaseStorage.instance
+          .ref(userId)
+          .child(const Uuid().v4())
+          .putFile(file)
+          .then((_) => true)
+          .catchError((_) => false);
+
+  Future<Iterable<Reference>> _getImages(String userId) =>
+      FirebaseStorage.instance
+          .ref(userId)
+          .list()
+          .then((listResult) => listResult.items);
+
   createUserWithEmailAndpassword(BuildContext context, String username,
       String email, String password, String type) async {
     try {
@@ -62,11 +81,13 @@ class RegisterViewModel extends ChangeNotifier {
           .createUserWithEmailAndPassword(email: email, password: password)
           .then(
         (value) async {
+          await uploadImage(file: imageFile!, userId: value.user!.uid);
+          final image = await _getImages(value.user!.uid);
           if (type == "customer") {
             await db.collection("customer").doc(value.user!.uid).set({
               "balance": 0,
               "username": username,
-              "imgAvatar": imageFile!.path,
+              "imgAvatar": image,
               "role": "101",
               "transaction": [{}],
             });
@@ -77,7 +98,7 @@ class RegisterViewModel extends ChangeNotifier {
                 "description": "",
                 "menu_list": [{}],
                 "username": username,
-                "imgAvatar": imageFile!.path,
+                "imgAvatar": image,
                 "role": "101",
                 "transaction": [{}],
               },

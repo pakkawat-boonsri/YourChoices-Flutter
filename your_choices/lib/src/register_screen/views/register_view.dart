@@ -363,11 +363,9 @@ class _RegisterViewState extends State<RegisterView> {
                           ),
                         ),
                         ElevatedButton(
-                          onPressed: () {
+                          onPressed: () async {
                             final result = _regisKey.currentState!.validate();
-                            log(result.toString());
                             if (result) {
-                              log("optap");
                               String type = context
                                   .read<RegisterViewModel>()
                                   .getSelectedType;
