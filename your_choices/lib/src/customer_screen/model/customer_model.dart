@@ -1,12 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:equatable/equatable.dart';
+import 'package:your_choices/utilities/check_double_value.dart';
 
-double? checkDouble(dynamic value) {
-  if (value is double) return value;
-  if (value is int) return value.toDouble();
-  if (value is String) return double.tryParse(value);
-  return null;
-}
 
 // ignore: must_be_immutable
 class CustomerModel extends Equatable {

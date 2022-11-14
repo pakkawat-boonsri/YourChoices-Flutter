@@ -6,14 +6,32 @@ class RestaurantRepository {
   final uid = FirebaseAuth.instance.currentUser!.uid;
   final db = FirebaseFirestore.instance;
 
-  Future<RestaurantModel?> fetchRestaurantData() async {
-    final data =
-        await db.collection("restaurant").doc("DO0DEHwzubAM6Z7uYnXj").get();
+  Future<List<RestaurantModel>?> fetchRestaurantData() async {
+    final data = await db.collection("restuarant").get();
+    final snapshot = data.docs
+        .map(
+          (e) => RestaurantModel.fromJson(
+            e.data(),
+          ),
+        )
+        .toList();
 
-    if (data.exists) {
-      return RestaurantModel.fromJson(data.data()!);
-    } else {
-      return null;
-    }
+    return snapshot;
+  }
+
+  updateData(bool isChecked, int index) async {
+    final value =
+        await db.collection("restuarant").doc("DO0DEHwzubAM6Z7uYnXj").get();
+
+    final data = value.data();
+
+    final foods =
+        data!['Foods'].map((item) => item as Map<String, dynamic>).toList();
+
+    final food = foods[index];
+
+    food['isChecked'] = isChecked;
+
+    await db.collection("restuarant").doc("DO0DEHwzubAM6Z7uYnXj").update(data);
   }
 }

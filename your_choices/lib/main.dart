@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'package:your_choices/router/app_router.dart';
 import 'package:your_choices/src/bottom_navbar_screen/view/bottom_nav_bar.dart';
 import 'package:your_choices/src/customer_screen/bloc/customer_bloc/customer_bloc.dart';
 import 'package:your_choices/src/customer_screen/bloc/deposit_bloc/bloc/deposit_bloc.dart';
@@ -78,6 +79,7 @@ class _YourChoicesState extends State<YourChoices> {
           scaffoldBackgroundColor: const Color(0xFF34312f),
         ),
         title: "YourChoices",
+        onGenerateRoute: AppRouter.onGenerateRoute,
         home: StreamBuilder(
           stream: FirebaseAuth.instance.authStateChanges(),
           builder: (context, snapshot) {
