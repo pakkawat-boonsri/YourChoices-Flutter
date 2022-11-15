@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 class RestaurantModel {
   String? resName;
@@ -5,7 +7,7 @@ class RestaurantModel {
   String? resImg;
   int? onQueue;
   int? totalPriceSell;
-  bool? isAction;
+  bool? isActive;
   bool? isFavorite;
   List<Foods>? foods;
 
@@ -15,7 +17,7 @@ class RestaurantModel {
       this.resImg,
       this.onQueue,
       this.totalPriceSell,
-      this.isAction,
+      this.isActive,
       this.isFavorite,
       this.foods});
 
@@ -25,7 +27,7 @@ class RestaurantModel {
     resImg = json['resImg'];
     onQueue = json['onQueue'];
     totalPriceSell = json['totalPriceSell'];
-    isAction = json['isAction'];
+    isActive = json['isAction'];
     isFavorite = json['isFavorite'];
     if (json['Foods'] != null) {
       foods = <Foods>[];
@@ -42,12 +44,60 @@ class RestaurantModel {
     data['resImg'] = resImg;
     data['onQueue'] = onQueue;
     data['totalPriceSell'] = totalPriceSell;
-    data['isAction'] = isAction;
+    data['isAction'] = isActive;
     data['isFavorite'] = isFavorite;
     if (foods != null) {
       data['Foods'] = foods!.map((v) => v.toJson()).toList();
     }
     return data;
+  }
+
+  @override
+  bool operator ==(covariant RestaurantModel other) {
+    if (identical(this, other)) return true;
+
+    return other.resName == resName &&
+        other.description == description &&
+        other.resImg == resImg &&
+        other.onQueue == onQueue &&
+        other.totalPriceSell == totalPriceSell &&
+        other.isActive == isActive &&
+        other.isFavorite == isFavorite &&
+        listEquals(other.foods, foods);
+  }
+
+  @override
+  int get hashCode {
+    return resName.hashCode ^
+        description.hashCode ^
+        resImg.hashCode ^
+        onQueue.hashCode ^
+        totalPriceSell.hashCode ^
+        isActive.hashCode ^
+        isFavorite.hashCode ^
+        foods.hashCode;
+  }
+
+  RestaurantModel copyWith({
+    String? resName,
+    String? description,
+    String? resImg,
+    int? onQueue,
+    int? totalPriceSell,
+    bool? isAction,
+    bool? isFavorite,
+    List<Foods>? foods,
+  }) {
+    return RestaurantModel(
+      resName: resName ?? this.resName,
+      description: description ?? this.description,
+      resImg: resImg ?? this.resImg,
+      onQueue: onQueue ?? this.onQueue,
+      totalPriceSell: totalPriceSell ?? this.totalPriceSell,
+      isActive: isActive ?? isActive,
+      isFavorite: isFavorite ?? this.isFavorite,
+      foods: foods ?? this.foods,
+    );
   }
 }
 

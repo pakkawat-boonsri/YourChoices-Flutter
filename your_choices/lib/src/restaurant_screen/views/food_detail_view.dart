@@ -14,168 +14,181 @@ class FoodDetailView extends StatefulWidget {
 }
 
 class _FoodDetailViewState extends State<FoodDetailView> {
+  List<AddOns>? checkboxList = [];
   @override
   Widget build(BuildContext context) {
     Size size = MediaQuery.of(context).size;
     final food = widget.foods;
     return SafeArea(
       child: Scaffold(
-        body: CustomScrollView(
-          slivers: [
-            _buildSliverAppbar(context, size, food),
-            SliverToBoxAdapter(
-              child: _buildAddOns(size, food.addOns),
-            )
-          ],
+        body: NestedScrollView(
+          headerSliverBuilder: (context, innerBoxIsScrolled) {
+            return [
+              _buildSliverAppbar(context, size, food),
+            ];
+          },
+          body: _buildAddOns(size, food.addOns, checkboxList),
         ),
       ),
     );
   }
 
-  _buildAddOns(Size size, List<AddOns>? addons) {
-    return Column(
-      children: [
-        const SizedBox(
-          height: 10,
-        ),
-        Container(
-          width: size.width,
-          height: size.height,
-          color: Colors.white,
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.start,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  "แอดออนที่จะบวกเพิ่ม",
-                  style: AppTextStyle.googleFont(
-                    Colors.black,
-                    20,
-                    FontWeight.w500,
-                  ),
-                ),
-                const SizedBox(
-                  height: 5,
-                ),
-                Text(
-                  "เลือกได้มากกว่า 1 อย่าง",
-                  style: AppTextStyle.googleFont(
-                    Colors.grey,
-                    16,
-                    FontWeight.normal,
-                  ),
-                ),
-                const SizedBox(
-                  height: 5,
-                ),
-                ListView.separated(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  separatorBuilder: (context, index) => const SizedBox(
-                    height: 5,
-                  ),
-                  itemCount: addons?.length ?? 0,
-                  itemBuilder: (context, index) {
-                    var isChecked =
-                        List<bool>.filled(addons?.length ?? 0, false);
-                    return SizedBox(
-                      width: size.width,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  _buildAddOns(Size size, List<AddOns>? addons, List<AddOns>? checkboxList) {
+    return SingleChildScrollView(
+      physics: const BouncingScrollPhysics(),
+      child: SizedBox(
+        width: size.width,
+        height: size.height,
+        child: Column(
+          children: [
+            const SizedBox(
+              height: 10,
+            ),
+            Flexible(
+              fit: FlexFit.tight,
+              child: Container(
+                width: size.width,
+                color: Colors.white,
+                child: Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "แอดออนที่จะบวกเพิ่ม",
+                        style: AppTextStyle.googleFont(
+                          Colors.black,
+                          20,
+                          FontWeight.w500,
+                        ),
+                      ),
+                      const SizedBox(
+                        height: 5,
+                      ),
+                      Text(
+                        "เลือกได้มากกว่า 1 อย่าง",
+                        style: AppTextStyle.googleFont(
+                          Colors.grey,
+                          16,
+                          FontWeight.normal,
+                        ),
+                      ),
+                      const SizedBox(
+                        height: 5,
+                      ),
+                      ListView.separated(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        separatorBuilder: (context, index) => const SizedBox(
+                          height: 5,
+                        ),
+                        itemCount: addons?.length ?? 0,
+                        itemBuilder: (context, index) {
+                          return SizedBox(
+                            width: size.width,
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Row(
+                                  children: [
+                                    Checkbox(
+                                      value: addons?[index].isChecked,
+                                      onChanged: (value) {
+                                        // log("${addons?[index].isChecked}");
+                                        // log("ontap");
+                                        setState(() {
+                                          final result =
+                                              addons?[index].isChecked = value!;
+                                          checkboxList?.add(
+                                            addons![index]
+                                                .copyWith(isChecked: result),
+                                          );
+                                        });
+                                      },
+                                    ),
+                                    const SizedBox(
+                                      width: 15,
+                                    ),
+                                    Text(
+                                      addons?[index].addonsType ?? "",
+                                      style: AppTextStyle.googleFont(
+                                        Colors.black,
+                                        18,
+                                        FontWeight.w500,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                Text(
+                                  "฿${addons?[index].price ?? 0}",
+                                  style: AppTextStyle.googleFont(
+                                    Colors.black,
+                                    18,
+                                    FontWeight.w500,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
+                      const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 10),
+                        child: Divider(
+                          color: Colors.black,
+                          thickness: 1,
+                          indent: 5,
+                          endIndent: 5,
+                        ),
+                      ),
+                      const SizedBox(
+                        height: 5,
+                      ),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Row(
-                            children: [
-                              Checkbox(
-                                value: isChecked[index],
-                                onChanged: (value) {
-                                  setState(() {
-                                    isChecked[index] = value!;
-                                  });
-                                },
-                              ),
-                              const SizedBox(
-                                width: 15,
-                              ),
-                              Text(
-                                addons?[index].addonsType ?? "",
-                                style: AppTextStyle.googleFont(
-                                  Colors.black,
-                                  18,
-                                  FontWeight.w500,
+                          Text(
+                            "คำข้อเพิ่มเติม",
+                            style: AppTextStyle.googleFont(
+                                Colors.black, 18, FontWeight.w500),
+                          ),
+                          TextField(
+                            decoration: InputDecoration(
+                              enabledBorder: const OutlineInputBorder(
+                                borderSide: BorderSide(
+                                  strokeAlign: StrokeAlign.center,
+                                  color: Colors.black,
+                                  width: 1.0,
                                 ),
                               ),
-                            ],
-                          ),
-                          Text(
-                            "฿${addons?[index].price ?? 0}",
-                            style: AppTextStyle.googleFont(
-                              Colors.black,
-                              18,
-                              FontWeight.w500,
+                              focusedBorder: const OutlineInputBorder(
+                                borderSide: BorderSide(
+                                  strokeAlign: StrokeAlign.center,
+                                  color: Colors.black,
+                                  width: 1.0,
+                                ),
+                              ),
+                              hintText:
+                                  "เผ็ดๆๆๆๆ เผ็ดมากๆๆ เผ็ดแบบเผ็ดตายไปเลย",
+                              hintStyle: AppTextStyle.googleFont(
+                                Colors.grey,
+                                15,
+                                FontWeight.w500,
+                              ),
+                              contentPadding: const EdgeInsets.all(15),
                             ),
                           ),
                         ],
                       ),
-                    );
-                  },
-                ),
-                const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 10),
-                  child: Divider(
-                    color: Colors.black,
-                    thickness: 1,
-                    indent: 5,
-                    endIndent: 5,
+                    ],
                   ),
                 ),
-                const SizedBox(
-                  height: 5,
-                ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      "คำข้อเพิ่มเติม",
-                      style: AppTextStyle.googleFont(
-                          Colors.black, 18, FontWeight.w500),
-                    ),
-                    TextField(
-                      decoration: InputDecoration(
-                        enabledBorder: const OutlineInputBorder(
-                          borderSide: BorderSide(
-                            strokeAlign: StrokeAlign.center,
-                            color: Colors.black,
-                            width: 1.0,
-                          ),
-                        ),
-                        focusedBorder: const OutlineInputBorder(
-                          borderSide: BorderSide(
-                            strokeAlign: StrokeAlign.center,
-                            color: Colors.black,
-                            width: 1.0,
-                          ),
-                        ),
-                        hintText: "เผ็ดๆๆๆๆ เผ็ดมากๆๆ เผ็ดแบบเผ็ดตายไปเลย",
-                        hintStyle: AppTextStyle.googleFont(
-                          Colors.grey,
-                          15,
-                          FontWeight.w500,
-                        ),
-                        contentPadding: const EdgeInsets.all(15),
-                      ),
-                    ),
-                    FloatingActionButton(
-                      onPressed: () {},
-                    )
-                  ],
-                ),
-              ],
+              ),
             ),
-          ),
+          ],
         ),
-      ],
+      ),
     );
   }
 

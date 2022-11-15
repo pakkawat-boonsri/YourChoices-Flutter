@@ -44,7 +44,7 @@ class RestaurantBloc extends Bloc<RestaurantEvent, RestaurantState> {
               data[event.index].foods![event.index].addOns![event.index];
           emit(OnSelectedCheckBox(
             addons,
-            isChecked: checkbox!,
+            isChecked: checkbox,
           ));
         } else {
           return;

@@ -7,8 +7,8 @@ import 'package:your_choices/src/customer_screen/views/customer_view.dart';
 
 class BottomNavBarViewModel with ChangeNotifier {
   int _currentIndex = 0;
-
   int get currentIndex => _currentIndex;
+
 
   final views = [
     const CustomerView(),
