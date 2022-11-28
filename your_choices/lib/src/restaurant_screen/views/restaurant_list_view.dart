@@ -20,16 +20,27 @@ class _RestaurantViewState extends State<RestaurantView> {
   final searchText = TextEditingController();
 
   @override
+  void initState() {
+    BlocProvider.of<RestaurantBloc>(context).add(
+      OnFetchingDataEvent(),
+    );
+    super.initState();
+  }
+
+  @override
   Widget build(BuildContext context) {
     Size size = MediaQuery.of(context).size;
     return Scaffold(
       appBar: _buildAppBarContent(size, context),
-      body: SingleChildScrollView(
-        physics: const BouncingScrollPhysics(),
+      body: SizedBox(
+        width: size.width,
+        height: size.height,
         child: Column(
           children: [
             _buildTextSelection(),
-            _buildListofRestaurant(context, size),
+            Expanded(
+              child: _buildListofRestaurant(context, size),
+            ),
           ],
         ),
       ),
@@ -58,162 +69,154 @@ class _RestaurantViewState extends State<RestaurantView> {
   }
 
   Widget _buildListofRestaurant(BuildContext context, Size size) {
-    return SizedBox(
-      width: size.width,
-      height: size.height,
-      child: BlocBuilder<RestaurantBloc, RestaurantState>(
-        bloc: BlocProvider.of<RestaurantBloc>(context)
-          ..add(OnFetchingDataEvent()),
-        builder: (context, state) {
-          if (state is RestaurantInitial) {
-            return Column(
-              children: const [
-                CircularProgressIndicator(
-                  color: Colors.orangeAccent,
-                ),
-              ],
-            );
-          }
-          if (state is OnFetchedRestaurantData) {
-            final viewModel = state.model;
-            return ListView.separated(
-              physics: const NeverScrollableScrollPhysics(),
-              separatorBuilder: (context, index) => const SizedBox(
-                height: 10,
+    return BlocBuilder<RestaurantBloc, RestaurantState>(
+      builder: (context, state) {
+        if (state is RestaurantInitial) {
+          return Column(
+            children: const [
+              CircularProgressIndicator(
+                color: Colors.orangeAccent,
               ),
-              itemCount: viewModel.length,
-              itemBuilder: (context, index) {
-                log(viewModel.length.toString());
-                return GestureDetector(
-                  onTap: () {
-                    Navigator.pushAndRemoveUntil(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) =>
-                              RestaurantDetailView(model: viewModel[index]),
-                        ),
-                        (route) => false);
-                  },
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 15),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Row(
-                          children: [
-                            SizedBox(
-                              width: size.width * 0.35,
-                              height: 120,
-                              child: ClipRRect(
-                                borderRadius: const BorderRadius.only(
-                                  topLeft: Radius.circular(10),
-                                  bottomLeft: Radius.circular(10),
-                                ),
-                                child: Image.network(
-                                  "${viewModel[index].resImg}",
-                                  fit: BoxFit.cover,
-                                ),
+            ],
+          );
+        }
+        if (state is OnFetchedRestaurantData) {
+          final viewModel = state.model;
+          return ListView.separated(
+            primary: false,
+            separatorBuilder: (context, index) => const SizedBox(
+              height: 10,
+            ),
+            itemCount: viewModel.length,
+            itemBuilder: (context, index) {
+              log(viewModel.length.toString());
+              return GestureDetector(
+                onTap: () {
+                  Navigator.pushAndRemoveUntil(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            RestaurantDetailView(model: viewModel[index]),
+                      ),
+                      (route) => false);
+                },
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 15),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Row(
+                        children: [
+                          SizedBox(
+                            width: size.width * 0.35,
+                            height: 120,
+                            child: ClipRRect(
+                              borderRadius: const BorderRadius.only(
+                                topLeft: Radius.circular(10),
+                                bottomLeft: Radius.circular(10),
+                              ),
+                              child: Image.network(
+                                "${viewModel[index].resImg}",
+                                fit: BoxFit.cover,
                               ),
                             ),
-                            Expanded(
-                              child: Container(
-                                padding: const EdgeInsets.only(
-                                  left: 10,
+                          ),
+                          Expanded(
+                            child: Container(
+                              padding: const EdgeInsets.only(
+                                left: 10,
+                              ),
+                              height: 120,
+                              decoration: const BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.only(
+                                  topRight: Radius.circular(10),
+                                  bottomRight: Radius.circular(10),
                                 ),
-                                height: 120,
-                                decoration: const BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.only(
-                                    topRight: Radius.circular(10),
-                                    bottomRight: Radius.circular(10),
-                                  ),
-                                ),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceEvenly,
-                                  children: [
-                                    Container(
-                                      margin: const EdgeInsets.only(right: 10),
-                                      child: Text(
-                                        viewModel[index].resName ?? "",
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                        style: AppTextStyle.googleFont(
-                                          Colors.black,
-                                          18,
-                                          FontWeight.w600,
-                                        ),
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceEvenly,
+                                children: [
+                                  Container(
+                                    margin: const EdgeInsets.only(right: 10),
+                                    child: Text(
+                                      viewModel[index].resName ?? "",
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: AppTextStyle.googleFont(
+                                        Colors.black,
+                                        18,
+                                        FontWeight.w600,
                                       ),
                                     ),
-                                    Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        Expanded(
-                                          child: Container(
-                                            margin: const EdgeInsets.only(
-                                                right: 10),
-                                            child: Text(
-                                              "${viewModel[index].description}",
-                                              style: AppTextStyle.googleFont(
-                                                Colors.grey,
-                                                14,
-                                                FontWeight.normal,
-                                              ),
-                                              maxLines: 2,
-                                              overflow: TextOverflow.ellipsis,
+                                  ),
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Expanded(
+                                        child: Container(
+                                          margin:
+                                              const EdgeInsets.only(right: 10),
+                                          child: Text(
+                                            "${viewModel[index].description}",
+                                            style: AppTextStyle.googleFont(
+                                              Colors.grey,
+                                              14,
+                                              FontWeight.normal,
                                             ),
+                                            maxLines: 2,
+                                            overflow: TextOverflow.ellipsis,
                                           ),
                                         ),
-                                        const Padding(
-                                          padding: EdgeInsets.only(right: 10.0),
-                                          child: Icon(Icons.arrow_forward),
-                                        )
+                                      ),
+                                      const Padding(
+                                        padding: EdgeInsets.only(right: 10.0),
+                                        child: Icon(Icons.arrow_forward),
+                                      )
+                                    ],
+                                  ),
+                                  Text.rich(
+                                    TextSpan(
+                                      text: "มี ",
+                                      style: AppTextStyle.googleFont(
+                                          Colors.black, 14, FontWeight.normal),
+                                      children: [
+                                        TextSpan(
+                                          text: "${viewModel[index].onQueue}",
+                                          style: AppTextStyle.googleFont(
+                                              "FF602E".toColor(),
+                                              16,
+                                              FontWeight.normal),
+                                        ),
+                                        TextSpan(
+                                          text: " คิว ณ ขณะนี้",
+                                          style: AppTextStyle.googleFont(
+                                              Colors.black,
+                                              14,
+                                              FontWeight.normal),
+                                        ),
                                       ],
                                     ),
-                                    Text.rich(
-                                      TextSpan(
-                                        text: "มี ",
-                                        style: AppTextStyle.googleFont(
-                                            Colors.black,
-                                            14,
-                                            FontWeight.normal),
-                                        children: [
-                                          TextSpan(
-                                            text: "${viewModel[index].onQueue}",
-                                            style: AppTextStyle.googleFont(
-                                                "FF602E".toColor(),
-                                                16,
-                                                FontWeight.normal),
-                                          ),
-                                          TextSpan(
-                                            text: " คิว ณ ขณะนี้",
-                                            style: AppTextStyle.googleFont(
-                                                Colors.black,
-                                                14,
-                                                FontWeight.normal),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
-                                ),
+                                  ),
+                                ],
                               ),
                             ),
-                          ],
-                        ),
-                      ],
-                    ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
-                );
-              },
-            );
-          } else {
-            return const Text("NO DATA");
-          }
-        },
-      ),
+                ),
+              );
+            },
+          );
+        } else {
+          return const Text("NO DATA");
+        }
+      },
     );
   }
 }

@@ -199,7 +199,7 @@ class _RestaurantDetailViewState extends State<RestaurantDetailView> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
       child: ListView.separated(
-        physics: const NeverScrollableScrollPhysics(),
+        physics: const ScrollPhysics(),
         separatorBuilder: (context, index) => const SizedBox(
           height: 13,
         ),

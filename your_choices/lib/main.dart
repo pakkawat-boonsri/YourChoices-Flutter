@@ -72,7 +72,6 @@ class _YourChoicesState extends State<YourChoices> {
             RepositoryProvider.of<RestaurantRepository>(context),
           ),
         ),
-        
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,

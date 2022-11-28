@@ -52,6 +52,12 @@ class LoginViewModel extends ChangeNotifier {
   Future signOut(BuildContext context) async {
     try {
       auth.signOut();
+      Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const LoginView(),
+          ),
+          (route) => false);
     } on FirebaseAuthException catch (e) {
       showSnackbar(context, e.message!);
     }

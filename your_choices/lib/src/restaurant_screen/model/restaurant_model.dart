@@ -1,12 +1,13 @@
 import 'package:flutter/foundation.dart';
+import 'package:your_choices/utilities/check_double_value.dart';
 
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 class RestaurantModel {
   String? resName;
   String? description;
   String? resImg;
-  int? onQueue;
-  int? totalPriceSell;
+  num? onQueue;
+  num? totalPriceSell;
   bool? isActive;
   bool? isFavorite;
   List<Foods>? foods;
@@ -26,7 +27,7 @@ class RestaurantModel {
     description = json['description'];
     resImg = json['resImg'];
     onQueue = json['onQueue'];
-    totalPriceSell = json['totalPriceSell'];
+    totalPriceSell = checkDouble(json['totalPriceSell']);
     isActive = json['isAction'];
     isFavorite = json['isFavorite'];
     if (json['Foods'] != null) {
@@ -82,8 +83,8 @@ class RestaurantModel {
     String? resName,
     String? description,
     String? resImg,
-    int? onQueue,
-    int? totalPriceSell,
+    num? onQueue,
+    num? totalPriceSell,
     bool? isAction,
     bool? isFavorite,
     List<Foods>? foods,
@@ -104,7 +105,7 @@ class RestaurantModel {
 class Foods {
   String? menuName;
   String? menuImg;
-  int? menuPrice;
+  num? menuPrice;
   String? menuDescription;
   List<AddOns>? addOns;
 
@@ -144,11 +145,9 @@ class Foods {
 class AddOns {
   String? addonsType;
   bool isChecked = false;
-  int? price;
+  num? price;
 
-  AddOns({this.addonsType, this.price, required this.isChecked}) {
-    isChecked = isChecked;
-  }
+  AddOns({this.addonsType, this.price, required this.isChecked});
 
   AddOns.fromJson(Map<String, dynamic> json) {
     addonsType = json['addonsType'];

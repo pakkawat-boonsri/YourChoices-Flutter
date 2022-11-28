@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import 'package:your_choices/src/bottom_navbar_screen/view/bottom_nav_bar.dart';
 import 'package:your_choices/src/customer_screen/views/customer_view.dart';
 
 import 'package:your_choices/utilities/hex_color.dart';
@@ -191,7 +192,7 @@ class _LoginViewState extends State<LoginView> {
                             Navigator.pushAndRemoveUntil(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (context) => const CustomerView(),
+                                  builder: (context) => const BottomNavBarView(),
                                 ),
                                 (route) => false);
                           }

@@ -1,6 +1,9 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:your_choices/constants/text_style.dart';
 import 'package:your_choices/src/restaurant_screen/model/restaurant_model.dart';
+import 'package:your_choices/utilities/hex_color.dart';
 
 class FoodDetailView extends StatefulWidget {
   final Foods foods;
@@ -14,28 +17,90 @@ class FoodDetailView extends StatefulWidget {
 }
 
 class _FoodDetailViewState extends State<FoodDetailView> {
-  List<AddOns>? checkboxList = [];
+  List<AddOns> checkboxList = [];
+  num calPrice = 0;
+  void calulatePrice(num value) {
+    final result;
+  }
+
+  void clear() {
+    setState(() {
+      checkboxList = [];
+    });
+  }
+
+  @override
+  void initState() {
+    clear();
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     Size size = MediaQuery.of(context).size;
     final food = widget.foods;
     return SafeArea(
       child: Scaffold(
+        floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+        floatingActionButton: _buildFloatingActionButton(calPrice),
         body: NestedScrollView(
           headerSliverBuilder: (context, innerBoxIsScrolled) {
             return [
               _buildSliverAppbar(context, size, food),
             ];
           },
-          body: _buildAddOns(size, food.addOns, checkboxList),
+          body: _buildAddOns(size, food.addOns),
         ),
       ),
     );
   }
 
-  _buildAddOns(Size size, List<AddOns>? addons, List<AddOns>? checkboxList) {
+  Widget _buildFloatingActionButton(num calPrice) {
+    return GestureDetector(
+      onTap: () {},
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            margin: const EdgeInsets.symmetric(horizontal: 10),
+            padding: const EdgeInsets.all(5),
+            decoration: BoxDecoration(
+              color: "FF602E".toColor(),
+              borderRadius: BorderRadius.circular(15),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 15),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    "เพิ่มลงตะกร้า",
+                    style: AppTextStyle.googleFont(
+                      Colors.white,
+                      25,
+                      FontWeight.bold,
+                    ),
+                  ),
+                  Text(
+                    "฿ ${widget.foods.menuPrice ?? 0 + calPrice}",
+                    style: AppTextStyle.googleFont(
+                      Colors.white,
+                      25,
+                      FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  _buildAddOns(Size size, List<AddOns>? addons) {
     return SingleChildScrollView(
-      physics: const BouncingScrollPhysics(),
+      physics: const ScrollPhysics(),
       child: SizedBox(
         width: size.width,
         height: size.height,
@@ -45,7 +110,6 @@ class _FoodDetailViewState extends State<FoodDetailView> {
               height: 10,
             ),
             Flexible(
-              fit: FlexFit.tight,
               child: Container(
                 width: size.width,
                 color: Colors.white,
@@ -79,7 +143,7 @@ class _FoodDetailViewState extends State<FoodDetailView> {
                       ),
                       ListView.separated(
                         shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
+                        physics: const ScrollPhysics(),
                         separatorBuilder: (context, index) => const SizedBox(
                           height: 5,
                         ),
@@ -95,16 +159,35 @@ class _FoodDetailViewState extends State<FoodDetailView> {
                                     Checkbox(
                                       value: addons?[index].isChecked,
                                       onChanged: (value) {
-                                        // log("${addons?[index].isChecked}");
+                                        log("addons => ${addons?[index].isChecked}\n");
                                         // log("ontap");
-                                        setState(() {
-                                          final result =
-                                              addons?[index].isChecked = value!;
-                                          checkboxList?.add(
-                                            addons![index]
-                                                .copyWith(isChecked: result),
-                                          );
-                                        });
+                                        setState(
+                                          () {
+                                            final result = addons?[index]
+                                                .isChecked = value!;
+                                            log("result => $result");
+                                            if (result != null) {
+                                              if (result == true) {
+                                                checkboxList.add(
+                                                  addons![index].copyWith(
+                                                      isChecked: result),
+                                                );
+                                                for (var element
+                                                    in checkboxList) {
+                                                  log("${element.isChecked}");
+                                                }
+                                                log("len = ${checkboxList.length}");
+                                              } else {
+                                                checkboxList.removeLast();
+                                                for (var element
+                                                    in checkboxList) {
+                                                  log("${element.isChecked}");
+                                                }
+                                                log("len = ${checkboxList.length}");
+                                              }
+                                            }
+                                          },
+                                        );
                                       },
                                     ),
                                     const SizedBox(
@@ -220,34 +303,47 @@ class _FoodDetailViewState extends State<FoodDetailView> {
       color: Colors.white,
       child: Padding(
         padding: const EdgeInsets.symmetric(
-          horizontal: 15,
+          horizontal: 20,
         ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.start,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
+            Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  "${food.menuName}",
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppTextStyle.googleFont(
+                    Colors.black,
+                    36,
+                    FontWeight.bold,
+                  ),
+                ),
+                Text(
+                  "${food.menuDescription}",
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppTextStyle.googleFont(
+                    Colors.grey,
+                    14,
+                    FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(
+                  height: 10,
+                ),
+              ],
+            ),
             Text(
-              "${food.menuName}",
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
+              "฿ ${food.menuPrice}",
               style: AppTextStyle.googleFont(
                 Colors.black,
-                36,
+                32,
                 FontWeight.bold,
               ),
-            ),
-            Text(
-              "${food.menuDescription}",
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: AppTextStyle.googleFont(
-                Colors.grey,
-                14,
-                FontWeight.w500,
-              ),
-            ),
-            const SizedBox(
-              height: 10,
             ),
           ],
         ),

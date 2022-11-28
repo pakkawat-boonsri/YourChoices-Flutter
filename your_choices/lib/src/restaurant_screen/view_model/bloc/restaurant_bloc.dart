@@ -22,6 +22,7 @@ class RestaurantBloc extends Bloc<RestaurantEvent, RestaurantState> {
 
         if (data != null) {
           log("fetched data");
+          await Future.delayed(const Duration(seconds: 1));
           emit(
             OnFetchedRestaurantData(data),
           );
