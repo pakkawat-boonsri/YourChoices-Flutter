@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:your_choices/constants/text_style.dart';
+import 'package:your_choices/utilities/text_style.dart';
 
 class FavoriteView extends StatefulWidget {
   const FavoriteView({super.key});

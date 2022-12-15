@@ -1,7 +1,7 @@
 import 'dart:developer';
 
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:your_choices/src/customer_screen/model/customer_model.dart';
 import 'package:your_choices/src/customer_screen/repository/customer_repository.dart';
 
@@ -13,8 +13,6 @@ class CustomerBloc extends Bloc<CustomerEvent, CustomerState> {
 
   CustomerBloc(this.customerRepo) : super(CustomerInitial()) {
     on<FetchDataEvent>((event, emit) async {
-      // emit(CustomerLoadingState());
-      // await Future.delayed(const Duration(seconds: 1));
       final data = await customerRepo.fetchData();
       if (data != null) {
         emit(CustomerLoadedState(data));
@@ -37,7 +35,7 @@ class CustomerBloc extends Bloc<CustomerEvent, CustomerState> {
         );
         emit(TransactionLoadedState(transaction));
       } else {
-        return;
+        emit(TransactionNoDataState());
       }
     });
   }

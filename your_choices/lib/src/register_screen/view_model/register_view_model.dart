@@ -1,13 +1,13 @@
 import 'dart:developer';
 import 'dart:io';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:your_choices/utilities/show_snack_bar.dart';
-import 'package:uuid/uuid.dart';
 
 class RegisterViewModel extends ChangeNotifier {
   String _selectedType = "customer";
@@ -63,18 +63,17 @@ class RegisterViewModel extends ChangeNotifier {
   }) =>
       FirebaseStorage.instance
           .ref(userId)
-          .child(const Uuid().v4())
+          .child(file.path.toLowerCase())
           .putFile(file)
           .then((_) => true)
           .catchError((_) => false);
 
-  Future<Iterable<Reference>> _getImages(String userId) =>
-      FirebaseStorage.instance
-          .ref(userId)
-          .list()
-          .then((listResult) => listResult.items);
+  _getImages(String userId) => FirebaseStorage.instance
+      .ref(userId)
+      .child(imageFile!.path.toLowerCase())
+      .getDownloadURL();
 
-  createUserWithEmailAndpassword(BuildContext context, String username,
+  createUserWithEmailAndPassword(BuildContext context, String username,
       String email, String password, String type) async {
     try {
       await auth
@@ -89,18 +88,19 @@ class RegisterViewModel extends ChangeNotifier {
               "username": username,
               "imgAvatar": image,
               "role": "101",
-              "transaction": [{}],
+              "transaction": [],
             });
           } else if (type == "restaurant") {
             await db.collection("restaurant").doc(value.user!.uid).set(
               {
-                "res_name": "",
+                "resName": username,
+                "totalPriceSell": 0,
+                "resImg": image,
+                "onQueue": 0,
+                "isActive": false,
+                "Foods": [],
                 "description": "",
-                "menu_list": [{}],
-                "username": username,
-                "imgAvatar": image,
-                "role": "101",
-                "transaction": [{}],
+                "role": "102",
               },
             );
           }

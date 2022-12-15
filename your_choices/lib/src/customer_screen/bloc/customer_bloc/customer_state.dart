@@ -7,8 +7,8 @@ abstract class CustomerState extends Equatable {
 class CustomerInitial extends CustomerState {
   @override
   List<Object?> get props => [];
-
 }
+
 class CustomerLoadingState extends CustomerState {
   @override
   List<Object?> get props => [];
@@ -34,4 +34,9 @@ class TransactionLoadedState extends CustomerState {
   const TransactionLoadedState(this.transaction);
   @override
   List<Object?> get props => [transaction];
+}
+
+class TransactionNoDataState extends CustomerState {
+  @override
+  List<Object?> get props => [];
 }

@@ -3,7 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:your_choices/src/bottom_navbar_screen/view/bottom_nav_bar.dart';
 import 'package:your_choices/utilities/show_snack_bar.dart';
-import 'package:your_choices/src/login_screen/views/login_view.dart';
+import 'package:your_choices/src/presentation/views/login_view/login_view.dart';
 
 class LoginViewModel extends ChangeNotifier {
   bool _isLoading = false;

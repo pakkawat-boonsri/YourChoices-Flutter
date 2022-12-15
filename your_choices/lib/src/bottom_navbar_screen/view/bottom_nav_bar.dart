@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:your_choices/constants/text_style.dart';
-import 'package:your_choices/src/bottom_navbar_screen/view_model/bottom_nav_bar_view_model.dart';
+import 'package:your_choices/utilities/text_style.dart';
+import 'package:your_choices/src/favorite_screen/view/favorite_view.dart';
+import 'package:your_choices/src/notification_screen/views/notification_view.dart';
+import 'package:your_choices/src/profile_screen/views/profile_view.dart';
+import 'package:your_choices/src/presentation/views/restaurant_view/restaurant_list_view/restaurant_list_view.dart';
+
+import '../../presentation/views/home_view/transaction_view/transaction_view.dart';
 
 class BottomNavBarView extends StatefulWidget {
   const BottomNavBarView({super.key});
@@ -11,23 +15,35 @@ class BottomNavBarView extends StatefulWidget {
 }
 
 class _BottomNavBarViewState extends State<BottomNavBarView> {
+  late int currentIndex;
+  final views = [
+    const TransactionView(),
+    const RestaurantView(),
+    const FavoriteView(),
+    const NotificationView(),
+    const ProfileView(),
+  ];
+
   @override
   void initState() {
+    currentIndex = 0;
     super.initState();
+  }
+
+  @override
+  void dispose() {
+    currentIndex;
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
-        body: Consumer<BottomNavBarViewModel>(
-          builder: (context, value, child) {
-            return value.views[value.currentIndex];
-          },
-        ),
+        body: views[currentIndex],
         bottomNavigationBar: BottomNavigationBar(
           type: BottomNavigationBarType.shifting,
-          currentIndex: context.watch<BottomNavBarViewModel>().currentIndex,
+          currentIndex: currentIndex,
           selectedItemColor: const Color(0xFFFF9C29),
           selectedIconTheme:
               IconTheme.of(context).copyWith(color: const Color(0xFFFF9C29)),
@@ -37,7 +53,9 @@ class _BottomNavBarViewState extends State<BottomNavBarView> {
           unselectedIconTheme:
               IconTheme.of(context).copyWith(color: Colors.grey),
           onTap: (index) {
-            context.read<BottomNavBarViewModel>().setcurrentIndex(index);
+            setState(() {
+              currentIndex = index;
+            });
           },
           items: const [
             BottomNavigationBarItem(

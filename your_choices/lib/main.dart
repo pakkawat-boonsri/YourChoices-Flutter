@@ -5,18 +5,17 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-import 'package:your_choices/router/app_router.dart';
 import 'package:your_choices/src/bottom_navbar_screen/view/bottom_nav_bar.dart';
 import 'package:your_choices/src/customer_screen/bloc/customer_bloc/customer_bloc.dart';
 import 'package:your_choices/src/customer_screen/bloc/deposit_bloc/bloc/deposit_bloc.dart';
 import 'package:your_choices/src/customer_screen/bloc/withdraw_bloc/bloc/withdraw_bloc.dart';
 import 'package:your_choices/src/customer_screen/repository/customer_repository.dart';
-import 'package:your_choices/src/login_screen/views/login_view.dart';
 import 'package:your_choices/src/login_screen/view_models/login_view_model.dart';
-import 'package:your_choices/src/bottom_navbar_screen/view_model/bottom_nav_bar_view_model.dart';
+import 'package:your_choices/src/presentation/views/login_view/login_view.dart';
 import 'package:your_choices/src/register_screen/view_model/register_view_model.dart';
 import 'package:your_choices/src/restaurant_screen/repository/restaurant_repo.dart';
 import 'package:your_choices/src/restaurant_screen/view_model/bloc/restaurant_bloc.dart';
+
 import 'firebase_options.dart';
 
 void main() async {
@@ -47,9 +46,6 @@ class _YourChoicesState extends State<YourChoices> {
         ChangeNotifierProvider(
           create: (context) => RegisterViewModel(),
         ),
-        ChangeNotifierProvider(
-          create: (context) => BottomNavBarViewModel(),
-        ),
         RepositoryProvider(
           create: (context) => CustomerRepository(),
         ),
@@ -79,7 +75,6 @@ class _YourChoicesState extends State<YourChoices> {
           scaffoldBackgroundColor: const Color(0xFF34312f),
         ),
         title: "YourChoices",
-        onGenerateRoute: AppRouter.onGenerateRoute,
         home: StreamBuilder(
           stream: FirebaseAuth.instance.authStateChanges(),
           builder: (context, snapshot) {
