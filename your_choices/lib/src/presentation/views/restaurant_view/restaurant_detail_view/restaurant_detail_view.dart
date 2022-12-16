@@ -1,11 +1,11 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 
 import 'package:flutter/material.dart';
-import 'package:your_choices/utilities/text_style.dart';
-import 'package:your_choices/src/bottom_navbar_screen/view/bottom_nav_bar.dart';
-import 'package:your_choices/src/restaurant_screen/model/restaurant_model.dart';
+import 'package:your_choices/src/presentation/views/main_view/main_view.dart';
 import 'package:your_choices/src/presentation/views/restaurant_view/food_detail_view/food_detail_view.dart';
+import 'package:your_choices/src/restaurant_screen/model/restaurant_model.dart';
 import 'package:your_choices/utilities/hex_color.dart';
+import 'package:your_choices/utilities/text_style.dart';
 
 class RestaurantDetailView extends StatefulWidget {
   final RestaurantModel model;
@@ -165,7 +165,7 @@ class _RestaurantDetailViewState extends State<RestaurantDetailView> {
               Navigator.pushAndRemoveUntil(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => const BottomNavBarView(),
+                    builder: (context) => const MainView(),
                   ),
                   (route) => false);
             },

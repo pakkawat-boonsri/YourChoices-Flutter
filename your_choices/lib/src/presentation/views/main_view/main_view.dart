@@ -1,46 +1,60 @@
 import 'package:flutter/material.dart';
-import 'package:your_choices/utilities/text_style.dart';
-import 'package:your_choices/src/favorite_screen/view/favorite_view.dart';
-import 'package:your_choices/src/notification_screen/views/notification_view.dart';
-import 'package:your_choices/src/profile_screen/views/profile_view.dart';
+import 'package:your_choices/src/presentation/views/favorite_view/favorite_view.dart';
+import 'package:your_choices/src/presentation/views/notification_view/notification_view.dart';
+import 'package:your_choices/src/presentation/views/profile_view/profile_view.dart';
 import 'package:your_choices/src/presentation/views/restaurant_view/restaurant_list_view/restaurant_list_view.dart';
+import 'package:your_choices/utilities/text_style.dart';
 
-import '../../presentation/views/home_view/transaction_view/transaction_view.dart';
+import '../home_view/transaction_view/transaction_view.dart';
 
-class BottomNavBarView extends StatefulWidget {
-  const BottomNavBarView({super.key});
+class MainView extends StatefulWidget {
+  const MainView({super.key});
 
   @override
-  State<BottomNavBarView> createState() => _BottomNavBarViewState();
+  State<MainView> createState() => _MainViewState();
 }
 
-class _BottomNavBarViewState extends State<BottomNavBarView> {
-  late int currentIndex;
-  final views = [
-    const TransactionView(),
-    const RestaurantView(),
-    const FavoriteView(),
-    const NotificationView(),
-    const ProfileView(),
-  ];
+class _MainViewState extends State<MainView> {
+  int currentIndex = 0;
+  late PageController pageController;
 
   @override
   void initState() {
-    currentIndex = 0;
+    pageController = PageController();
     super.initState();
   }
 
   @override
   void dispose() {
-    currentIndex;
+    pageController.dispose();
     super.dispose();
+  }
+
+  void navigationTapped(int index) {
+    pageController.jumpToPage(index);
+  }
+
+  void onPageChanged(int index) {
+    setState(() {
+      currentIndex = index;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
-        body: views[currentIndex],
+        body: PageView(
+          controller: pageController,
+          onPageChanged: onPageChanged,
+          children: const [
+            TransactionView(),
+            RestaurantView(),
+            FavoriteView(),
+            NotificationView(),
+            ProfileView(),
+          ],
+        ),
         bottomNavigationBar: BottomNavigationBar(
           type: BottomNavigationBarType.shifting,
           currentIndex: currentIndex,
@@ -52,11 +66,7 @@ class _BottomNavBarViewState extends State<BottomNavBarView> {
           unselectedItemColor: Colors.grey,
           unselectedIconTheme:
               IconTheme.of(context).copyWith(color: Colors.grey),
-          onTap: (index) {
-            setState(() {
-              currentIndex = index;
-            });
-          },
+          onTap: navigationTapped,
           items: const [
             BottomNavigationBarItem(
               icon: Icon(Icons.home_sharp),
