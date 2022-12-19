@@ -14,7 +14,7 @@ abstract class FirebaseRemoteDataSource {
 
   Future<void> signOut();
 
-  Stream<CustomerEntity> getSingleCustomer(String uid);
+  Stream<List<CustomerEntity>> getSingleCustomer(String uid);
 
   Future<String> getCurrentUid();
 

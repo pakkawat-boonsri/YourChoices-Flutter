@@ -12,7 +12,7 @@ abstract class FirebaseRepository {
   Future<bool> isSignIn();
   Future<void> signOut();
 
-  Stream<CustomerEntity> getSingleCustomer(String uid);
+  Stream<List<CustomerEntity>> getSingleCustomer(String uid);
   Future<String> getCurrentUid();
   Future<void> createCustomer(CustomerEntity customer);
   Future<void> updateCustomer(CustomerEntity customer);

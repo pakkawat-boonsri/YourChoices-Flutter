@@ -17,6 +17,7 @@ import 'package:your_choices/src/restaurant_screen/repository/restaurant_repo.da
 import 'package:your_choices/src/restaurant_screen/view_model/bloc/restaurant_bloc.dart';
 
 import 'firebase_options.dart';
+import 'injection_container.dart' as di;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -25,6 +26,7 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+  await di.init();
   runApp(const YourChoices());
 }
 

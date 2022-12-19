@@ -20,7 +20,7 @@ class FirebaseRepositoryImpl implements FirebaseRepository {
   }
 
   @override
-  Stream<CustomerEntity> getSingleCustomer(String uid) {
+  Stream<List<CustomerEntity>> getSingleCustomer(String uid) {
     return remoteDataSource.getSingleCustomer(uid);
   }
 

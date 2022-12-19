@@ -22,7 +22,7 @@ class CustomerUseCase {
     return repository.signOut();
   }
 
-  Stream<CustomerEntity> getSingleCustomerCall(String uid) {
+  Stream<List<CustomerEntity>> getSingleCustomerCall(String uid) {
     return repository.getSingleCustomer(uid);
   }
 
@@ -32,5 +32,9 @@ class CustomerUseCase {
 
   Future<void> createCustomerCall(CustomerEntity customer) {
     return repository.createCustomer(customer);
+  }
+
+  Future<void> updateCustomerCall(CustomerEntity customer) {
+    return repository.updateCustomer(customer);
   }
 }
