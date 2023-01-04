@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:your_choices/src/domain/entities/customer/customer_entity.dart';
 import 'package:your_choices/src/domain/repositories/firebase_repository.dart';
 
@@ -36,5 +38,17 @@ class CustomerUseCase {
 
   Future<void> updateCustomerCall(CustomerEntity customer) {
     return repository.updateCustomer(customer);
+  }
+
+  Future<String> uploadImageToStorageCall(
+    File file,
+    bool isPost,
+    String childName,
+  ) async {
+    return repository.uploadImageToStorage(
+      file,
+      isPost,
+      childName,
+    );
   }
 }

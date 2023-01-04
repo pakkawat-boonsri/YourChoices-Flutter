@@ -1,5 +1,9 @@
+import 'dart:io';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:uuid/uuid.dart';
 import 'package:your_choices/src/data/data_sources/remote_data_source/remote_data_source.dart';
 import 'package:your_choices/src/data/models/customer_model/customer_model.dart';
 import 'package:your_choices/src/domain/entities/customer/customer_entity.dart';
@@ -9,11 +13,41 @@ import '../../../../utilities/show_flutter_toast.dart';
 class FirebaseRemoteDataSourceImpl implements FirebaseRemoteDataSource {
   final FirebaseFirestore firebaseFireStore;
   final FirebaseAuth firebaseAuth;
+  final FirebaseStorage firebaseStorage;
 
   FirebaseRemoteDataSourceImpl({
+    required this.firebaseStorage,
     required this.firebaseFireStore,
     required this.firebaseAuth,
   });
+
+  Future<void> createCustomerWithImage(
+      CustomerEntity customer, String profileUrl) async {
+    final customerCollection = firebaseFireStore.collection("customer");
+
+    final uid = await getCurrentUid();
+
+    customerCollection.doc(uid).get().then((value) {
+      final newCustomer = CustomerModel(
+        uid: customer.uid,
+        balance: customer.balance,
+        email: customer.email,
+        profileUrl: profileUrl,
+        type: customer.type,
+        transaction: customer.transaction,
+        username: customer.username,
+      ).toJson();
+      if (!value.exists) {
+        customerCollection.doc(uid).set(newCustomer);
+      } else {
+        customerCollection.doc(uid).update(newCustomer);
+      }
+    }).catchError((error) {
+      showFlutterToast(
+        error.toString(),
+      );
+    });
+  }
 
   @override
   Future<void> createCustomer(CustomerEntity customer) async {
@@ -93,7 +127,14 @@ class FirebaseRemoteDataSourceImpl implements FirebaseRemoteDataSource {
       )
           .then((value) async {
         if (value.user?.uid != null) {
-          await createCustomer(customer);
+          if (customer.imageFile != null) {
+            uploadImageToStorage(customer.imageFile, false, "profileImage")
+                .then((profileUrl) {
+              createCustomerWithImage(customer, profileUrl);
+            });
+          } else {
+            createCustomerWithImage(customer, "");
+          }
         }
       });
       return;
@@ -111,7 +152,7 @@ class FirebaseRemoteDataSourceImpl implements FirebaseRemoteDataSource {
   @override
   Future<void> updateCustomer(CustomerEntity customer) async {
     final customerCollection = firebaseFireStore.collection("customer");
-    Map<String, dynamic> customerInformation = Map();
+    Map<String, dynamic> customerInformation = {};
 
     if (customer.email != "" && customer.email != null) {
       customerInformation["email"] = customer.email;
@@ -133,5 +174,25 @@ class FirebaseRemoteDataSourceImpl implements FirebaseRemoteDataSource {
     }
 
     customerCollection.doc(customer.uid).update(customerInformation);
+  }
+
+  @override
+  Future<String> uploadImageToStorage(
+      File? file, bool isPost, String childName) async {
+    Reference ref = firebaseStorage
+        .ref()
+        .child(childName)
+        .child(firebaseAuth.currentUser!.uid);
+
+    if (isPost) {
+      String id = const Uuid().v1();
+      ref = ref.child(id);
+    }
+
+    final uploadTask = ref.putFile(file!);
+
+    final imageUrl =
+        (await uploadTask.whenComplete(() {})).ref.getDownloadURL();
+    return await imageUrl;
   }
 }

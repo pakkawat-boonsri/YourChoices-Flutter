@@ -1,12 +1,17 @@
 import 'dart:developer';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:provider/provider.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:your_choices/src/presentation/views/login_view/login_view.dart';
-import 'package:your_choices/src/register_screen/view_model/register_view_model.dart';
 import 'package:your_choices/utilities/hex_color.dart';
 import 'package:your_choices/utilities/reuseable_widget.dart';
+
+import '../../../domain/entities/customer/customer_entity.dart';
+import '../../blocs/credential/credential_cubit.dart';
 
 class RegisterView extends StatefulWidget {
   const RegisterView({super.key});
@@ -22,6 +27,24 @@ class _RegisterViewState extends State<RegisterView> {
   final password = TextEditingController();
   final confirmPassword = TextEditingController();
 
+  String selectingType = 'customer';
+
+  File? imageFile;
+
+  Future pickImageFromGallery() async {
+    try {
+      final file = await ImagePicker().pickImage(source: ImageSource.gallery);
+      if (file == null) {
+        return null;
+      } else {
+        imageFile = File(file.path);
+        setState(() {});
+      }
+    } on PlatformException catch (e) {
+      log('Failed to pick image: $e');
+    }
+  }
+
   @override
   void dispose() {
     username.dispose();
@@ -31,6 +54,15 @@ class _RegisterViewState extends State<RegisterView> {
     super.dispose();
   }
 
+  bool isClick = false;
+  bool isObscure = true;
+
+  void setObscure(bool showText) {
+    setState(() {
+      isObscure = showText;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     Size size = MediaQuery.of(context).size;
@@ -38,7 +70,7 @@ class _RegisterViewState extends State<RegisterView> {
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
-            reverse: context.watch<RegisterViewModel>().getIsClick,
+            reverse: isClick,
             child: Stack(
               alignment: Alignment.topCenter,
               children: [
@@ -56,7 +88,11 @@ class _RegisterViewState extends State<RegisterView> {
                     ),
                     child: Column(
                       children: [
-                        HeaderWelcome(size: size),
+                        HeaderWelcome(
+                          size: size,
+                          file: imageFile,
+                          pickImageFromGallery: pickImageFromGallery,
+                        ),
                         const SizedBox(
                           height: 5,
                         ),
@@ -68,9 +104,9 @@ class _RegisterViewState extends State<RegisterView> {
                               children: [
                                 TextFormField(
                                   onTap: () {
-                                    context
-                                        .read<RegisterViewModel>()
-                                        .setIsClick(true);
+                                    setState(() {
+                                      isClick = true;
+                                    });
                                   },
                                   onChanged: (value) {
                                     setState(() {});
@@ -126,9 +162,9 @@ class _RegisterViewState extends State<RegisterView> {
                                 ),
                                 TextFormField(
                                   onTap: () {
-                                    context
-                                        .read<RegisterViewModel>()
-                                        .setIsClick(true);
+                                    setState(() {
+                                      isClick = true;
+                                    });
                                   },
                                   onChanged: (value) {
                                     setState(() {});
@@ -140,11 +176,6 @@ class _RegisterViewState extends State<RegisterView> {
                                   decoration: InputDecoration(
                                     hintText: "Email",
                                     labelText: "Email",
-                                    // labelStyle: AppTextStyle.googleFont(
-                                    //   Colors.amber.shade900,
-                                    //   12,
-                                    //   FontWeight.normal,
-                                    // ),
                                     suffixIcon: email.text.isNotEmpty
                                         ? IconButton(
                                             onPressed: () {
@@ -193,9 +224,9 @@ class _RegisterViewState extends State<RegisterView> {
                                 ),
                                 TextFormField(
                                   onTap: () {
-                                    context
-                                        .read<RegisterViewModel>()
-                                        .setIsClick(true);
+                                    setState(() {
+                                      isClick = true;
+                                    });
                                   },
                                   onChanged: (value) {
                                     setState(() {});
@@ -203,20 +234,32 @@ class _RegisterViewState extends State<RegisterView> {
                                   controller: password,
                                   keyboardType: TextInputType.name,
                                   autocorrect: false,
-                                  obscureText: context
-                                      .watch<RegisterViewModel>()
-                                      .getObscureText,
+                                  obscureText: isObscure,
                                   enableSuggestions: false,
                                   decoration: InputDecoration(
                                     hintText: "Password",
                                     labelText: "Password",
                                     suffixIcon: password.text.isNotEmpty
-                                        ? IconButton(
-                                            onPressed: () {
-                                              password.clear();
-                                              setState(() {});
-                                            },
-                                            icon: const Icon(Icons.clear),
+                                        ? Row(
+                                            children: [
+                                              IconButton(
+                                                onPressed: () {
+                                                  setObscure(true);
+                                                },
+                                                icon: isObscure
+                                                    ? const Icon(
+                                                        Icons.visibility)
+                                                    : const Icon(
+                                                        Icons.visibility_off),
+                                              ),
+                                              IconButton(
+                                                onPressed: () {
+                                                  password.clear();
+                                                  setState(() {});
+                                                },
+                                                icon: const Icon(Icons.clear),
+                                              ),
+                                            ],
                                           )
                                         : null,
                                     enabledBorder: OutlineInputBorder(
@@ -254,9 +297,9 @@ class _RegisterViewState extends State<RegisterView> {
                                 ),
                                 TextFormField(
                                   onTap: () {
-                                    context
-                                        .read<RegisterViewModel>()
-                                        .setIsClick(true);
+                                    setState(() {
+                                      isClick = true;
+                                    });
                                   },
                                   onChanged: (value) {
                                     setState(() {});
@@ -264,20 +307,34 @@ class _RegisterViewState extends State<RegisterView> {
                                   controller: confirmPassword,
                                   keyboardType: TextInputType.name,
                                   autocorrect: false,
-                                  obscureText: true,
+                                  obscureText: isObscure,
                                   enableSuggestions: false,
                                   decoration: InputDecoration(
                                     hintText: "Confirm password",
                                     labelText: "Confirm password",
                                     suffixIcon: confirmPassword.text.isNotEmpty
-                                        ? IconButton(
-                                            onPressed: () {
-                                              confirmPassword.clear();
-                                              setState(() {});
-                                            },
-                                            icon: const Icon(Icons.clear),
+                                        ? Row(
+                                            children: [
+                                              IconButton(
+                                                onPressed: () {
+                                                  setObscure(true);
+                                                },
+                                                icon: isObscure
+                                                    ? const Icon(
+                                                        Icons.visibility)
+                                                    : const Icon(
+                                                        Icons.visibility_off),
+                                              ),
+                                              IconButton(
+                                                onPressed: () {
+                                                  confirmPassword.clear();
+                                                  setState(() {});
+                                                },
+                                                icon: const Icon(Icons.clear),
+                                              ),
+                                            ],
                                           )
-                                        : null,
+                                        : Container(),
                                     enabledBorder: OutlineInputBorder(
                                       borderSide: BorderSide(
                                         color: Colors.amber.shade900,
@@ -322,14 +379,12 @@ class _RegisterViewState extends State<RegisterView> {
                                       children: [
                                         Radio(
                                           value: "customer",
-                                          groupValue: context
-                                              .watch<RegisterViewModel>()
-                                              .getSelectedType,
+                                          groupValue: selectingType,
                                           onChanged: ((value) {
                                             log(value.toString());
-                                            context
-                                                .read<RegisterViewModel>()
-                                                .setSelectedType(value);
+                                            setState(() {
+                                              selectingType = value.toString();
+                                            });
                                           }),
                                         ),
                                         const Text("Customer")
@@ -341,14 +396,13 @@ class _RegisterViewState extends State<RegisterView> {
                                           children: [
                                             Radio(
                                               value: "restaurant",
-                                              groupValue: context
-                                                  .watch<RegisterViewModel>()
-                                                  .getSelectedType,
+                                              groupValue: selectingType,
                                               onChanged: ((value) {
                                                 log(value.toString());
-                                                context
-                                                    .read<RegisterViewModel>()
-                                                    .setSelectedType(value);
+                                                setState(() {
+                                                  selectingType =
+                                                      value.toString();
+                                                });
                                               }),
                                             ),
                                           ],
@@ -366,17 +420,17 @@ class _RegisterViewState extends State<RegisterView> {
                           onPressed: () async {
                             final result = _regisKey.currentState!.validate();
                             if (result) {
-                              String type = context
-                                  .read<RegisterViewModel>()
-                                  .getSelectedType;
-                              context
-                                  .read<RegisterViewModel>()
-                                  .createUserWithEmailAndPassword(
-                                      context,
-                                      username.text,
-                                      email.text,
-                                      password.text,
-                                      type);
+                              BlocProvider.of<CredentialCubit>(context)
+                                  .signUpCustomer(
+                                customerEntity: CustomerEntity(
+                                    email: email.text,
+                                    password: password.text,
+                                    username: username.text,
+                                    transaction: const [],
+                                    type: selectingType,
+                                    balance: 0,
+                                    imageFile: imageFile),
+                              );
                               Navigator.of(context).pushAndRemoveUntil(
                                   MaterialPageRoute(
                                     builder: (context) => const LoginView(),
@@ -479,9 +533,13 @@ class RichTextNavigatorText extends StatelessWidget {
 }
 
 class HeaderWelcome extends StatelessWidget {
+  final File? file;
+  final VoidCallback pickImageFromGallery;
   const HeaderWelcome({
     Key? key,
     required this.size,
+    required this.pickImageFromGallery,
+    required this.file,
   }) : super(key: key);
 
   final Size size;
@@ -514,9 +572,9 @@ class HeaderWelcome extends StatelessWidget {
             ),
             GestureDetector(
               onTap: (() {
-                context.read<RegisterViewModel>().pickImageFromGallery();
+                pickImageFromGallery();
               }),
-              child: context.watch<RegisterViewModel>().imageFile != null
+              child: file != null
                   ? Container(
                       height: 126,
                       width: 126,
@@ -524,7 +582,7 @@ class HeaderWelcome extends StatelessWidget {
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(100),
                         child: Image.file(
-                          context.watch<RegisterViewModel>().imageFile!,
+                          file!,
                           fit: BoxFit.fill,
                         ),
                       ),
@@ -543,6 +601,12 @@ class HeaderWelcome extends StatelessWidget {
                           child: Image.asset("assets/images/image_picker.png",
                               scale: 1.1),
                         ),
+                        const Positioned(
+                            right: -10,
+                            bottom: -15,
+                            child: Icon(
+                              Icons.add_a_photo,
+                            )),
                       ],
                     ),
             ),

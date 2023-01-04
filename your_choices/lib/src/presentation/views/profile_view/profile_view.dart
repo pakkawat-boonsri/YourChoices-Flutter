@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
-import 'package:your_choices/src/login_screen/view_models/login_view_model.dart';
+import 'package:your_choices/src/presentation/blocs/auth/auth_cubit.dart';
 
 class ProfileView extends StatelessWidget {
   const ProfileView({super.key});
@@ -9,17 +10,12 @@ class ProfileView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Center(
-        child: Consumer<LoginViewModel>(
-          builder: (context, value, child) {
-            return ElevatedButton(
-              onPressed: () {
-                value.signOut(context);
-              },
-              child: const Text("Sign Out"),
-            );
-          },
-        ),
-      ),
+          child: ElevatedButton(
+        onPressed: () {
+          context.read<AuthCubit>().loggingOut();
+        },
+        child: const Text("Sign Out"),
+      )),
     );
   }
 }

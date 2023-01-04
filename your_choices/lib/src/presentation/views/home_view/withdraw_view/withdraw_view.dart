@@ -2,14 +2,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:your_choices/src/presentation/blocs/customer/customer_cubit.dart';
 
 import 'package:your_choices/utilities/text_style.dart';
-import 'package:your_choices/src/customer_screen/bloc/customer_bloc/customer_bloc.dart';
-import 'package:your_choices/src/customer_screen/bloc/withdraw_bloc/bloc/withdraw_bloc.dart';
 import 'package:your_choices/utilities/hex_color.dart';
 
 class WithDrawView extends StatefulWidget {
-  const WithDrawView({super.key});
+  final String uid;
+  const WithDrawView({super.key, required this.uid});
 
   @override
   State<WithDrawView> createState() => _WithDrawViewState();
@@ -37,8 +37,7 @@ class _WithDrawViewState extends State<WithDrawView> {
   void initState() {
     _amount = TextEditingController(text: "0");
     _amount.addListener(didChange);
-    context.read<CustomerBloc>().add(FetchDataEvent());
-    context.read<WithdrawBloc>().add(const OnSelectingEvent(index: -1));
+    context.read<CustomerCubit>().getSingleCustomer(uid: widget.uid);
     super.initState();
   }
 
@@ -139,72 +138,23 @@ class _WithDrawViewState extends State<WithDrawView> {
               children: List.generate(
                 6,
                 (index) {
-                  return BlocBuilder<WithdrawBloc, WithdrawState>(
-                    builder: (context, state) {
-                      if (state is WithdrawInitial) {
-                        return Container(
-                          margin: const EdgeInsets.all(5),
-                          width: 100,
-                          height: 45,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(70),
-                            gradient: const LinearGradient(
-                                colors: [Colors.white, Colors.white]),
-                          ),
-                          child: TextButton(
-                            child: Text(
-                              "${(index + 1) * 100}",
-                              style: AppTextStyle.googleFont(
-                                  Colors.black, 16, FontWeight.w700),
-                            ),
-                            onPressed: () {
-                              context.read<WithdrawBloc>().add(
-                                    OnSelectingEvent(index: index),
-                                  );
-                              setState(() {
-                                _amount.text = "${(index + 1) * 100}";
-                              });
-                            },
-                          ),
-                        );
-                      } else if (state is OnSelectedState) {
-                        return Container(
-                          margin: const EdgeInsets.all(5),
-                          width: 100,
-                          height: 45,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(70),
-                            gradient: state.index == index
-                                ? LinearGradient(
-                                    colors: [
-                                      "F93C00".toColor(),
-                                      "FFB097".toColor(),
-                                    ],
-                                  )
-                                : const LinearGradient(
-                                    colors: [Colors.white, Colors.white],
-                                  ),
-                          ),
-                          child: TextButton(
-                            child: Text(
-                              "${(index + 1) * 100}",
-                              style: AppTextStyle.googleFont(
-                                  Colors.black, 16, FontWeight.w700),
-                            ),
-                            onPressed: () {
-                              context.read<WithdrawBloc>().add(
-                                    OnSelectingEvent(index: index),
-                                  );
-                              setState(() {
-                                _amount.text = "${(index + 1) * 100}";
-                              });
-                            },
-                          ),
-                        );
-                      } else {
-                        return Container();
-                      }
-                    },
+                  return Container(
+                    margin: const EdgeInsets.all(5),
+                    width: 100,
+                    height: 45,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(70),
+                      gradient: const LinearGradient(
+                          colors: [Colors.white, Colors.white]),
+                    ),
+                    child: TextButton(
+                      child: Text(
+                        "${(index + 1) * 100}",
+                        style: AppTextStyle.googleFont(
+                            Colors.black, 16, FontWeight.w700),
+                      ),
+                      onPressed: () {},
+                    ),
                   );
                 },
               ),
@@ -229,11 +179,7 @@ class _WithDrawViewState extends State<WithDrawView> {
                     inputFormatters: <TextInputFormatter>[
                       FilteringTextInputFormatter.digitsOnly
                     ],
-                    onTap: () {
-                      context.read<WithdrawBloc>().add(
-                            const OnSelectingEvent(index: -1),
-                          );
-                    },
+                    onTap: () {},
                     keyboardType: TextInputType.number,
                     onFieldSubmitted: (value) {
                       if (_formkey.currentState!.validate()) {
@@ -349,9 +295,9 @@ Column headerBalance({required Size size}) => Column(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                BlocBuilder<CustomerBloc, CustomerState>(
+                BlocBuilder<CustomerCubit, CustomerState>(
                   builder: (context, state) {
-                    if (state is CustomerLoadingState) {
+                    if (state is CustomerLoading) {
                       return Column(
                         children: const [
                           CircularProgressIndicator(),
@@ -360,9 +306,9 @@ Column headerBalance({required Size size}) => Column(
                           )
                         ],
                       );
-                    } else if (state is CustomerLoadedState) {
+                    } else if (state is CustomerLoaded) {
                       return Text(
-                        "฿ ${state.model.balance}",
+                        "฿ ${state.customerEntity.balance}",
                         style: AppTextStyle.googleFont(
                             Colors.white, 34, FontWeight.w600),
                       );
@@ -377,3 +323,33 @@ Column headerBalance({required Size size}) => Column(
         ),
       ],
     );
+
+
+// Container(
+//                           margin: const EdgeInsets.all(5),
+//                           width: 100,
+//                           height: 45,
+//                           decoration: BoxDecoration(
+//                             borderRadius: BorderRadius.circular(70),
+//                             gradient: state.index == index
+//                                 ? LinearGradient(
+//                                     colors: [
+//                                       "F93C00".toColor(),
+//                                       "FFB097".toColor(),
+//                                     ],
+//                                   )
+//                                 : const LinearGradient(
+//                                     colors: [Colors.white, Colors.white],
+//                                   ),
+//                           ),
+//                           child: TextButton(
+//                             child: Text(
+//                               "${(index + 1) * 100}",
+//                               style: AppTextStyle.googleFont(
+//                                   Colors.black, 16, FontWeight.w700),
+//                             ),
+//                             onPressed: () {
+                              
+//                             },
+//                           ),
+//                         );

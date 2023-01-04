@@ -1,7 +1,6 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 
 import 'package:flutter/material.dart';
-import 'package:your_choices/src/presentation/views/main_view/main_view.dart';
 import 'package:your_choices/src/presentation/views/restaurant_view/food_detail_view/food_detail_view.dart';
 import 'package:your_choices/src/restaurant_screen/model/restaurant_model.dart';
 import 'package:your_choices/utilities/hex_color.dart';
@@ -162,12 +161,12 @@ class _RestaurantDetailViewState extends State<RestaurantDetailView> {
           child: InkWell(
             borderRadius: BorderRadius.circular(100),
             onTap: () {
-              Navigator.pushAndRemoveUntil(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const MainView(),
-                  ),
-                  (route) => false);
+              // Navigator.pushAndRemoveUntil(
+              //     context,
+              //     MaterialPageRoute(
+              //       builder: (context) => const MainView(uid: di.sl<AuthCubit>().appStarted(context),),
+              //     ),
+              //     (route) => false);
             },
             child: const SizedBox(
               width: 30,

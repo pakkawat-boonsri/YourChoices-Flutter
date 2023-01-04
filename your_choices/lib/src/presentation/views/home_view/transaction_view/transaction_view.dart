@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:your_choices/src/presentation/blocs/customer/customer_cubit.dart';
 import 'package:your_choices/utilities/date_format.dart';
 import 'package:your_choices/utilities/text_style.dart';
-import 'package:your_choices/src/customer_screen/bloc/customer_bloc/customer_bloc.dart';
 import 'package:your_choices/src/presentation/views/home_view/deposit_view/deposit_view.dart';
 import 'package:your_choices/src/presentation/views/home_view/withdraw_view/withdraw_view.dart';
 import 'package:your_choices/utilities/hex_color.dart';
 
 class TransactionView extends StatefulWidget {
-  const TransactionView({super.key});
+  final String uid;
+  const TransactionView({super.key, required this.uid});
 
   @override
   State<StatefulWidget> createState() => _TransactionViewState();
@@ -18,7 +19,7 @@ class TransactionView extends StatefulWidget {
 class _TransactionViewState extends State<TransactionView> {
   @override
   void initState() {
-    context.read<CustomerBloc>().add(FetchDataEvent());
+    context.read<CustomerCubit>().getSingleCustomer(uid: widget.uid);
     super.initState();
   }
 
@@ -54,21 +55,21 @@ class _TransactionViewState extends State<TransactionView> {
                                 borderRadius: const BorderRadius.all(
                                   Radius.circular(100),
                                 ),
-                                child: BlocBuilder<CustomerBloc, CustomerState>(
+                                child: BlocBuilder<CustomerCubit, CustomerState>(
                                   builder: (context, state) {
-                                    if (state is CustomerLoadingState) {
+                                    if (state is CustomerLoading) {
                                       return const Center(
                                         child: CircularProgressIndicator(
                                           color: Colors.orangeAccent,
                                         ),
                                       );
-                                    } else if (state is CustomerLoadedState) {
-                                      if (state.model.imgAvatar != null) {
+                                    } else if (state is CustomerLoaded) {
+                                      if (state.customerEntity.profileUrl != null) {
                                         return Image.network(
-                                          state.model.imgAvatar!,
+                                          state.customerEntity.profileUrl!,
                                           fit: BoxFit.cover,
                                         );
-                                      } else if (state.model.imgAvatar ==
+                                      } else if (state.customerEntity.profileUrl ==
                                           null) {
                                         return const Icon(
                                           Icons.person,
@@ -100,18 +101,18 @@ class _TransactionViewState extends State<TransactionView> {
                                 const SizedBox(
                                   height: 5,
                                 ),
-                                BlocBuilder<CustomerBloc, CustomerState>(
+                                BlocBuilder<CustomerCubit, CustomerState>(
                                   builder: (context, state) {
-                                    if (state is CustomerLoadingState) {
+                                    if (state is CustomerLoading) {
                                       return const Center(
                                         child: CircularProgressIndicator(
                                           color: Colors.orangeAccent,
                                         ),
                                       );
                                     }
-                                    if (state is CustomerLoadedState) {
+                                    if (state is CustomerLoaded) {
                                       return Text(
-                                        state.model.username!,
+                                        state.customerEntity.username!,
                                         style: GoogleFonts.ibmPlexSansThai(
                                           fontSize: 14,
                                           fontWeight: FontWeight.bold,
@@ -168,10 +169,10 @@ class _TransactionViewState extends State<TransactionView> {
                                       crossAxisAlignment:
                                           CrossAxisAlignment.end,
                                       children: [
-                                        BlocBuilder<CustomerBloc,
+                                        BlocBuilder<CustomerCubit,
                                             CustomerState>(
                                           builder: (context, state) {
-                                            if (state is CustomerLoadingState) {
+                                            if (state is CustomerLoading) {
                                               return const Center(
                                                 child:
                                                     CircularProgressIndicator(
@@ -179,9 +180,9 @@ class _TransactionViewState extends State<TransactionView> {
                                                 ),
                                               );
                                             }
-                                            if (state is CustomerLoadedState) {
+                                            if (state is CustomerLoaded) {
                                               return Text(
-                                                "฿ ${state.model.balance}",
+                                                "฿ ${state.customerEntity.balance}",
                                                 style:
                                                     GoogleFonts.ibmPlexSansThai(
                                                   fontSize: 36,
@@ -264,7 +265,7 @@ class _TransactionViewState extends State<TransactionView> {
                         onTap: () {
                           Navigator.of(context).push(
                             MaterialPageRoute(
-                              builder: (context) => const WithDrawView(),
+                              builder: (context) => WithDrawView(uid: widget.uid),
                             ),
                           );
                         },
@@ -350,26 +351,26 @@ class _TransactionViewState extends State<TransactionView> {
                 const SizedBox(
                   height: 10,
                 ),
-                BlocBuilder<CustomerBloc, CustomerState>(
-                  bloc: CustomerBloc(RepositoryProvider.of(context))
-                    ..add(FetchTransactionEvent()),
+                // .customerEntity.
+                BlocBuilder<CustomerCubit, CustomerState>(
                   builder: (context, state) {
-                    if (state is TransactionLoadingState) {
+                    if (state is CustomerLoading) {
                       return const Center(
                         child: CircularProgressIndicator(
                           color: Colors.orangeAccent,
                         ),
                       );
-                    } else if (state is TransactionLoadedState) {
+                    } else if (state is CustomerLoaded) {
                       return ListView.builder(
                         shrinkWrap: true,
                         scrollDirection: Axis.vertical,
                         physics: const ScrollPhysics(),
-                        itemCount: state.transaction.length,
+                        itemCount: state.customerEntity.transaction!.length,
                         itemBuilder: (context, index) {
+                          
                           final date = DateConverter.dateFormat(
-                              state.transaction[index].date);
-                          if (state.transaction.isNotEmpty) {
+                              state.customerEntity.transaction![index].date);
+                          if (state.customerEntity.transaction?.isNotEmpty ?? true) {
                             return Padding(
                               padding:
                                   const EdgeInsets.symmetric(horizontal: 10),
@@ -383,7 +384,7 @@ class _TransactionViewState extends State<TransactionView> {
                                         height: 100,
                                         decoration: BoxDecoration(
                                           color:
-                                              state.transaction[index].type ==
+                                              state.customerEntity.transaction![index].type ==
                                                       "deposit"
                                                   ? "78A017".toColor()
                                                   : "FE7144".toColor(),
@@ -395,23 +396,21 @@ class _TransactionViewState extends State<TransactionView> {
                                         child: Center(
                                           child: Builder(
                                             builder: (_) {
-                                              if (state.transaction[index]
+                                              if (state.customerEntity.transaction![index]
                                                       .type ==
                                                   "deposit") {
                                                 return Image.asset(
                                                   "assets/images/deposit.png",
                                                   scale: 0.7,
                                                 );
-                                              } else if (state
-                                                      .transaction[index]
+                                              } else if (state.customerEntity.transaction![index]
                                                       .type ==
                                                   "withdraw") {
                                                 return Image.asset(
                                                   "assets/images/withdraw.png",
                                                   scale: 0.8,
                                                 );
-                                              } else if (state
-                                                      .transaction[index]
+                                              } else if (state.customerEntity.transaction![index]
                                                       .type ==
                                                   "paid") {
                                                 return Image.asset(
@@ -443,7 +442,7 @@ class _TransactionViewState extends State<TransactionView> {
                                               crossAxisAlignment:
                                                   CrossAxisAlignment.start,
                                               children: [
-                                                if (state.transaction[index]
+                                                if (state.customerEntity.transaction![index]
                                                         .type ==
                                                     "deposit") ...[
                                                   Padding(
@@ -471,7 +470,7 @@ class _TransactionViewState extends State<TransactionView> {
                                                         const EdgeInsets.only(
                                                             top: 10),
                                                     child: Text(
-                                                      state.transaction[index]
+                                                      state.customerEntity.transaction![index]
                                                           .name!,
                                                       style: GoogleFonts
                                                           .ibmPlexSansThai(
@@ -498,7 +497,7 @@ class _TransactionViewState extends State<TransactionView> {
                                                                     .only(
                                                                 right: 10),
                                                         child: Text(
-                                                          "฿ ${state.transaction[index].deposit}",
+                                                          "฿ ${state.customerEntity.transaction![index].deposit}",
                                                           style: GoogleFonts
                                                               .ibmPlexSansThai(
                                                             fontSize: 16,
@@ -509,8 +508,7 @@ class _TransactionViewState extends State<TransactionView> {
                                                       ),
                                                     ],
                                                   )
-                                                ] else if (state
-                                                        .transaction[index]
+                                                ] else if (state.customerEntity.transaction![index]
                                                         .type ==
                                                     "withdraw") ...[
                                                   Padding(
@@ -537,8 +535,7 @@ class _TransactionViewState extends State<TransactionView> {
                                                     padding:
                                                         const EdgeInsets.only(
                                                             top: 6),
-                                                    child: Text(
-                                                      state.transaction[index]
+                                                    child: Text(state.customerEntity.transaction![index]
                                                           .name!,
                                                       style: GoogleFonts
                                                           .ibmPlexSansThai(
@@ -565,7 +562,7 @@ class _TransactionViewState extends State<TransactionView> {
                                                                     .only(
                                                                 right: 10),
                                                         child: Text(
-                                                          "฿ ${state.transaction[index].withdraw}",
+                                                          "฿ ${state.customerEntity.transaction![index].withdraw}",
                                                           style: GoogleFonts
                                                               .ibmPlexSansThai(
                                                             fontSize: 16,
@@ -576,8 +573,7 @@ class _TransactionViewState extends State<TransactionView> {
                                                       ),
                                                     ],
                                                   )
-                                                ] else if (state
-                                                        .transaction[index]
+                                                ] else if (state.customerEntity.transaction![index]
                                                         .type ==
                                                     'paid') ...[
                                                   Padding(
@@ -590,9 +586,7 @@ class _TransactionViewState extends State<TransactionView> {
                                                               .spaceBetween,
                                                       children: [
                                                         Flexible(
-                                                          child: Text(
-                                                            state
-                                                                    .transaction[
+                                                          child: Text(state.customerEntity.transaction?[
                                                                         index]
                                                                     .resName ??
                                                                 "",
@@ -625,7 +619,7 @@ class _TransactionViewState extends State<TransactionView> {
                                                         const EdgeInsets.only(
                                                             top: 6),
                                                     child: Text(
-                                                      state.transaction[index]
+                                                      state.customerEntity.transaction![index]
                                                           .menuName!,
                                                       style: GoogleFonts
                                                           .ibmPlexSansThai(
@@ -652,7 +646,7 @@ class _TransactionViewState extends State<TransactionView> {
                                                                     .only(
                                                                 right: 10),
                                                         child: Text(
-                                                          "฿ ${state.transaction[index].totalPrice}",
+                                                          "฿ ${state.customerEntity.transaction![index].totalPrice}",
                                                           style: GoogleFonts
                                                               .ibmPlexSansThai(
                                                             fontSize: 16,

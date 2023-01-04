@@ -2,9 +2,7 @@ import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:your_choices/utilities/text_style.dart';
-import 'package:your_choices/src/customer_screen/bloc/deposit_bloc/bloc/deposit_bloc.dart';
 
 import 'package:your_choices/utilities/hex_color.dart';
 
@@ -32,17 +30,6 @@ class _DepositViewState extends State<DepositView> {
         _isValidate = false;
       });
     }
-  }
-
-  @override
-  void initState() {
-    _amount = TextEditingController(text: "0");
-    _amount.addListener(didChange);
-    BlocProvider.of<DepositBloc>(context).add(
-      const SelectingIndexEvent(selectedIndex: -1),
-    );
-
-    super.initState();
   }
 
   @override
@@ -105,89 +92,23 @@ class _DepositViewState extends State<DepositView> {
                             children: List.generate(
                               6,
                               (index) {
-                                return BlocBuilder<DepositBloc, DepositState>(
-                                  builder: (context, state) {
-                                    if (state is DepositInitial) {
-                                      return Container(
-                                        margin: const EdgeInsets.all(5),
-                                        width: 100,
-                                        height: 45,
-                                        decoration: BoxDecoration(
-                                          borderRadius:
-                                              BorderRadius.circular(70),
-                                          gradient: const LinearGradient(
-                                              colors: [
-                                                Colors.white,
-                                                Colors.white
-                                              ]),
-                                        ),
-                                        child: TextButton(
-                                          child: Text(
-                                            "${(index + 1) * 100}",
-                                            style: AppTextStyle.googleFont(
-                                                Colors.black,
-                                                16,
-                                                FontWeight.w700),
-                                          ),
-                                          onPressed: () async {
-                                            context.read<DepositBloc>().add(
-                                                  SelectingIndexEvent(
-                                                      selectedIndex: index),
-                                                );
-
-                                            setState(() {
-                                              _amount.text =
-                                                  "${(index + 1) * 100}";
-                                            });
-                                          },
-                                          // "${(index + 1) * 100}"
-                                        ),
-                                      );
-                                    } else if (state is SelectedIndexState) {
-                                      return Container(
-                                        margin: const EdgeInsets.all(5),
-                                        width: 100,
-                                        height: 45,
-                                        decoration: BoxDecoration(
-                                          borderRadius:
-                                              BorderRadius.circular(70),
-                                          gradient: state.selectedIndex == index
-                                              ? LinearGradient(colors: [
-                                                  "F93C00".toColor(),
-                                                  "FFB097".toColor(),
-                                                ])
-                                              : const LinearGradient(colors: [
-                                                  Colors.white,
-                                                  Colors.white
-                                                ]),
-                                        ),
-                                        child: TextButton(
-                                          child: Text(
-                                            "${(index + 1) * 100}",
-                                            style: AppTextStyle.googleFont(
-                                                state.selectedIndex == index
-                                                    ? Colors.white
-                                                    : Colors.black,
-                                                16,
-                                                FontWeight.w700),
-                                          ),
-                                          onPressed: () {
-                                            context.read<DepositBloc>().add(
-                                                  SelectingIndexEvent(
-                                                      selectedIndex: index),
-                                                );
-
-                                            setState(() {
-                                              _amount.text =
-                                                  "${(index + 1) * 100}";
-                                            });
-                                          },
-                                        ),
-                                      );
-                                    } else {
-                                      return Container();
-                                    }
-                                  },
+                                return Container(
+                                  margin: const EdgeInsets.all(5),
+                                  width: 100,
+                                  height: 45,
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(70),
+                                    gradient: const LinearGradient(
+                                        colors: [Colors.white, Colors.white]),
+                                  ),
+                                  child: TextButton(
+                                    child: Text(
+                                      "${(index + 1) * 100}",
+                                      style: AppTextStyle.googleFont(
+                                          Colors.black, 16, FontWeight.w700),
+                                    ),
+                                    onPressed: () async {},
+                                  ),
                                 );
                               },
                             ),
@@ -210,12 +131,7 @@ class _DepositViewState extends State<DepositView> {
                               inputFormatters: <TextInputFormatter>[
                                 FilteringTextInputFormatter.digitsOnly
                               ],
-                              onTap: () {
-                                context.read<DepositBloc>().add(
-                                      const SelectingIndexEvent(
-                                          selectedIndex: -1),
-                                    );
-                              },
+                              onTap: () {},
                               keyboardType: TextInputType.number,
                               onFieldSubmitted: (value) {
                                 if (_formkey.currentState!.validate()) {
@@ -338,3 +254,37 @@ class _DepositViewState extends State<DepositView> {
     );
   }
 }
+
+
+// Container(
+//                                         margin: const EdgeInsets.all(5),
+//                                         width: 100,
+//                                         height: 45,
+//                                         decoration: BoxDecoration(
+//                                           borderRadius:
+//                                               BorderRadius.circular(70),
+//                                           gradient: state.selectedIndex == index
+//                                               ? LinearGradient(colors: [
+//                                                   "F93C00".toColor(),
+//                                                   "FFB097".toColor(),
+//                                                 ])
+//                                               : const LinearGradient(colors: [
+//                                                   Colors.white,
+//                                                   Colors.white
+//                                                 ]),
+//                                         ),
+//                                         child: TextButton(
+//                                           child: Text(
+//                                             "${(index + 1) * 100}",
+//                                             style: AppTextStyle.googleFont(
+//                                                 state.selectedIndex == index
+//                                                     ? Colors.white
+//                                                     : Colors.black,
+//                                                 16,
+//                                                 FontWeight.w700),
+//                                           ),
+//                                           onPressed: () {
+                                            
+//                                           },
+//                                         ),
+//                                       );

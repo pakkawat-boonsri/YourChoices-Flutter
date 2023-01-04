@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:get_it/get_it.dart';
 import 'package:your_choices/src/data/data_sources/remote_data_source/remote_data_source.dart';
 import 'package:your_choices/src/data/data_sources/remote_data_source/remote_data_source_impl.dart';
@@ -49,13 +50,16 @@ Future<void> init() async {
     () => FirebaseRemoteDataSourceImpl(
       firebaseFireStore: sl.call(),
       firebaseAuth: sl.call(),
+      firebaseStorage: sl.call(),
     ),
   );
   //externals
 
   final firebaseFirestore = FirebaseFirestore.instance;
   final firebaseAuth = FirebaseAuth.instance;
+  final firebaseStorage = FirebaseStorage.instance;
 
   sl.registerLazySingleton(() => firebaseFirestore);
   sl.registerLazySingleton(() => firebaseAuth);
+  sl.registerLazySingleton(() => firebaseStorage);
 }

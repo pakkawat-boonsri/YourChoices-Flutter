@@ -24,7 +24,7 @@ class CredentialCubit extends Cubit<CredentialState> {
         ),
       );
       emit(CredentialSuccess());
-    } on SocketException catch (e) {
+    } on SocketException catch (_) {
       emit(CredentialFailure());
     } catch (e) {
       emit(CredentialFailure());
@@ -36,7 +36,7 @@ class CredentialCubit extends Cubit<CredentialState> {
     try {
       await customerUseCase.signUpCustomerCall(customerEntity);
       emit(CredentialSuccess());
-    } on SocketException catch (e) {
+    } on SocketException catch (_) {
       emit(CredentialFailure());
     } catch (e) {
       emit(CredentialFailure());

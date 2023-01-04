@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:equatable/equatable.dart';
 import 'package:your_choices/src/domain/entities/customer/transaction_entity.dart';
 
@@ -10,10 +12,12 @@ class CustomerEntity extends Equatable {
   final String? type;
   final List<TransactionEntity>? transaction;
 
+  final File? imageFile;
   final String? password;
   final String? otherUid;
 
   const CustomerEntity({
+    this.imageFile,
     this.type,
     this.uid,
     this.username,
@@ -27,6 +31,7 @@ class CustomerEntity extends Equatable {
 
   @override
   List<Object?> get props => [
+        imageFile,
         type,
         uid,
         username,

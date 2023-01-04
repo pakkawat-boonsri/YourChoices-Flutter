@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:your_choices/src/data/data_sources/remote_data_source/remote_data_source.dart';
 import 'package:your_choices/src/domain/entities/customer/customer_entity.dart';
 import 'package:your_choices/src/domain/repositories/firebase_repository.dart';
@@ -10,7 +12,9 @@ class FirebaseRepositoryImpl implements FirebaseRepository {
   });
 
   @override
-  Future<void> createCustomer(CustomerEntity customer) async {
+  Future<void> createCustomer(
+    CustomerEntity customer,
+  ) async {
     return remoteDataSource.createCustomer(customer);
   }
 
@@ -20,7 +24,9 @@ class FirebaseRepositoryImpl implements FirebaseRepository {
   }
 
   @override
-  Stream<List<CustomerEntity>> getSingleCustomer(String uid) {
+  Stream<List<CustomerEntity>> getSingleCustomer(
+    String uid,
+  ) {
     return remoteDataSource.getSingleCustomer(uid);
   }
 
@@ -30,7 +36,9 @@ class FirebaseRepositoryImpl implements FirebaseRepository {
   }
 
   @override
-  Future<void> signInCustomer(CustomerEntity customer) async {
+  Future<void> signInCustomer(
+    CustomerEntity customer,
+  ) async {
     return remoteDataSource.signInCustomer(customer);
   }
 
@@ -40,12 +48,25 @@ class FirebaseRepositoryImpl implements FirebaseRepository {
   }
 
   @override
-  Future<void> signUpCustomer(CustomerEntity customer) async {
+  Future<void> signUpCustomer(
+    CustomerEntity customer,
+  ) async {
     return remoteDataSource.signUpCustomer(customer);
   }
 
   @override
-  Future<void> updateCustomer(CustomerEntity customer) async {
+  Future<void> updateCustomer(
+    CustomerEntity customer,
+  ) async {
     return remoteDataSource.updateCustomer(customer);
+  }
+
+  @override
+  Future<String> uploadImageToStorage(
+    File? file,
+    bool isPost,
+    String childName,
+  ) async {
+    return remoteDataSource.uploadImageToStorage(file, isPost, childName);
   }
 }

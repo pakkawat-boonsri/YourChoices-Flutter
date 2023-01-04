@@ -1,18 +1,14 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-import 'package:your_choices/src/customer_screen/bloc/customer_bloc/customer_bloc.dart';
-import 'package:your_choices/src/customer_screen/bloc/deposit_bloc/bloc/deposit_bloc.dart';
-import 'package:your_choices/src/customer_screen/bloc/withdraw_bloc/bloc/withdraw_bloc.dart';
-import 'package:your_choices/src/customer_screen/repository/customer_repository.dart';
-import 'package:your_choices/src/login_screen/view_models/login_view_model.dart';
+import 'package:your_choices/src/presentation/blocs/auth/auth_cubit.dart';
+import 'package:your_choices/src/presentation/blocs/credential/credential_cubit.dart';
+import 'package:your_choices/src/presentation/blocs/customer/customer_cubit.dart';
 import 'package:your_choices/src/presentation/views/login_view/login_view.dart';
 import 'package:your_choices/src/presentation/views/main_view/main_view.dart';
-import 'package:your_choices/src/register_screen/view_model/register_view_model.dart';
 import 'package:your_choices/src/restaurant_screen/repository/restaurant_repo.dart';
 import 'package:your_choices/src/restaurant_screen/view_model/bloc/restaurant_bloc.dart';
 
@@ -42,25 +38,14 @@ class _YourChoicesState extends State<YourChoices> {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(
-          create: (context) => LoginViewModel(),
-        ),
-        ChangeNotifierProvider(
-          create: (context) => RegisterViewModel(),
-        ),
-        RepositoryProvider(
-          create: (context) => CustomerRepository(),
+        BlocProvider(
+          create: (_) => di.sl<AuthCubit>()..appStarted(context),
         ),
         BlocProvider(
-          create: (context) => CustomerBloc(
-            RepositoryProvider.of<CustomerRepository>(context),
-          ),
+          create: (_) => di.sl<CredentialCubit>(),
         ),
         BlocProvider(
-          create: (context) => DepositBloc(),
-        ),
-        BlocProvider(
-          create: (context) => WithdrawBloc(),
+          create: (_) => di.sl<CustomerCubit>(),
         ),
         RepositoryProvider(
           create: (context) => RestaurantRepository(),
@@ -77,11 +62,10 @@ class _YourChoicesState extends State<YourChoices> {
           scaffoldBackgroundColor: const Color(0xFF34312f),
         ),
         title: "YourChoices",
-        home: StreamBuilder(
-          stream: FirebaseAuth.instance.authStateChanges(),
-          builder: (context, snapshot) {
-            if (snapshot.hasData) {
-              return const MainView();
+        home: BlocBuilder<AuthCubit, AuthState>(
+          builder: (context, state) {
+            if (state is Authenticated) {
+              return MainView(uid: state.uid);
             } else {
               return const LoginView();
             }

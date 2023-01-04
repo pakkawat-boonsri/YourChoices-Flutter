@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:your_choices/src/domain/entities/customer/customer_entity.dart';
 
 abstract class FirebaseRepository {
@@ -16,4 +18,6 @@ abstract class FirebaseRepository {
   Future<String> getCurrentUid();
   Future<void> createCustomer(CustomerEntity customer);
   Future<void> updateCustomer(CustomerEntity customer);
+
+  Future<String> uploadImageToStorage(File? file , bool isPost , String childName);
 }

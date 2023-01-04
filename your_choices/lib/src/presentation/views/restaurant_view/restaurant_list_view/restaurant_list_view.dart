@@ -2,8 +2,8 @@ import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:your_choices/src/presentation/blocs/customer/customer_cubit.dart';
 import 'package:your_choices/utilities/text_style.dart';
-import 'package:your_choices/src/customer_screen/bloc/customer_bloc/customer_bloc.dart';
 import 'package:your_choices/src/restaurant_screen/view_model/bloc/restaurant_bloc.dart';
 import 'package:your_choices/src/presentation/views/restaurant_view/restaurant_detail_view/restaurant_detail_view.dart';
 import 'package:your_choices/utilities/hex_color.dart';
@@ -242,12 +242,12 @@ AppBar _buildAppBarContent(Size size, BuildContext context) {
                   borderRadius: const BorderRadius.all(
                     Radius.circular(100),
                   ),
-                  child: BlocBuilder<CustomerBloc, CustomerState>(
+                  child: BlocBuilder<CustomerCubit, CustomerState>(
                     builder: (context, state) {
-                      if (state is CustomerLoadedState) {
+                      if (state is CustomerLoaded) {
                         return Image.network(
                           fit: BoxFit.cover,
-                          state.model.imgAvatar!,
+                          state.customerEntity.profileUrl!,
                         );
                       } else {
                         return Container();
@@ -270,11 +270,11 @@ AppBar _buildAppBarContent(Size size, BuildContext context) {
                       FontWeight.bold,
                     ),
                   ),
-                  BlocBuilder<CustomerBloc, CustomerState>(
+                  BlocBuilder<CustomerCubit, CustomerState>(
                     builder: (context, state) {
-                      if (state is CustomerLoadedState) {
+                      if (state is CustomerLoaded) {
                         return Text(
-                          "${state.model.username}",
+                          "${state.customerEntity.username}",
                           style: AppTextStyle.googleFont(
                             Colors.black,
                             14,

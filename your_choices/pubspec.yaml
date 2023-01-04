@@ -49,6 +49,8 @@ dependencies:
   buddhist_datetime_dateformat_sns: ^1.0.7
   get_it: ^7.2.0
   fluttertoast: ^8.1.2
+  bloc: ^8.1.0
+  uuid: ^3.0.7
 
 dev_dependencies:
   flutter_lints: ^2.0.1

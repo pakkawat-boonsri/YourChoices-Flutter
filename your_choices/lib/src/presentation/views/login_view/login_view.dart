@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:provider/provider.dart';
-import 'package:your_choices/src/login_screen/view_models/login_view_model.dart';
+import 'package:your_choices/src/presentation/blocs/credential/credential_cubit.dart';
 import 'package:your_choices/src/presentation/views/register_view/register_view.dart';
 import 'package:your_choices/utilities/hex_color.dart';
 
@@ -24,13 +24,15 @@ class _LoginViewState extends State<LoginView> {
     super.dispose();
   }
 
+  bool isClick = false;
+
   @override
   Widget build(BuildContext context) {
     Size size = MediaQuery.of(context).size;
     return Scaffold(
       body: SafeArea(
         child: SingleChildScrollView(
-          reverse: context.watch<LoginViewModel>().getIsClick,
+          reverse: isClick,
           child: Stack(
             alignment: Alignment.topCenter,
             children: [
@@ -59,9 +61,11 @@ class _LoginViewState extends State<LoginView> {
                           child: Column(
                             children: [
                               TextFormField(
-                                onTap: context
-                                    .read<LoginViewModel>()
-                                    .setIsClick(true),
+                                onTap: () {
+                                  setState(() {
+                                    isClick = true;
+                                  });
+                                },
                                 onChanged: (value) {
                                   setState(() {});
                                 },
@@ -115,9 +119,11 @@ class _LoginViewState extends State<LoginView> {
                                 height: 20,
                               ),
                               TextFormField(
-                                onTap: context
-                                    .read<LoginViewModel>()
-                                    .setIsClick(true),
+                                onTap: () {
+                                  setState(() {
+                                    isClick = true;
+                                  });
+                                },
                                 onChanged: (value) {
                                   setState(() {});
                                 },
@@ -178,16 +184,11 @@ class _LoginViewState extends State<LoginView> {
                       ElevatedButton(
                         onPressed: () {
                           if (_formkey.currentState!.validate()) {
-                            final user = context.read<LoginViewModel>();
-                            user.signInWithEmaillAndPassword(
-                                email.text, password.text, context);
-                            //   Navigator.pushAndRemoveUntil(
-                            //       context,
-                            //       MaterialPageRoute(
-                            //         builder: (context) =>
-                            //             const BottomNavBarView(),
-                            //       ),
-                            //       (route) => false);
+                            BlocProvider.of<CredentialCubit>(context)
+                                .signInCustomer(
+                              email: email.text,
+                              password: password.text,
+                            );
                           }
                         },
                         style: ButtonStyle(

@@ -34,7 +34,7 @@ class CustomerCubit extends Cubit<CustomerState> {
   //   emit(CustomerLoading());
   //   try {
   //     await customerUseCase.updateCustomerCall(customer);
-  //     emit(CustomerLoaded());
+  //     emit(CustomerLoaded(customerEntity: ));
   //   } on SocketException catch (e) {
   //     emit(CustomerFailure());
   //   } catch (e) {
