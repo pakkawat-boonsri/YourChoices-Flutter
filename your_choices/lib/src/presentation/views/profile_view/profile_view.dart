@@ -4,7 +4,8 @@ import 'package:provider/provider.dart';
 import 'package:your_choices/src/presentation/blocs/auth/auth_cubit.dart';
 
 class ProfileView extends StatelessWidget {
-  const ProfileView({super.key});
+  final String uid;
+  const ProfileView({super.key, required this.uid});
 
   @override
   Widget build(BuildContext context) {

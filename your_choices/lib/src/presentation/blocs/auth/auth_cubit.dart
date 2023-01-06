@@ -1,22 +1,30 @@
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
+import 'package:your_choices/src/domain/usecases/firebase_usecases/customer/get_current_uid_usecase.dart';
+import 'package:your_choices/src/domain/usecases/firebase_usecases/customer/is_sign_in_usecase.dart';
+import 'package:your_choices/src/domain/usecases/firebase_usecases/customer/sign_out_usecase.dart';
 
-import '../../../domain/usecases/firebase_usecases/customer/customer_usecase.dart';
 
 part 'auth_state.dart';
 
 class AuthCubit extends Cubit<AuthState> {
-  final CustomerUseCase customerUseCase;
+  final IsSignInUseCase isSignInUseCase;
+  final GetCurrentUidUseCase getCurrentUidUseCase;
+  final SignOutUseCase signOutUseCase;
 
-  AuthCubit({required this.customerUseCase}) : super(AuthInitial());
+  AuthCubit({
+    required this.isSignInUseCase,
+    required this.getCurrentUidUseCase,
+    required this.signOutUseCase,
+  }) : super(AuthInitial());
 
   Future<void> appStarted(BuildContext context) async {
     try {
-      bool isSignIn = await customerUseCase.isSignInCall();
+      bool isSignIn = await isSignInUseCase.call();
 
       if (isSignIn == true) {
-        String uid = await customerUseCase.getCurrentUidCall();
+        String uid = await getCurrentUidUseCase.call();
         emit(Authenticated(uid: uid));
       } else {
         emit(UnAuthenticated());
@@ -28,7 +36,7 @@ class AuthCubit extends Cubit<AuthState> {
 
   Future<void> loggedIn() async {
     try {
-      final String uid = await customerUseCase.getCurrentUidCall();
+      final String uid = await getCurrentUidUseCase.call();
       emit(Authenticated(uid: uid));
     } catch (e) {
       emit(UnAuthenticated());
@@ -37,7 +45,7 @@ class AuthCubit extends Cubit<AuthState> {
 
   Future<void> loggingOut() async {
     try {
-      await customerUseCase.signOutCall();
+      await signOutUseCase.call();
       emit(UnAuthenticated());
     } catch (e) {
       emit(UnAuthenticated());

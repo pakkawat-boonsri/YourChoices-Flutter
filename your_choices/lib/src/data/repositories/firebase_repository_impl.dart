@@ -24,7 +24,7 @@ class FirebaseRepositoryImpl implements FirebaseRepository {
   }
 
   @override
-  Stream<List<CustomerEntity>> getSingleCustomer(
+  Future<CustomerEntity> getSingleCustomer(
     String uid,
   ) {
     return remoteDataSource.getSingleCustomer(uid);
@@ -64,9 +64,8 @@ class FirebaseRepositoryImpl implements FirebaseRepository {
   @override
   Future<String> uploadImageToStorage(
     File? file,
-    bool isPost,
     String childName,
   ) async {
-    return remoteDataSource.uploadImageToStorage(file, isPost, childName);
+    return remoteDataSource.uploadImageToStorage(file,childName);
   }
 }

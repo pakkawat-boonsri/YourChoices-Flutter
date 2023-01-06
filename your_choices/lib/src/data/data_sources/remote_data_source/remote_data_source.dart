@@ -16,7 +16,7 @@ abstract class FirebaseRemoteDataSource {
 
   Future<void> signOut();
 
-  Stream<List<CustomerEntity>> getSingleCustomer(String uid);
+  Future<CustomerEntity> getSingleCustomer(String uid);
 
   Future<String> getCurrentUid();
 
@@ -24,6 +24,5 @@ abstract class FirebaseRemoteDataSource {
 
   Future<void> updateCustomer(CustomerEntity customer);
 
-  Future<String> uploadImageToStorage(File? file , bool isPost , String childName);
-
+  Future<String> uploadImageToStorage(File? file, String childName);
 }

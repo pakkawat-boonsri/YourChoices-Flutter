@@ -6,11 +6,15 @@ import 'package:your_choices/src/restaurant_screen/model/restaurant_model.dart';
 import 'package:your_choices/utilities/hex_color.dart';
 import 'package:your_choices/utilities/text_style.dart';
 
+import '../../main_view/main_view.dart';
+
 class RestaurantDetailView extends StatefulWidget {
   final RestaurantModel model;
+  final String uid;
   const RestaurantDetailView({
     Key? key,
     required this.model,
+    required this.uid,
   }) : super(key: key);
 
   @override
@@ -161,12 +165,12 @@ class _RestaurantDetailViewState extends State<RestaurantDetailView> {
           child: InkWell(
             borderRadius: BorderRadius.circular(100),
             onTap: () {
-              // Navigator.pushAndRemoveUntil(
-              //     context,
-              //     MaterialPageRoute(
-              //       builder: (context) => const MainView(uid: di.sl<AuthCubit>().appStarted(context),),
-              //     ),
-              //     (route) => false);
+              Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => MainView(uid: widget.uid),
+                  ),
+                  (route) => false);
             },
             child: const SizedBox(
               width: 30,

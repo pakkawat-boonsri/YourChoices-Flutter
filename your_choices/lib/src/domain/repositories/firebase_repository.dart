@@ -14,10 +14,10 @@ abstract class FirebaseRepository {
   Future<bool> isSignIn();
   Future<void> signOut();
 
-  Stream<List<CustomerEntity>> getSingleCustomer(String uid);
+  Future<CustomerEntity> getSingleCustomer(String uid);
   Future<String> getCurrentUid();
   Future<void> createCustomer(CustomerEntity customer);
   Future<void> updateCustomer(CustomerEntity customer);
 
-  Future<String> uploadImageToStorage(File? file , bool isPost , String childName);
+  Future<String> uploadImageToStorage(File? file, String childName);
 }

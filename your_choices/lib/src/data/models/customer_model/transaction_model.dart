@@ -2,24 +2,15 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:your_choices/src/domain/entities/customer/transaction_entity.dart';
 
 class TransactionModel extends TransactionEntity {
-  final Timestamp? date;
-  final String? menuName;
-  final double? totalPrice;
-  final String? resName;
-  final String? type;
-  final String? name;
-  final int? deposit;
-  final int? withdraw;
-
   const TransactionModel({
-    this.date,
-    this.menuName,
-    this.totalPrice,
-    this.resName,
-    this.type,
-    this.name,
-    this.deposit,
-    this.withdraw,
+    final Timestamp? date,
+    final String? menuName,
+    final num? totalPrice,
+    final String? resName,
+    final String? type,
+    final String? name,
+    final num? deposit,
+    final num? withdraw,
   }) : super(
           date: date,
           deposit: deposit,

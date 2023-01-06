@@ -4,22 +4,14 @@ import 'package:your_choices/src/domain/entities/customer/customer_entity.dart';
 import 'package:your_choices/src/domain/entities/customer/transaction_entity.dart';
 
 class CustomerModel extends CustomerEntity {
-  final String? uid;
-  final String? email;
-  final String? username;
-  final String? profileUrl;
-  final num? balance;
-  final List<TransactionEntity>? transaction;
-  final String? type;
-
   const CustomerModel({
-    this.type,
-    this.uid,
-    this.email,
-    this.username,
-    this.profileUrl,
-    this.balance,
-    this.transaction,
+    final String? type,
+    final String? uid,
+    final String? email,
+    final String? username,
+    final String? profileUrl,
+    final num? balance,
+    final List<TransactionEntity>? transaction,
   }) : super(
           uid: uid,
           balance: balance,
@@ -35,7 +27,7 @@ class CustomerModel extends CustomerEntity {
     return CustomerModel(
       username: snapshot['username'],
       type: snapshot['type'],
-      transaction: List<TransactionModel>.from(
+      transaction: List.from(
         snapshot['transaction'].map(
           (x) => TransactionModel.fromJson(x),
         ),

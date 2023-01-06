@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
-import 'package:uuid/uuid.dart';
 import 'package:your_choices/src/data/data_sources/remote_data_source/remote_data_source.dart';
 import 'package:your_choices/src/data/models/customer_model/customer_model.dart';
 import 'package:your_choices/src/domain/entities/customer/customer_entity.dart';
@@ -29,7 +28,7 @@ class FirebaseRemoteDataSourceImpl implements FirebaseRemoteDataSource {
 
     customerCollection.doc(uid).get().then((value) {
       final newCustomer = CustomerModel(
-        uid: customer.uid,
+        uid: uid,
         balance: customer.balance,
         email: customer.email,
         profileUrl: profileUrl,
@@ -81,14 +80,14 @@ class FirebaseRemoteDataSourceImpl implements FirebaseRemoteDataSource {
   Future<String> getCurrentUid() async => firebaseAuth.currentUser!.uid;
 
   @override
-  Stream<List<CustomerEntity>> getSingleCustomer(String uid) {
+  Future<CustomerEntity> getSingleCustomer(String uid) {
     final userCollection = firebaseFireStore
         .collection("customer")
-        .where("uid", isEqualTo: uid)
-        .limit(1);
-    return userCollection.snapshots().map(
-          (event) => event.docs.map((e) => CustomerModel.fromJson(e)).toList(),
-        );
+        .doc(uid)
+        .get()
+        .then((value) => CustomerModel.fromJson(value));
+
+    return userCollection;
   }
 
   @override
@@ -128,7 +127,7 @@ class FirebaseRemoteDataSourceImpl implements FirebaseRemoteDataSource {
           .then((value) async {
         if (value.user?.uid != null) {
           if (customer.imageFile != null) {
-            uploadImageToStorage(customer.imageFile, false, "profileImage")
+            uploadImageToStorage(customer.imageFile, "profileImage")
                 .then((profileUrl) {
               createCustomerWithImage(customer, profileUrl);
             });
@@ -178,21 +177,16 @@ class FirebaseRemoteDataSourceImpl implements FirebaseRemoteDataSource {
 
   @override
   Future<String> uploadImageToStorage(
-      File? file, bool isPost, String childName) async {
-    Reference ref = firebaseStorage
-        .ref()
-        .child(childName)
-        .child(firebaseAuth.currentUser!.uid);
+    File? file,
+    String childName,
+  ) async {
+    final uid = await getCurrentUid();
 
-    if (isPost) {
-      String id = const Uuid().v1();
-      ref = ref.child(id);
-    }
+    final String imgUrl =
+        await firebaseStorage.ref(uid).child(childName).putFile(file!).then(
+              (p0) => p0.ref.getDownloadURL(),
+            );
 
-    final uploadTask = ref.putFile(file!);
-
-    final imageUrl =
-        (await uploadTask.whenComplete(() {})).ref.getDownloadURL();
-    return await imageUrl;
+    return imgUrl;
   }
 }

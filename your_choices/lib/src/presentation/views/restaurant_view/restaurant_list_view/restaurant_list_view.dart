@@ -9,7 +9,8 @@ import 'package:your_choices/src/presentation/views/restaurant_view/restaurant_d
 import 'package:your_choices/utilities/hex_color.dart';
 
 class RestaurantView extends StatefulWidget {
-  const RestaurantView({super.key});
+  final String uid;
+  const RestaurantView({super.key, required this.uid});
 
   @override
   State<RestaurantView> createState() => _RestaurantViewState();
@@ -94,8 +95,8 @@ class _RestaurantViewState extends State<RestaurantView> {
                   Navigator.pushAndRemoveUntil(
                       context,
                       MaterialPageRoute(
-                        builder: (context) =>
-                            RestaurantDetailView(model: viewModel[index]),
+                        builder: (context) => RestaurantDetailView(
+                            model: viewModel[index], uid: widget.uid),
                       ),
                       (route) => false);
                 },

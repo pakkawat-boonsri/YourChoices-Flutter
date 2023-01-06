@@ -7,10 +7,13 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:your_choices/src/presentation/views/login_view/login_view.dart';
+import 'package:your_choices/src/presentation/views/main_view/main_view.dart';
 import 'package:your_choices/utilities/hex_color.dart';
 import 'package:your_choices/utilities/reuseable_widget.dart';
 
+import '../../../../utilities/show_flutter_toast.dart';
 import '../../../domain/entities/customer/customer_entity.dart';
+import '../../blocs/auth/auth_cubit.dart';
 import '../../blocs/credential/credential_cubit.dart';
 
 class RegisterView extends StatefulWidget {
@@ -55,17 +58,37 @@ class _RegisterViewState extends State<RegisterView> {
   }
 
   bool isClick = false;
-  bool isObscure = true;
-
-  void setObscure(bool showText) {
-    setState(() {
-      isObscure = showText;
-    });
-  }
+  bool isObscurePassword = true;
+  bool isObscureConfirmPassword = true;
 
   @override
   Widget build(BuildContext context) {
     Size size = MediaQuery.of(context).size;
+    return BlocConsumer<CredentialCubit, CredentialState>(
+        listener: (context, credentialState) {
+      if (credentialState is CredentialSuccess) {
+        BlocProvider.of<AuthCubit>(context).loggedIn();
+      }
+      if (credentialState is CredentialFailure) {
+        showFlutterToast("Invalid Email and Password");
+      }
+    }, builder: (context, credentialState) {
+      if (credentialState is CredentialSuccess) {
+        return BlocBuilder<AuthCubit, AuthState>(
+          builder: (context, state) {
+            if (state is Authenticated) {
+              return MainView(uid: state.uid);
+            } else {
+              return bodySelection(size, context);
+            }
+          },
+        );
+      }
+      return bodySelection(size, context);
+    });
+  }
+
+  Scaffold bodySelection(Size size, BuildContext context) {
     return Scaffold(
       body: SafeArea(
         child: Center(
@@ -127,7 +150,7 @@ class _RegisterViewState extends State<RegisterView> {
                                             icon: const Icon(Icons.clear),
                                           )
                                         : null,
-                                    enabledBorder: OutlineInputBorder(
+                                    enabledBorder: UnderlineInputBorder(
                                       borderSide: BorderSide(
                                         color: Colors.amber.shade900,
                                         width: 1.5,
@@ -136,7 +159,7 @@ class _RegisterViewState extends State<RegisterView> {
                                         Radius.circular(15.0),
                                       ),
                                     ),
-                                    focusedBorder: OutlineInputBorder(
+                                    focusedBorder: UnderlineInputBorder(
                                       borderSide: BorderSide(
                                         color: Colors.amber.shade900,
                                         width: 1.5,
@@ -185,7 +208,7 @@ class _RegisterViewState extends State<RegisterView> {
                                             icon: const Icon(Icons.clear),
                                           )
                                         : null,
-                                    enabledBorder: OutlineInputBorder(
+                                    enabledBorder: UnderlineInputBorder(
                                       borderSide: BorderSide(
                                         color: Colors.amber.shade900,
                                         width: 1.5,
@@ -194,7 +217,7 @@ class _RegisterViewState extends State<RegisterView> {
                                         Radius.circular(15.0),
                                       ),
                                     ),
-                                    focusedBorder: OutlineInputBorder(
+                                    focusedBorder: UnderlineInputBorder(
                                       borderSide: BorderSide(
                                         color: Colors.amber.shade900,
                                         width: 1.5,
@@ -234,19 +257,23 @@ class _RegisterViewState extends State<RegisterView> {
                                   controller: password,
                                   keyboardType: TextInputType.name,
                                   autocorrect: false,
-                                  obscureText: isObscure,
+                                  obscureText: isObscurePassword,
                                   enableSuggestions: false,
                                   decoration: InputDecoration(
                                     hintText: "Password",
                                     labelText: "Password",
                                     suffixIcon: password.text.isNotEmpty
                                         ? Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.end,
+                                            mainAxisSize: MainAxisSize.min,
                                             children: [
                                               IconButton(
-                                                onPressed: () {
-                                                  setObscure(true);
-                                                },
-                                                icon: isObscure
+                                                onPressed: () => setState(() {
+                                                  isObscurePassword =
+                                                      !isObscurePassword;
+                                                }),
+                                                icon: isObscurePassword
                                                     ? const Icon(
                                                         Icons.visibility)
                                                     : const Icon(
@@ -262,7 +289,7 @@ class _RegisterViewState extends State<RegisterView> {
                                             ],
                                           )
                                         : null,
-                                    enabledBorder: OutlineInputBorder(
+                                    enabledBorder: UnderlineInputBorder(
                                       borderSide: BorderSide(
                                         color: Colors.amber.shade900,
                                         width: 1.5,
@@ -271,7 +298,7 @@ class _RegisterViewState extends State<RegisterView> {
                                         Radius.circular(15.0),
                                       ),
                                     ),
-                                    focusedBorder: OutlineInputBorder(
+                                    focusedBorder: UnderlineInputBorder(
                                       borderSide: BorderSide(
                                         color: Colors.amber.shade900,
                                         width: 1.5,
@@ -307,19 +334,25 @@ class _RegisterViewState extends State<RegisterView> {
                                   controller: confirmPassword,
                                   keyboardType: TextInputType.name,
                                   autocorrect: false,
-                                  obscureText: isObscure,
+                                  obscureText: isObscureConfirmPassword,
                                   enableSuggestions: false,
                                   decoration: InputDecoration(
                                     hintText: "Confirm password",
                                     labelText: "Confirm password",
                                     suffixIcon: confirmPassword.text.isNotEmpty
                                         ? Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.end,
+                                            mainAxisSize: MainAxisSize.min,
                                             children: [
                                               IconButton(
                                                 onPressed: () {
-                                                  setObscure(true);
+                                                  setState(() {
+                                                    isObscureConfirmPassword =
+                                                        !isObscureConfirmPassword;
+                                                  });
                                                 },
-                                                icon: isObscure
+                                                icon: isObscureConfirmPassword
                                                     ? const Icon(
                                                         Icons.visibility)
                                                     : const Icon(
@@ -334,8 +367,8 @@ class _RegisterViewState extends State<RegisterView> {
                                               ),
                                             ],
                                           )
-                                        : Container(),
-                                    enabledBorder: OutlineInputBorder(
+                                        : null,
+                                    enabledBorder: UnderlineInputBorder(
                                       borderSide: BorderSide(
                                         color: Colors.amber.shade900,
                                         width: 1.5,
@@ -344,7 +377,7 @@ class _RegisterViewState extends State<RegisterView> {
                                         Radius.circular(15.0),
                                       ),
                                     ),
-                                    focusedBorder: OutlineInputBorder(
+                                    focusedBorder: UnderlineInputBorder(
                                       borderSide: BorderSide(
                                         color: Colors.amber.shade900,
                                         width: 1.5,
@@ -602,11 +635,14 @@ class HeaderWelcome extends StatelessWidget {
                               scale: 1.1),
                         ),
                         const Positioned(
-                            right: -10,
-                            bottom: -15,
-                            child: Icon(
-                              Icons.add_a_photo,
-                            )),
+                          right: 18,
+                          bottom: 20,
+                          child: Icon(
+                            Icons.add_a_photo,
+                            size: 30,
+                            color: Colors.black,
+                          ),
+                        ),
                       ],
                     ),
             ),

@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:your_choices/utilities/text_style.dart';
 
 class FavoriteView extends StatefulWidget {
-  const FavoriteView({super.key});
+  final String uid;
+  const FavoriteView({super.key, required this.uid});
 
   @override
   State<FavoriteView> createState() => _FavoriteViewState();

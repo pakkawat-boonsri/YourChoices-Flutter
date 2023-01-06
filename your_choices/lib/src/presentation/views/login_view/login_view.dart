@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:your_choices/src/presentation/blocs/auth/auth_cubit.dart';
 import 'package:your_choices/src/presentation/blocs/credential/credential_cubit.dart';
+import 'package:your_choices/src/presentation/views/main_view/main_view.dart';
 import 'package:your_choices/src/presentation/views/register_view/register_view.dart';
 import 'package:your_choices/utilities/hex_color.dart';
+import 'package:your_choices/utilities/show_flutter_toast.dart';
 
 class LoginView extends StatefulWidget {
   const LoginView({super.key});
@@ -29,6 +32,33 @@ class _LoginViewState extends State<LoginView> {
   @override
   Widget build(BuildContext context) {
     Size size = MediaQuery.of(context).size;
+    return BlocConsumer<CredentialCubit, CredentialState>(
+      listener: (context, credentialState) {
+        if (credentialState is CredentialSuccess) {
+          BlocProvider.of<AuthCubit>(context).loggedIn();
+        }
+        if (credentialState is CredentialFailure) {
+          showFlutterToast("InValid Email and Password");
+        }
+      },
+      builder: (context, credentialState) {
+        if (credentialState is CredentialSuccess) {
+          return BlocBuilder<AuthCubit, AuthState>(
+            builder: (context, state) {
+              if (state is Authenticated) {
+                return MainView(uid: state.uid);
+              } else {
+                return bodySelection(size, context);
+              }
+            },
+          );
+        }
+        return bodySelection(size, context);
+      },
+    );
+  }
+
+  Scaffold bodySelection(Size size, BuildContext context) {
     return Scaffold(
       body: SafeArea(
         child: SingleChildScrollView(
