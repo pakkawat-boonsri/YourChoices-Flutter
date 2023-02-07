@@ -8,16 +8,20 @@ import 'package:your_choices/src/data/repositories/firebase_repository_impl.dart
 import 'package:your_choices/src/domain/repositories/firebase_repository.dart';
 import 'package:your_choices/src/domain/usecases/firebase_usecases/customer/create_customer_usecase.dart';
 import 'package:your_choices/src/domain/usecases/firebase_usecases/customer/get_current_uid_usecase.dart';
-import 'package:your_choices/src/domain/usecases/firebase_usecases/customer/get_single_customer.dart';
+import 'package:your_choices/src/domain/usecases/firebase_usecases/customer/get_single_customer_usecase.dart';
 import 'package:your_choices/src/domain/usecases/firebase_usecases/customer/is_sign_in_usecase.dart';
 import 'package:your_choices/src/domain/usecases/firebase_usecases/customer/sign_in_customer_usecase.dart';
 import 'package:your_choices/src/domain/usecases/firebase_usecases/customer/sign_out_usecase.dart';
 import 'package:your_choices/src/domain/usecases/firebase_usecases/customer/sign_up_customer_usecase.dart';
 import 'package:your_choices/src/domain/usecases/firebase_usecases/customer/update_customer_usecase.dart';
 import 'package:your_choices/src/domain/usecases/firebase_usecases/customer/upload_image_to_storage_usecase.dart';
+import 'package:your_choices/src/domain/usecases/firebase_usecases/sign_in_role.dart';
+import 'package:your_choices/src/domain/usecases/firebase_usecases/vendor/sign_in_vendor_usecase.dart';
+import 'package:your_choices/src/domain/usecases/firebase_usecases/vendor/sign_up_vendor_usecase.dart';
 import 'package:your_choices/src/presentation/blocs/auth/auth_cubit.dart';
 import 'package:your_choices/src/presentation/blocs/credential/credential_cubit.dart';
 import 'package:your_choices/src/presentation/blocs/customer/customer_cubit.dart';
+import 'package:your_choices/src/presentation/blocs/vendor/vendor_cubit.dart';
 
 final sl = GetIt.instance;
 
@@ -25,6 +29,7 @@ Future<void> init() async {
   //cubit
   sl.registerFactory(
     () => AuthCubit(
+      signInRoleUseCase: sl.call(),
       getCurrentUidUseCase: sl.call(),
       isSignInUseCase: sl.call(),
       signOutUseCase: sl.call(),
@@ -38,13 +43,21 @@ Future<void> init() async {
   );
 
   sl.registerFactory(
+    () => VendorCubit(),
+  );
+
+  sl.registerFactory(
     () => CredentialCubit(
+      getCurrentUidUseCase: sl.call(),
+      signInRoleUseCase: sl.call(),
+      signInVendorUseCase: sl.call(),
+      signUpVendorUseCase: sl.call(),
       signInCustomerUseCase: sl.call(),
       signUpCustomerUseCase: sl.call(),
     ),
   );
-  //use-cases
 
+  //use-cases
   sl.registerLazySingleton(
     () => CreateCustomerUseCase(repository: sl.call()),
   );
@@ -54,6 +67,32 @@ Future<void> init() async {
   sl.registerLazySingleton(
     () => GetCurrentUidUseCase(repository: sl.call()),
   );
+
+  sl.registerLazySingleton(
+    () => UpdateCustomerUseCase(repository: sl.call()),
+  );
+
+  sl.registerLazySingleton(
+    () => SignInCustomerUseCase(repository: sl.call()),
+  );
+  sl.registerLazySingleton(
+    () => SignUpCustomerUseCase(repository: sl.call()),
+  );
+
+  //use-case vendor
+  sl.registerLazySingleton(
+    () => SignInVendorUseCase(
+      repository: sl.call(),
+    ),
+  );
+
+  sl.registerLazySingleton(
+    () => SignUpVendorUseCase(
+      repository: sl.call(),
+    ),
+  );
+
+  //utilities
   sl.registerLazySingleton(
     () => IsSignInUseCase(repository: sl.call()),
   );
@@ -61,17 +100,14 @@ Future<void> init() async {
     () => SignOutUseCase(repository: sl.call()),
   );
   sl.registerLazySingleton(
-    () => UpdateCustomerUseCase(repository: sl.call()),
-  );
-  sl.registerLazySingleton(
     () => UploadImageToStorageUseCase(repository: sl.call()),
   );
   sl.registerLazySingleton(
-    () => SignInCustomerUseCase(repository: sl.call()),
+    () => SignInRoleUseCase(
+      repository: sl.call(),
+    ),
   );
-  sl.registerLazySingleton(
-    () => SignUpCustomerUseCase(repository: sl.call()),
-  );
+
   //repository
   sl.registerLazySingleton<FirebaseRepository>(
     () => FirebaseRepositoryImpl(remoteDataSource: sl.call()),

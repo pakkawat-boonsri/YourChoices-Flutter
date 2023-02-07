@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:your_choices/src/data/models/customer_model/transaction_model.dart';
+import 'package:your_choices/src/data/models/customer_model/transaction_model/transaction_model.dart';
 import 'package:your_choices/src/domain/entities/customer/customer_entity.dart';
-import 'package:your_choices/src/domain/entities/customer/transaction_entity.dart';
+import 'package:your_choices/src/domain/entities/customer/transaction/transaction_entity.dart';
 
 class CustomerModel extends CustomerEntity {
   const CustomerModel({

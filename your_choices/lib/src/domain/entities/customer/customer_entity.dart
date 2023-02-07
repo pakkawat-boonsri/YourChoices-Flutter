@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:equatable/equatable.dart';
-import 'package:your_choices/src/domain/entities/customer/transaction_entity.dart';
+import 'package:your_choices/src/domain/entities/customer/transaction/transaction_entity.dart';
 
 class CustomerEntity extends Equatable {
   final String? uid;

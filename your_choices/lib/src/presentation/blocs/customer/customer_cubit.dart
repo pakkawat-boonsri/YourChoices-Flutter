@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
-import 'package:your_choices/src/domain/usecases/firebase_usecases/customer/get_single_customer.dart';
+import 'package:your_choices/src/domain/usecases/firebase_usecases/customer/get_single_customer_usecase.dart';
 
 import '../../../domain/entities/customer/customer_entity.dart';
 
@@ -18,21 +18,35 @@ class CustomerCubit extends Cubit<CustomerState> {
     emit(CustomerLoading());
 
     try {
-      final data = await getSingleCustomerUseCase.call(uid);
-      if (data.transaction?.isNotEmpty ?? false) {
-        data.transaction!.sort(
-          (a, b) {
-            final newA = a.date!.toDate();
-            final newB = b.date!.toDate();
-            return newB.compareTo(newA);
-          },
-        );
-      }
-      emit(
-        CustomerLoaded(
-          customerEntity: data,
-        ),
+      final data = getSingleCustomerUseCase.call(uid);
+      data.listen(
+        (customerData) {
+          if (customerData.first.transaction?.isNotEmpty ?? false) {
+            customerData.first.transaction!.sort(
+              (a, b) {
+                final newA = a.date!.toDate();
+                final newB = b.date!.toDate();
+                return newB.compareTo(newA);
+              },
+            );
+          }
+          emit(
+            CustomerLoaded(
+              customerEntity: customerData.first,
+            ),
+          );
+        },
       );
+      // if (data.transaction?.isNotEmpty ?? false) {
+      //   data.transaction!.sort(
+      //     (a, b) {
+      //       final newA = a.date!.toDate();
+      //       final newB = b.date!.toDate();
+      //       return newB.compareTo(newA);
+      //     },
+      //   );
+      // }
+
     } on SocketException catch (_) {
       emit(CustomerFailure());
     } catch (e) {

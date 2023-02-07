@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:your_choices/src/data/data_sources/remote_data_source/remote_data_source.dart';
 import 'package:your_choices/src/domain/entities/customer/customer_entity.dart';
+import 'package:your_choices/src/domain/entities/vendor/vendor_entity.dart';
 import 'package:your_choices/src/domain/repositories/firebase_repository.dart';
 
 class FirebaseRepositoryImpl implements FirebaseRepository {
@@ -24,7 +25,7 @@ class FirebaseRepositoryImpl implements FirebaseRepository {
   }
 
   @override
-  Future<CustomerEntity> getSingleCustomer(
+  Stream<List<CustomerEntity>> getSingleCustomer(
     String uid,
   ) {
     return remoteDataSource.getSingleCustomer(uid);
@@ -66,6 +67,21 @@ class FirebaseRepositoryImpl implements FirebaseRepository {
     File? file,
     String childName,
   ) async {
-    return remoteDataSource.uploadImageToStorage(file,childName);
+    return remoteDataSource.uploadImageToStorage(file, childName);
+  }
+
+  @override
+  Future<void> signInVendor(VendorEntity vendorEntity) {
+    return remoteDataSource.signInVendor(vendorEntity);
+  }
+
+  @override
+  Future<void> signUpVendor(VendorEntity vendorEntity) {
+    return remoteDataSource.signUpVendor(vendorEntity);
+  }
+
+  @override
+  Future<String> signinRole(String uid) {
+    return remoteDataSource.signinRole(uid);
   }
 }

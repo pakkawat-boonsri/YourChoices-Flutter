@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:your_choices/on_generate_routes.dart';
 import 'package:your_choices/src/presentation/blocs/auth/auth_cubit.dart';
 import 'package:your_choices/src/presentation/blocs/credential/credential_cubit.dart';
-import 'package:your_choices/src/presentation/views/main_view/main_view.dart';
-import 'package:your_choices/src/presentation/views/register_view/register_view.dart';
+import 'package:your_choices/src/presentation/views/customer_side/main_view/main_view.dart';
 import 'package:your_choices/utilities/hex_color.dart';
 import 'package:your_choices/utilities/show_flutter_toast.dart';
+import 'package:your_choices/utilities/text_style.dart';
+
+import '../vendor_side/main_view/main_view.dart';
 
 class LoginView extends StatefulWidget {
   const LoginView({super.key});
@@ -38,7 +41,7 @@ class _LoginViewState extends State<LoginView> {
           BlocProvider.of<AuthCubit>(context).loggedIn();
         }
         if (credentialState is CredentialFailure) {
-          showFlutterToast("InValid Email and Password");
+          showFlutterToast("Invalid Email and Password");
         }
       },
       builder: (context, credentialState) {
@@ -46,7 +49,11 @@ class _LoginViewState extends State<LoginView> {
           return BlocBuilder<AuthCubit, AuthState>(
             builder: (context, state) {
               if (state is Authenticated) {
-                return MainView(uid: state.uid);
+                if (state.type == "restaurant") {
+                  return VendorMainView(uid: state.uid);
+                } else {
+                  return CustomerMainView(uid: state.uid);
+                }
               } else {
                 return bodySelection(size, context);
               }
@@ -79,13 +86,14 @@ class _LoginViewState extends State<LoginView> {
                     ),
                   ),
                   child: Column(
+                    mainAxisAlignment: MainAxisAlignment.start,
                     children: [
                       const HeaderText(),
                       const SizedBox(
-                        height: 30,
+                        height: 15,
                       ),
                       Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 35),
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
                         child: Form(
                           key: _formkey,
                           child: Column(
@@ -104,18 +112,25 @@ class _LoginViewState extends State<LoginView> {
                                 autocorrect: false,
                                 enableSuggestions: false,
                                 decoration: InputDecoration(
-                                  hintText: "Email",
-                                  labelText: "Email",
+                                  hintText: "i.e you@example.com",
+                                  labelText: "อีเมล",
+                                  floatingLabelBehavior:
+                                      FloatingLabelBehavior.always,
+                                  floatingLabelStyle: AppTextStyle.googleFont(
+                                    Colors.grey,
+                                    16,
+                                    FontWeight.w500,
+                                  ),
                                   suffixIcon: email.text.isNotEmpty
                                       ? IconButton(
                                           icon: const Icon(Icons.clear),
                                           onPressed: () {
-                                            password.clear();
+                                            email.clear();
                                             setState(() {});
                                           },
                                         )
                                       : const SizedBox(),
-                                  enabledBorder: OutlineInputBorder(
+                                  enabledBorder: UnderlineInputBorder(
                                     borderSide: BorderSide(
                                       color: Colors.amber.shade900,
                                       width: 1.5,
@@ -124,7 +139,7 @@ class _LoginViewState extends State<LoginView> {
                                       Radius.circular(15.0),
                                     ),
                                   ),
-                                  focusedBorder: OutlineInputBorder(
+                                  focusedBorder: UnderlineInputBorder(
                                     borderSide: BorderSide(
                                       color: Colors.amber.shade900,
                                       width: 1.5,
@@ -140,13 +155,13 @@ class _LoginViewState extends State<LoginView> {
                                 ),
                                 validator: (value) {
                                   if (value!.isEmpty) {
-                                    return "Please enter your Email.";
+                                    return "โปรดกรอกอีเมลของท่าน";
                                   }
                                   return null;
                                 },
                               ),
                               const SizedBox(
-                                height: 20,
+                                height: 15,
                               ),
                               TextFormField(
                                 onTap: () {
@@ -163,8 +178,13 @@ class _LoginViewState extends State<LoginView> {
                                 obscureText: true,
                                 enableSuggestions: false,
                                 decoration: InputDecoration(
-                                  hintText: "Password",
-                                  labelText: "Password",
+                                  floatingLabelBehavior:
+                                      FloatingLabelBehavior.always,
+                                  floatingLabelStyle: const TextStyle(
+                                    color: Colors.grey,
+                                  ),
+                                  hintText: "yourpassword1234",
+                                  labelText: "รหัสผ่าน",
                                   suffixIcon: password.text.isNotEmpty
                                       ? IconButton(
                                           icon: const Icon(Icons.clear),
@@ -174,7 +194,7 @@ class _LoginViewState extends State<LoginView> {
                                           },
                                         )
                                       : const SizedBox(),
-                                  enabledBorder: OutlineInputBorder(
+                                  enabledBorder: UnderlineInputBorder(
                                     borderSide: BorderSide(
                                       color: Colors.amber.shade900,
                                       width: 1.5,
@@ -183,7 +203,7 @@ class _LoginViewState extends State<LoginView> {
                                       Radius.circular(15.0),
                                     ),
                                   ),
-                                  focusedBorder: OutlineInputBorder(
+                                  focusedBorder: UnderlineInputBorder(
                                     borderSide: BorderSide(
                                       color: Colors.amber.shade900,
                                       width: 1.5,
@@ -199,7 +219,7 @@ class _LoginViewState extends State<LoginView> {
                                 ),
                                 validator: (value) {
                                   if (value!.isEmpty) {
-                                    return "Please enter your password.";
+                                    return "โปรดกรอกรหัสผ่านของท่าน";
                                   }
                                   return null;
                                 },
@@ -209,13 +229,13 @@ class _LoginViewState extends State<LoginView> {
                         ),
                       ),
                       const SizedBox(
-                        height: 50,
+                        height: 40,
                       ),
                       ElevatedButton(
                         onPressed: () {
                           if (_formkey.currentState!.validate()) {
                             BlocProvider.of<CredentialCubit>(context)
-                                .signInCustomer(
+                                .checkSignInRole(
                               email: email.text,
                               password: password.text,
                             );
@@ -235,7 +255,7 @@ class _LoginViewState extends State<LoginView> {
                           ),
                         ),
                         child: Text(
-                          "Sign In",
+                          "เข้าสู่ระบบ",
                           style: GoogleFonts.ibmPlexSansThai(
                               fontSize: 16, fontWeight: FontWeight.normal),
                         ),
@@ -257,41 +277,6 @@ class _LoginViewState extends State<LoginView> {
   }
 }
 
-class DividerWithText extends StatelessWidget {
-  const DividerWithText({
-    Key? key,
-  }) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: <Widget>[
-        const Expanded(
-          child: Divider(
-            indent: 40,
-            endIndent: 20,
-            color: Colors.black,
-            thickness: 1,
-          ),
-        ),
-        Text(
-          "Or continue with",
-          style: GoogleFonts.ibmPlexSansThai(
-              fontSize: 16, fontWeight: FontWeight.w500),
-        ),
-        const Expanded(
-          child: Divider(
-            thickness: 1,
-            indent: 20,
-            endIndent: 40,
-            color: Colors.black,
-          ),
-        ),
-      ],
-    );
-  }
-}
-
 class RichTextNavigatorText extends StatelessWidget {
   const RichTextNavigatorText({
     Key? key,
@@ -304,40 +289,36 @@ class RichTextNavigatorText extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 40),
       width: size.width,
-      child: Row(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Column(
-            mainAxisAlignment: MainAxisAlignment.start,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                "Don't have an account yet? ",
-                style: GoogleFonts.ibmPlexSansThai(
-                  fontSize: 16,
-                  color: "130B71".toColor(),
-                ),
-              ),
-              const SizedBox(
-                height: 10,
-              ),
-              GestureDetector(
-                onTap: () {
-                  Navigator.of(context).pushReplacement(
-                      MaterialPageRoute(
-                        builder: (context) => const RegisterView(),
-                      ),
-                      result: (route) => false);
-                },
-                child: Text(
-                  "Sign up",
-                  style: GoogleFonts.ibmPlexSansThai(
-                    fontSize: 16,
-                    color: Colors.black,
-                  ),
-                ),
-              )
-            ],
+          Text(
+            "ยังไม่มีแอ็กเคานต์? ",
+            style: GoogleFonts.ibmPlexSansThai(
+              fontSize: 16,
+              color: "130B71".toColor(),
+            ),
           ),
+          const SizedBox(
+            height: 10,
+          ),
+          GestureDetector(
+            onTap: () {
+              Navigator.pushNamedAndRemoveUntil(
+                context,
+                PageConst.registerPage,
+                (route) => false,
+              );
+            },
+            child: Text(
+              "ลงทะเบียนใช้งาน",
+              style: GoogleFonts.ibmPlexSansThai(
+                fontSize: 16,
+                color: Colors.black,
+              ),
+            ),
+          )
         ],
       ),
     );
@@ -353,27 +334,28 @@ class HeaderText extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.only(top: 100, left: 35),
-      child: Column(
-        children: [
-          SizedBox(
-            width: double.maxFinite,
-            child:
-                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(
-                "HELLO",
-                style: GoogleFonts.ibmPlexSansThai(
-                    fontSize: 48, fontWeight: FontWeight.bold),
+      child: SizedBox(
+        width: MediaQuery.of(context).size.width,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              "สวัสดี",
+              style: GoogleFonts.ibmPlexSansThai(
+                fontSize: 48,
+                fontWeight: FontWeight.bold,
               ),
-              Text(
-                "Sign into your account.",
-                style: GoogleFonts.ibmPlexSansThai(
-                    fontSize: 18,
-                    fontWeight: FontWeight.normal,
-                    color: Colors.grey),
+            ),
+            Text(
+              "ลงชื่อเข้าใช้บัญชีของคุณ",
+              style: GoogleFonts.ibmPlexSansThai(
+                fontSize: 16,
+                fontWeight: FontWeight.normal,
+                color: Colors.grey,
               ),
-            ]),
-          ),
-        ],
+            ),
+          ],
+        ),
       ),
     );
   }

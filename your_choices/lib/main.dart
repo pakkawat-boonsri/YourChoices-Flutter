@@ -4,11 +4,14 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'package:your_choices/on_generate_routes.dart';
 import 'package:your_choices/src/presentation/blocs/auth/auth_cubit.dart';
 import 'package:your_choices/src/presentation/blocs/credential/credential_cubit.dart';
 import 'package:your_choices/src/presentation/blocs/customer/customer_cubit.dart';
+import 'package:your_choices/src/presentation/blocs/vendor/vendor_cubit.dart';
 import 'package:your_choices/src/presentation/views/login_view/login_view.dart';
-import 'package:your_choices/src/presentation/views/main_view/main_view.dart';
+import 'package:your_choices/src/presentation/views/customer_side/main_view/main_view.dart';
+import 'package:your_choices/src/presentation/views/vendor_side/main_view/main_view.dart';
 import 'package:your_choices/src/restaurant_screen/repository/restaurant_repo.dart';
 import 'package:your_choices/src/restaurant_screen/view_model/bloc/restaurant_bloc.dart';
 
@@ -47,6 +50,9 @@ class _YourChoicesState extends State<YourChoices> {
         BlocProvider(
           create: (_) => di.sl<CustomerCubit>(),
         ),
+        BlocProvider(
+          create: (_) => di.sl<VendorCubit>(),
+        ),
         RepositoryProvider(
           create: (context) => RestaurantRepository(),
         ),
@@ -57,20 +63,30 @@ class _YourChoicesState extends State<YourChoices> {
         ),
       ],
       child: MaterialApp(
+        onGenerateRoute: OnGenerateRoute.route,
         debugShowCheckedModeBanner: false,
         theme: ThemeData(
           scaffoldBackgroundColor: const Color(0xFF34312f),
         ),
         title: "YourChoices",
-        home: BlocBuilder<AuthCubit, AuthState>(
-          builder: (context, state) {
-            if (state is Authenticated) {
-              return MainView(uid: state.uid);
-            } else {
-              return const LoginView();
-            }
-          },
-        ),
+        initialRoute: "/",
+        routes: {
+          "/": (context) {
+            return BlocBuilder<AuthCubit, AuthState>(
+              builder: (context, state) {
+                if (state is Authenticated) {
+                  if (state.type == "restaurant") {
+                    return VendorMainView(uid: state.uid);
+                  } else {
+                    return CustomerMainView(uid: state.uid);
+                  }
+                } else {
+                  return const LoginView();
+                }
+              },
+            );
+          }
+        },
       ),
     );
   }
