@@ -42,60 +42,34 @@ class _RegisterViewState extends State<RegisterView> {
   File? imageFile;
   File? resImageFile;
 
-  Future pickImageFromGalleryForProfile() async {
+  Future pickImageFromGallery() async {
     try {
       final file = await ImagePicker().pickImage(source: ImageSource.gallery);
       if (file == null) {
         return null;
       } else {
-        imageFile = File(file.path);
+        return File(file.path);
       }
     } on PlatformException catch (e) {
       log('Failed to pick image: $e');
     }
   }
 
-  Future pickImageFromCameraForProfile() async {
+  Future pickImageFromCamera() async {
     try {
       final file = await ImagePicker().pickImage(source: ImageSource.camera);
       if (file == null) {
         return null;
       } else {
-        imageFile = File(file.path);
+        return File(file.path);
       }
     } on PlatformException catch (e) {
       log('Failed to pick image: $e');
     }
   }
 
-  Future pickImageFromGalleryForRestaurant() async {
-    try {
-      final file = await ImagePicker().pickImage(source: ImageSource.gallery);
-      if (file == null) {
-        return null;
-      } else {
-        resImageFile = File(file.path);
-      }
-    } on PlatformException catch (e) {
-      log('Failed to pick image: $e');
-    }
-  }
-
-  Future pickImageFromCameraForRestaurant() async {
-    try {
-      final file = await ImagePicker().pickImage(source: ImageSource.camera);
-      if (file == null) {
-        return null;
-      } else {
-        resImageFile = File(file.path);
-      }
-    } on PlatformException catch (e) {
-      log('Failed to pick image: $e');
-    }
-  }
-
-  optionToTakeImage() {
-    showModalBottomSheet<dynamic>(
+  Future optionToTakeImage() {
+    return showModalBottomSheet<dynamic>(
       isScrollControlled: true,
       context: context,
       shape: const RoundedRectangleBorder(
@@ -104,7 +78,7 @@ class _RegisterViewState extends State<RegisterView> {
           topRight: Radius.circular(5),
         ),
       ),
-      builder: (BuildContext bc) {
+      builder: (context) {
         return Wrap(
           alignment: WrapAlignment.center,
           children: <Widget>[
@@ -120,11 +94,17 @@ class _RegisterViewState extends State<RegisterView> {
                       FontWeight.normal,
                     ),
                   ),
-                  onTap: () {
-                    isBottomSheetShow
-                        ? pickImageFromGalleryForRestaurant()
-                        : pickImageFromGalleryForProfile();
-                    Navigator.pop(context);
+                  onTap: () async {
+                    final File imageFromGallery = await pickImageFromGallery();
+
+                    if (isBottomSheetShow) {
+                      resImageFile = imageFromGallery;
+                    } else {
+                      imageFile = imageFromGallery;
+                    }
+                    if (mounted) {
+                      Navigator.of(context).pop();
+                    }
                   },
                   leading: const Icon(
                     Icons.photo_library,
@@ -146,11 +126,17 @@ class _RegisterViewState extends State<RegisterView> {
                       FontWeight.normal,
                     ),
                   ),
-                  onTap: () {
-                    isBottomSheetShow
-                        ? pickImageFromCameraForRestaurant()
-                        : pickImageFromCameraForProfile();
-                    Navigator.pop(context);
+                  onTap: () async {
+                    final File imageFromCamera = await pickImageFromCamera();
+
+                    if (isBottomSheetShow) {
+                      resImageFile = imageFromCamera;
+                    } else {
+                      imageFile = imageFromCamera;
+                    }
+                    if (mounted) {
+                      Navigator.of(context).pop();
+                    }
                   },
                   leading: const Icon(
                     Icons.camera_alt,
@@ -237,342 +223,8 @@ class _RegisterViewState extends State<RegisterView> {
                     ),
                     child: Column(
                       children: [
-                        HeaderWelcome(
-                            size: size,
-                            file: imageFile,
-                            pickImageFromGallery: optionToTakeImage),
-                        Form(
-                          key: _regisKey,
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 18),
-                            child: Column(
-                              children: [
-                                TextFormField(
-                                  onTap: () {
-                                    setState(() {
-                                      isClick = true;
-                                    });
-                                  },
-                                  onChanged: (value) {
-                                    setState(() {});
-                                  },
-                                  controller: username,
-                                  keyboardType: TextInputType.name,
-                                  autocorrect: false,
-                                  enableSuggestions: false,
-                                  decoration: InputDecoration(
-                                    labelText: "ชื่อผู้ใช้",
-                                    floatingLabelBehavior:
-                                        FloatingLabelBehavior.never,
-                                    suffixIcon: username.text.isNotEmpty
-                                        ? IconButton(
-                                            onPressed: () {
-                                              username.clear();
-                                              setState(() {});
-                                            },
-                                            icon: const Icon(Icons.clear),
-                                          )
-                                        : null,
-                                    enabledBorder: UnderlineInputBorder(
-                                      borderSide: BorderSide(
-                                        color: Colors.amber.shade900,
-                                        width: 1.5,
-                                      ),
-                                      borderRadius: const BorderRadius.all(
-                                        Radius.circular(15.0),
-                                      ),
-                                    ),
-                                    focusedBorder: UnderlineInputBorder(
-                                      borderSide: BorderSide(
-                                        color: Colors.amber.shade900,
-                                        width: 1.5,
-                                      ),
-                                      borderRadius: const BorderRadius.all(
-                                        Radius.circular(15.0),
-                                      ),
-                                    ),
-                                    prefixIcon: const Icon(
-                                      Icons.person,
-                                      color: Colors.black,
-                                    ),
-                                  ),
-                                  validator: (value) {
-                                    if (value!.isEmpty) {
-                                      return "โปรดกรอกชื่อผู้ใช้ของท่าน";
-                                    }
-                                    return null;
-                                  },
-                                ),
-                                const SizedBox(
-                                  height: 10,
-                                ),
-                                TextFormField(
-                                  onTap: () {
-                                    setState(() {
-                                      isClick = true;
-                                    });
-                                  },
-                                  onChanged: (value) {
-                                    setState(() {});
-                                  },
-                                  controller: email,
-                                  keyboardType: TextInputType.name,
-                                  autocorrect: false,
-                                  enableSuggestions: false,
-                                  decoration: InputDecoration(
-                                    labelText: "อีเมล",
-                                    floatingLabelBehavior:
-                                        FloatingLabelBehavior.never,
-                                    suffixIcon: email.text.isNotEmpty
-                                        ? IconButton(
-                                            onPressed: () {
-                                              email.clear();
-                                              setState(() {});
-                                            },
-                                            icon: const Icon(Icons.clear),
-                                          )
-                                        : null,
-                                    enabledBorder: UnderlineInputBorder(
-                                      borderSide: BorderSide(
-                                        color: Colors.amber.shade900,
-                                        width: 1.5,
-                                      ),
-                                      borderRadius: const BorderRadius.all(
-                                        Radius.circular(15.0),
-                                      ),
-                                    ),
-                                    focusedBorder: UnderlineInputBorder(
-                                      borderSide: BorderSide(
-                                        color: Colors.amber.shade900,
-                                        width: 1.5,
-                                      ),
-                                      borderRadius: const BorderRadius.all(
-                                        Radius.circular(15.0),
-                                      ),
-                                    ),
-                                    prefixIcon: const Icon(
-                                      Icons.mail_outline,
-                                      color: Colors.black,
-                                    ),
-                                  ),
-                                  validator: (value) {
-                                    if (value!.isEmpty) {
-                                      return "โปรดกรอกชื่ออีเมลของท่าน";
-                                    }
-                                    String pattern = r'\w+@\w+\.\w+';
-                                    if (!RegExp(pattern).hasMatch(value)) {
-                                      return 'ฟอร์แมตไม่ตรงกับการกรอกอีเมล';
-                                    }
-                                    return null;
-                                  },
-                                ),
-                                const SizedBox(
-                                  height: 10,
-                                ),
-                                TextFormField(
-                                  onTap: () {
-                                    setState(() {
-                                      isClick = true;
-                                    });
-                                  },
-                                  onChanged: (value) {
-                                    setState(() {});
-                                  },
-                                  controller: password,
-                                  keyboardType: TextInputType.name,
-                                  autocorrect: false,
-                                  obscureText: isObscurePassword,
-                                  enableSuggestions: false,
-                                  decoration: InputDecoration(
-                                    labelText: "รหัสผ่าน",
-                                    floatingLabelBehavior:
-                                        FloatingLabelBehavior.never,
-                                    suffixIcon: password.text.isNotEmpty
-                                        ? Row(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.end,
-                                            mainAxisSize: MainAxisSize.min,
-                                            children: [
-                                              IconButton(
-                                                onPressed: () => setState(() {
-                                                  isObscurePassword =
-                                                      !isObscurePassword;
-                                                }),
-                                                icon: isObscurePassword
-                                                    ? const Icon(
-                                                        Icons.visibility)
-                                                    : const Icon(
-                                                        Icons.visibility_off),
-                                              ),
-                                              IconButton(
-                                                onPressed: () {
-                                                  password.clear();
-                                                  setState(() {});
-                                                },
-                                                icon: const Icon(Icons.clear),
-                                              ),
-                                            ],
-                                          )
-                                        : null,
-                                    enabledBorder: UnderlineInputBorder(
-                                      borderSide: BorderSide(
-                                        color: Colors.amber.shade900,
-                                        width: 1.5,
-                                      ),
-                                      borderRadius: const BorderRadius.all(
-                                        Radius.circular(15.0),
-                                      ),
-                                    ),
-                                    focusedBorder: UnderlineInputBorder(
-                                      borderSide: BorderSide(
-                                        color: Colors.amber.shade900,
-                                        width: 1.5,
-                                      ),
-                                      borderRadius: const BorderRadius.all(
-                                        Radius.circular(15.0),
-                                      ),
-                                    ),
-                                    prefixIcon: const Icon(
-                                      Icons.lock_outline,
-                                      color: Colors.black,
-                                    ),
-                                  ),
-                                  validator: (value) {
-                                    if (value!.isEmpty) {
-                                      return "โปรดกรอกรหัสผ่านของท่าน";
-                                    }
-                                    return null;
-                                  },
-                                ),
-                                const SizedBox(
-                                  height: 10,
-                                ),
-                                TextFormField(
-                                  onTap: () {
-                                    setState(() {
-                                      isClick = true;
-                                    });
-                                  },
-                                  onChanged: (value) {
-                                    setState(() {});
-                                  },
-                                  controller: confirmPassword,
-                                  keyboardType: TextInputType.name,
-                                  autocorrect: false,
-                                  obscureText: isObscureConfirmPassword,
-                                  enableSuggestions: false,
-                                  decoration: InputDecoration(
-                                    floatingLabelBehavior:
-                                        FloatingLabelBehavior.never,
-                                    labelText: "คอนเฟิร์มรหัสผ่าน",
-                                    suffixIcon: confirmPassword.text.isNotEmpty
-                                        ? Row(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.end,
-                                            mainAxisSize: MainAxisSize.min,
-                                            children: [
-                                              IconButton(
-                                                onPressed: () {
-                                                  setState(() {
-                                                    isObscureConfirmPassword =
-                                                        !isObscureConfirmPassword;
-                                                  });
-                                                },
-                                                icon: isObscureConfirmPassword
-                                                    ? const Icon(
-                                                        Icons.visibility)
-                                                    : const Icon(
-                                                        Icons.visibility_off),
-                                              ),
-                                              IconButton(
-                                                onPressed: () {
-                                                  confirmPassword.clear();
-                                                  setState(() {});
-                                                },
-                                                icon: const Icon(Icons.clear),
-                                              ),
-                                            ],
-                                          )
-                                        : null,
-                                    enabledBorder: UnderlineInputBorder(
-                                      borderSide: BorderSide(
-                                        color: Colors.amber.shade900,
-                                        width: 1.5,
-                                      ),
-                                      borderRadius: const BorderRadius.all(
-                                        Radius.circular(15.0),
-                                      ),
-                                    ),
-                                    focusedBorder: UnderlineInputBorder(
-                                      borderSide: BorderSide(
-                                        color: Colors.amber.shade900,
-                                        width: 1.5,
-                                      ),
-                                      borderRadius: const BorderRadius.all(
-                                        Radius.circular(15.0),
-                                      ),
-                                    ),
-                                    prefixIcon: const Icon(
-                                      Icons.lock_outline,
-                                      color: Colors.black,
-                                    ),
-                                  ),
-                                  validator: (value) {
-                                    if (value!.isEmpty) {
-                                      return "โปรดกรอกยืนยันรหัสผ่านของท่าน";
-                                    } else if (password.text !=
-                                        confirmPassword.text) {
-                                      return "รหัสผ่านยืนยันไม่ตรงกับรหัสผ่านของท่าน";
-                                    }
-                                    return null;
-                                  },
-                                ),
-                                const SizedBox(
-                                  height: 5,
-                                ),
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceEvenly,
-                                  children: [
-                                    Row(
-                                      children: [
-                                        Radio(
-                                          value: "customer",
-                                          groupValue: selectingType,
-                                          onChanged: ((value) {
-                                            setState(() {
-                                              selectingType = value.toString();
-                                            });
-                                          }),
-                                        ),
-                                        const Text("ลูกค้า")
-                                      ],
-                                    ),
-                                    Row(
-                                      children: [
-                                        Row(
-                                          children: [
-                                            Radio(
-                                              value: "restaurant",
-                                              groupValue: selectingType,
-                                              onChanged: ((value) {
-                                                setState(() {
-                                                  selectingType =
-                                                      value.toString();
-                                                });
-                                              }),
-                                            ),
-                                          ],
-                                        ),
-                                        const Text("ร้านอาหาร"),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
+                        headerContent(),
+                        resgisterTextFormFields(),
                         selectingType == "customer"
                             ? ElevatedButton(
                                 onPressed: () async {
@@ -620,21 +272,10 @@ class _RegisterViewState extends State<RegisterView> {
                                 onPressed: () async {
                                   final result =
                                       _regisKey.currentState!.validate();
-                                  if (!result) {
-                                    setState(() {
-                                      _showBottomVendorSheet(
-                                        VendorEntity(
-                                          email: email.text,
-                                          password: password.text,
-                                          username: username.text,
-                                          type: selectingType,
-                                          imageFile: imageFile,
-                                        ),
-                                      );
-                                      isBottomSheetShow = true;
-                                    });
-
+                                  if (result) {
+                                    isBottomSheetShow = true;
                                     log("in ต่อไป ${isBottomSheetShow.toString()}");
+                                    await vendorModelSheet(context);
                                   } else {
                                     return;
                                   }
@@ -686,9 +327,334 @@ class _RegisterViewState extends State<RegisterView> {
     );
   }
 
-  Future<void> _showBottomVendorSheet(
-    VendorEntity vendorEntity,
-  ) {
+  Widget resgisterTextFormFields() {
+    return Form(
+      key: _regisKey,
+      child: StatefulBuilder(
+        builder: (context, setState) => Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 18),
+          child: Column(
+            children: [
+              TextFormField(
+                onTap: () {
+                  setState(() {
+                    isClick = true;
+                  });
+                },
+                onChanged: (value) {
+                  setState(() {});
+                },
+                controller: username,
+                keyboardType: TextInputType.name,
+                autocorrect: false,
+                enableSuggestions: false,
+                decoration: InputDecoration(
+                  labelText: "ชื่อผู้ใช้",
+                  floatingLabelBehavior: FloatingLabelBehavior.never,
+                  suffixIcon: username.text.isNotEmpty
+                      ? IconButton(
+                          onPressed: () {
+                            username.clear();
+                            setState(() {});
+                          },
+                          icon: const Icon(Icons.clear),
+                        )
+                      : null,
+                  enabledBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(
+                      color: Colors.amber.shade900,
+                      width: 1.5,
+                    ),
+                    borderRadius: const BorderRadius.all(
+                      Radius.circular(15.0),
+                    ),
+                  ),
+                  focusedBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(
+                      color: Colors.amber.shade900,
+                      width: 1.5,
+                    ),
+                    borderRadius: const BorderRadius.all(
+                      Radius.circular(15.0),
+                    ),
+                  ),
+                  prefixIcon: const Icon(
+                    Icons.person,
+                    color: Colors.black,
+                  ),
+                ),
+                validator: (value) {
+                  if (value!.isEmpty) {
+                    return "โปรดกรอกชื่อผู้ใช้ของท่าน";
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(
+                height: 10,
+              ),
+              TextFormField(
+                onTap: () {
+                  setState(() {
+                    isClick = true;
+                  });
+                },
+                onChanged: (value) {
+                  setState(() {});
+                },
+                controller: email,
+                keyboardType: TextInputType.name,
+                autocorrect: false,
+                enableSuggestions: false,
+                decoration: InputDecoration(
+                  labelText: "อีเมล",
+                  floatingLabelBehavior: FloatingLabelBehavior.never,
+                  suffixIcon: email.text.isNotEmpty
+                      ? IconButton(
+                          onPressed: () {
+                            email.clear();
+                            setState(() {});
+                          },
+                          icon: const Icon(Icons.clear),
+                        )
+                      : null,
+                  enabledBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(
+                      color: Colors.amber.shade900,
+                      width: 1.5,
+                    ),
+                    borderRadius: const BorderRadius.all(
+                      Radius.circular(15.0),
+                    ),
+                  ),
+                  focusedBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(
+                      color: Colors.amber.shade900,
+                      width: 1.5,
+                    ),
+                    borderRadius: const BorderRadius.all(
+                      Radius.circular(15.0),
+                    ),
+                  ),
+                  prefixIcon: const Icon(
+                    Icons.mail_outline,
+                    color: Colors.black,
+                  ),
+                ),
+                validator: (value) {
+                  if (value!.isEmpty) {
+                    return "โปรดกรอกชื่ออีเมลของท่าน";
+                  }
+                  String pattern = r'\w+@\w+\.\w+';
+                  if (!RegExp(pattern).hasMatch(value)) {
+                    return 'ฟอร์แมตไม่ตรงกับการกรอกอีเมล';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(
+                height: 10,
+              ),
+              TextFormField(
+                onTap: () {
+                  setState(() {
+                    isClick = true;
+                  });
+                },
+                onChanged: (value) {
+                  setState(() {});
+                },
+                controller: password,
+                keyboardType: TextInputType.name,
+                autocorrect: false,
+                obscureText: isObscurePassword,
+                enableSuggestions: false,
+                decoration: InputDecoration(
+                  labelText: "รหัสผ่าน",
+                  floatingLabelBehavior: FloatingLabelBehavior.never,
+                  suffixIcon: password.text.isNotEmpty
+                      ? Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            IconButton(
+                              onPressed: () => setState(() {
+                                isObscurePassword = !isObscurePassword;
+                              }),
+                              icon: isObscurePassword
+                                  ? const Icon(Icons.visibility)
+                                  : const Icon(Icons.visibility_off),
+                            ),
+                            IconButton(
+                              onPressed: () {
+                                password.clear();
+                                setState(() {});
+                              },
+                              icon: const Icon(Icons.clear),
+                            ),
+                          ],
+                        )
+                      : null,
+                  enabledBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(
+                      color: Colors.amber.shade900,
+                      width: 1.5,
+                    ),
+                    borderRadius: const BorderRadius.all(
+                      Radius.circular(15.0),
+                    ),
+                  ),
+                  focusedBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(
+                      color: Colors.amber.shade900,
+                      width: 1.5,
+                    ),
+                    borderRadius: const BorderRadius.all(
+                      Radius.circular(15.0),
+                    ),
+                  ),
+                  prefixIcon: const Icon(
+                    Icons.lock_outline,
+                    color: Colors.black,
+                  ),
+                ),
+                validator: (value) {
+                  if (value!.isEmpty) {
+                    return "โปรดกรอกรหัสผ่านของท่าน";
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(
+                height: 10,
+              ),
+              TextFormField(
+                onTap: () {
+                  setState(() {
+                    isClick = true;
+                  });
+                },
+                onChanged: (value) {
+                  setState(() {});
+                },
+                controller: confirmPassword,
+                keyboardType: TextInputType.name,
+                autocorrect: false,
+                obscureText: isObscureConfirmPassword,
+                enableSuggestions: false,
+                decoration: InputDecoration(
+                  floatingLabelBehavior: FloatingLabelBehavior.never,
+                  labelText: "คอนเฟิร์มรหัสผ่าน",
+                  suffixIcon: confirmPassword.text.isNotEmpty
+                      ? Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            IconButton(
+                              onPressed: () {
+                                setState(() {
+                                  isObscureConfirmPassword =
+                                      !isObscureConfirmPassword;
+                                });
+                              },
+                              icon: isObscureConfirmPassword
+                                  ? const Icon(Icons.visibility)
+                                  : const Icon(Icons.visibility_off),
+                            ),
+                            IconButton(
+                              onPressed: () {
+                                confirmPassword.clear();
+                                setState(() {});
+                              },
+                              icon: const Icon(Icons.clear),
+                            ),
+                          ],
+                        )
+                      : null,
+                  enabledBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(
+                      color: Colors.amber.shade900,
+                      width: 1.5,
+                    ),
+                    borderRadius: const BorderRadius.all(
+                      Radius.circular(15.0),
+                    ),
+                  ),
+                  focusedBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(
+                      color: Colors.amber.shade900,
+                      width: 1.5,
+                    ),
+                    borderRadius: const BorderRadius.all(
+                      Radius.circular(15.0),
+                    ),
+                  ),
+                  prefixIcon: const Icon(
+                    Icons.lock_outline,
+                    color: Colors.black,
+                  ),
+                ),
+                validator: (value) {
+                  if (value!.isEmpty) {
+                    return "โปรดกรอกยืนยันรหัสผ่านของท่าน";
+                  } else if (password.text != confirmPassword.text) {
+                    return "รหัสผ่านยืนยันไม่ตรงกับรหัสผ่านของท่าน";
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(
+                height: 5,
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  Row(
+                    children: [
+                      Radio(
+                        value: "customer",
+                        groupValue: selectingType,
+                        onChanged: ((value) {
+                          setState(() {
+                            selectingType = value.toString();
+                            log(selectingType);
+                          });
+                        }),
+                      ),
+                      const Text("ลูกค้า")
+                    ],
+                  ),
+                  Row(
+                    children: [
+                      Row(
+                        children: [
+                          Radio(
+                            value: "restaurant",
+                            groupValue: selectingType,
+                            onChanged: ((value) {
+                              setState(
+                                () {
+                                  selectingType = value.toString();
+                                  log(selectingType);
+                                },
+                              );
+                            }),
+                          ),
+                        ],
+                      ),
+                      const Text("ร้านอาหาร"),
+                    ],
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<dynamic> vendorModelSheet(BuildContext context) {
     return showModalBottomSheet(
       isDismissible: false,
       isScrollControlled: true,
@@ -700,79 +666,81 @@ class _RegisterViewState extends State<RegisterView> {
       ),
       context: context,
       builder: (BuildContext context) {
-        return StatefulBuilder(
-          builder: (context, setState) => Padding(
-            padding: EdgeInsets.only(
-                bottom: MediaQuery.of(context).viewInsets.bottom),
-            child: Wrap(
-              children: [
-                Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 25,
-                        vertical: 5,
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            "ข้อมูลลูกค้า",
-                            style: AppTextStyle.googleFont(
-                              Colors.black,
-                              40,
-                              FontWeight.bold,
-                            ),
-                          ),
-                          GestureDetector(
-                            onTap: () {
-                              isBottomSheetShow = false;
-                              log("in pop ${isBottomSheetShow.toString()}");
-                              Navigator.pop(context);
-                            },
-                            child: CircleAvatar(
-                              backgroundColor: "B44121".toColor(),
-                              radius: 20,
-                              child: Image.asset(
-                                "assets/images/Xcross.png",
-                                scale: 1.3,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
+        return Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom,
+          ),
+          child: Wrap(
+            children: [
+              Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 25,
+                      vertical: 5,
                     ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 20),
-                      width: MediaQuery.of(context).size.width,
-                      child: Text(
-                        "กรอกข้อมูลร้านค้าเพิ่มเติม",
-                        style: AppTextStyle.googleFont(
-                          Colors.grey,
-                          16,
-                          FontWeight.w500,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          "ข้อมูลลูกค้า",
+                          style: AppTextStyle.googleFont(
+                            Colors.black,
+                            40,
+                            FontWeight.bold,
+                          ),
                         ),
+                        GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              isBottomSheetShow = false;
+                            });
+                            log("in pop ${isBottomSheetShow.toString()}");
+                            Navigator.pop(context);
+                          },
+                          child: CircleAvatar(
+                            backgroundColor: "B44121".toColor(),
+                            radius: 20,
+                            child: Image.asset(
+                              "assets/images/Xcross.png",
+                              scale: 1.3,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    width: MediaQuery.of(context).size.width,
+                    child: Text(
+                      "กรอกข้อมูลร้านค้าเพิ่มเติม",
+                      style: AppTextStyle.googleFont(
+                        Colors.grey,
+                        16,
+                        FontWeight.w500,
                       ),
                     ),
-                    const SizedBox(
-                      height: 20,
-                    ),
-                    const Divider(
-                      height: 2,
-                      endIndent: 18,
-                      indent: 18,
-                      thickness: 1,
-                      color: Colors.black,
-                    ),
-                    const SizedBox(
-                      height: 20,
-                    ),
-                    GestureDetector(
-                      onTap: () {
-                        setState(() {
-                          optionToTakeImage();
-                        });
+                  ),
+                  const SizedBox(
+                    height: 20,
+                  ),
+                  const Divider(
+                    height: 2,
+                    endIndent: 18,
+                    indent: 18,
+                    thickness: 1,
+                    color: Colors.black,
+                  ),
+                  const SizedBox(
+                    height: 20,
+                  ),
+                  StatefulBuilder(
+                    builder: (context, setState) => GestureDetector(
+                      onTap: () async {
+                        await optionToTakeImage();
+                        setState(() {});
                       },
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -825,9 +793,11 @@ class _RegisterViewState extends State<RegisterView> {
                         ),
                       ),
                     ),
-                    Form(
-                      key: _btmFormKey,
-                      child: Padding(
+                  ),
+                  Form(
+                    key: _btmFormKey,
+                    child: StatefulBuilder(
+                      builder: (context, setState) => Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 20),
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
@@ -842,6 +812,7 @@ class _RegisterViewState extends State<RegisterView> {
                               ),
                             ),
                             TextFormField(
+                              controller: resName,
                               decoration: const InputDecoration(
                                 hintText: "กรอกชื่อร้านของคุณ",
                                 prefixIcon: Icon(
@@ -868,6 +839,7 @@ class _RegisterViewState extends State<RegisterView> {
                               ),
                             ),
                             TextFormField(
+                              controller: resDescription,
                               decoration: const InputDecoration(
                                 hintText: "กรอกรายละเอียดเกี่ยวกับร้านของคุณ",
                                 prefixIcon: Icon(
@@ -889,45 +861,160 @@ class _RegisterViewState extends State<RegisterView> {
                         ),
                       ),
                     ),
-                    ElevatedButton(
-                      onPressed: () {
-                        if (_btmFormKey.currentState!.validate()) {
-                          log("succuess");
+                  ),
+                  ElevatedButton(
+                    onPressed: () async {
+                      if (_btmFormKey.currentState!.validate()) {
+                        await BlocProvider.of<CredentialCubit>(context)
+                            .signUpVendor(
+                          vendorEntity: VendorEntity(
+                            username: username.text,
+                            email: email.text,
+                            password: password.text,
+                            description: resDescription.text,
+                            dishes: const [],
+                            imageFile: imageFile,
+                            resImageFile: resImageFile,
+                            isActive: false,
+                            onQueue: 0,
+                            resName: resName.text,
+                            totalPriceSell: 0,
+                            type: selectingType,
+                          ),
+                        );
+                        if (mounted) {
+                          Navigator.of(context).pop();
                         }
-                      },
-                      style: ButtonStyle(
-                        backgroundColor: MaterialStateProperty.all<Color>(
-                          Colors.amber.shade900,
-                        ),
-                        padding: MaterialStateProperty.all<EdgeInsets>(
-                          const EdgeInsets.symmetric(
-                            horizontal: 100.0,
-                          ),
-                        ),
-                        shape:
-                            MaterialStateProperty.all<RoundedRectangleBorder>(
-                          RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(
-                              10.0,
-                            ),
-                          ),
+                      }
+                    },
+                    style: ButtonStyle(
+                      backgroundColor: MaterialStateProperty.all<Color>(
+                        Colors.amber.shade900,
+                      ),
+                      padding: MaterialStateProperty.all<EdgeInsets>(
+                        const EdgeInsets.symmetric(
+                          horizontal: 100.0,
                         ),
                       ),
-                      child: Text(
-                        "ยืนยันการลงทะเบียนร้านค้า",
-                        style: GoogleFonts.ibmPlexSansThai(
-                          fontSize: 16,
-                          fontWeight: FontWeight.normal,
+                      shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                        RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(
+                            10.0,
+                          ),
                         ),
                       ),
                     ),
-                  ],
-                ),
-              ],
-            ),
+                    child: Text(
+                      "ยืนยันการลงทะเบียนร้านค้า",
+                      style: GoogleFonts.ibmPlexSansThai(
+                        fontSize: 16,
+                        fontWeight: FontWeight.normal,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
         );
       },
+    );
+  }
+
+  Widget headerContent() {
+    Size size = MediaQuery.of(context).size;
+    return Padding(
+      padding: const EdgeInsets.only(top: 90, left: 18),
+      child: SizedBox(
+        width: size.width,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  "ยินดีต้อนรับ",
+                  style: GoogleFonts.ibmPlexSansThai(
+                    fontSize: 40,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                Text(
+                  "ลงทะเบียนสำหรับบัญชีของคุณ",
+                  style: GoogleFonts.ibmPlexSansThai(
+                    fontSize: 16,
+                    color: "848699".toColor(),
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(
+              width: 15,
+            ),
+            StatefulBuilder(
+              builder: (context, setState) => GestureDetector(
+                onTap: () async {
+                  await optionToTakeImage();
+                  setState(() {});
+                },
+                child: imageFile != null
+                    ? Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          ClipRRect(
+                            borderRadius: const BorderRadius.all(
+                              Radius.circular(
+                                100,
+                              ),
+                            ),
+                            child: Image.file(
+                              imageFile!,
+                              width: 109,
+                              height: 109,
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                          const SizedBox(
+                            height: 5,
+                          ),
+                          Text(
+                            "เลือกรูปโปรไฟล์",
+                            style: AppTextStyle.googleFont(
+                              "FF602E".toColor(),
+                              12,
+                              FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      )
+                    : Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Image.asset(
+                            "assets/images/image_picker.png",
+                            scale: 1.5,
+                          ),
+                          const SizedBox(
+                            height: 10,
+                          ),
+                          Text(
+                            "เลือกรูปโปรไฟล์",
+                            style: AppTextStyle.googleFont(
+                              "FF602E".toColor(),
+                              12,
+                              FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -976,116 +1063,6 @@ class RichTextNavigatorText extends StatelessWidget {
             ],
           ),
         ],
-      ),
-    );
-  }
-}
-
-class HeaderWelcome extends StatelessWidget {
-  final File? file;
-  final VoidCallback pickImageFromGallery;
-  const HeaderWelcome({
-    Key? key,
-    required this.size,
-    required this.pickImageFromGallery,
-    required this.file,
-  }) : super(key: key);
-
-  final Size size;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(top: 90, left: 18),
-      child: SizedBox(
-        width: size.width,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  "ยินดีต้อนรับ",
-                  style: GoogleFonts.ibmPlexSansThai(
-                    fontSize: 40,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                Text(
-                  "ลงทะเบียนสำหรับบัญชีของคุณ",
-                  style: GoogleFonts.ibmPlexSansThai(
-                    fontSize: 16,
-                    color: "848699".toColor(),
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(
-              width: 15,
-            ),
-            StatefulBuilder(
-              builder: (context, setState) => GestureDetector(
-                onTap: (() {
-                  pickImageFromGallery();
-                  setState(() {});
-                }),
-                child: file != null
-                    ? Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          ClipRRect(
-                            borderRadius: const BorderRadius.all(
-                              Radius.circular(
-                                100,
-                              ),
-                            ),
-                            child: Image.file(
-                              file!,
-                              width: 109,
-                              height: 109,
-                              fit: BoxFit.cover,
-                            ),
-                          ),
-                          const SizedBox(
-                            height: 5,
-                          ),
-                          Text(
-                            "เลือกรูปโปรไฟล์",
-                            style: AppTextStyle.googleFont(
-                              "FF602E".toColor(),
-                              12,
-                              FontWeight.w500,
-                            ),
-                          ),
-                        ],
-                      )
-                    : Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Image.asset(
-                            "assets/images/image_picker.png",
-                            scale: 1.5,
-                          ),
-                          const SizedBox(
-                            height: 10,
-                          ),
-                          Text(
-                            "เลือกรูปโปรไฟล์",
-                            style: AppTextStyle.googleFont(
-                              "FF602E".toColor(),
-                              12,
-                              FontWeight.w500,
-                            ),
-                          ),
-                        ],
-                      ),
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }

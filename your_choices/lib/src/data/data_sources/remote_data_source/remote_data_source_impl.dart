@@ -301,12 +301,28 @@ class FirebaseRemoteDataSourceImpl implements FirebaseRemoteDataSource {
             return snapData['type'];
           }
         } else {
-          log("no data in database");
+          log("no data type in database");
         }
       }
       return "";
     }
 
     return await checkRoleData();
+  }
+
+  @override
+  Stream<List<VendorEntity>> getSingleVendor(String uid) {
+    final vendorCollection = firebaseFireStore
+        .collection("restuarant")
+        .where("uid", isEqualTo: uid)
+        .limit(1);
+
+    return vendorCollection.snapshots().map(
+          (event) => event.docs
+              .map(
+                (doc) => VendorModel.fromJson(doc),
+              )
+              .toList(),
+        );
   }
 }

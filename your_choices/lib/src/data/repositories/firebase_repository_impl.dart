@@ -84,4 +84,9 @@ class FirebaseRepositoryImpl implements FirebaseRepository {
   Future<String> signinRole(String uid) {
     return remoteDataSource.signinRole(uid);
   }
+
+  @override
+  Stream<List<VendorEntity>> getSingleVendor(String uid) {
+    return remoteDataSource.getSingleVendor(uid);
+  }
 }

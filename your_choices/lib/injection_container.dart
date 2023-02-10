@@ -16,6 +16,7 @@ import 'package:your_choices/src/domain/usecases/firebase_usecases/customer/sign
 import 'package:your_choices/src/domain/usecases/firebase_usecases/customer/update_customer_usecase.dart';
 import 'package:your_choices/src/domain/usecases/firebase_usecases/customer/upload_image_to_storage_usecase.dart';
 import 'package:your_choices/src/domain/usecases/firebase_usecases/sign_in_role.dart';
+import 'package:your_choices/src/domain/usecases/firebase_usecases/vendor/get_single_vendor_usecase.dart';
 import 'package:your_choices/src/domain/usecases/firebase_usecases/vendor/sign_in_vendor_usecase.dart';
 import 'package:your_choices/src/domain/usecases/firebase_usecases/vendor/sign_up_vendor_usecase.dart';
 import 'package:your_choices/src/presentation/blocs/auth/auth_cubit.dart';
@@ -43,7 +44,9 @@ Future<void> init() async {
   );
 
   sl.registerFactory(
-    () => VendorCubit(),
+    () => VendorCubit(
+      getSingleVendorUseCase: sl.call(),
+    ),
   );
 
   sl.registerFactory(
@@ -88,6 +91,12 @@ Future<void> init() async {
 
   sl.registerLazySingleton(
     () => SignUpVendorUseCase(
+      repository: sl.call(),
+    ),
+  );
+
+  sl.registerLazySingleton(
+    () => GetSingleVendorUseCase(
       repository: sl.call(),
     ),
   );

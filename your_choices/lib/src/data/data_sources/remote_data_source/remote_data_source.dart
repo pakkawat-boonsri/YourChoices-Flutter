@@ -22,4 +22,5 @@ abstract class FirebaseRemoteDataSource {
   //for vendor
   Future<void> signInVendor(VendorEntity vendorEntity);
   Future<void> signUpVendor(VendorEntity vendorEntity);
+  Stream<List<VendorEntity>> getSingleVendor(String uid);
 }
