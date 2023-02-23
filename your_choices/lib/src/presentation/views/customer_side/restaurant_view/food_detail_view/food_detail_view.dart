@@ -1,6 +1,7 @@
 import 'dart:developer';
 
 import 'package:flutter/material.dart';
+import 'package:touchable_opacity/touchable_opacity.dart';
 import 'package:your_choices/utilities/text_style.dart';
 import 'package:your_choices/src/restaurant_screen/model/restaurant_model.dart';
 import 'package:your_choices/utilities/hex_color.dart';
@@ -56,7 +57,7 @@ class _FoodDetailViewState extends State<FoodDetailView> {
   }
 
   Widget _buildFloatingActionButton(num calPrice) {
-    return GestureDetector(
+    return TouchableOpacity(
       onTap: () {},
       child: Column(
         mainAxisSize: MainAxisSize.min,

@@ -3,11 +3,13 @@ import 'package:your_choices/src/domain/entities/vendor/add_ons/add_ons_entity.d
 
 class AddOnsModel extends AddOnsEntity {
   const AddOnsModel({
+    final String? addonsId,
     final String? addonsType,
     final num? price,
   }) : super(
           addonsType: addonsType,
           price: price,
+          addonsId: addonsId,
         );
 
   factory AddOnsModel.fromFirebase(DocumentSnapshot snap) {
@@ -15,6 +17,7 @@ class AddOnsModel extends AddOnsEntity {
     return AddOnsModel(
       addonsType: snapshot['addonsType'],
       price: snapshot['price'],
+      addonsId: snapshot['addonsId'],
     );
   }
 
@@ -22,6 +25,7 @@ class AddOnsModel extends AddOnsEntity {
     final Map<String, dynamic> data = <String, dynamic>{};
     data['addonsType'] = addonsType;
     data['price'] = price;
+    data['addonsId'] = addonsId;
     return data;
   }
 }

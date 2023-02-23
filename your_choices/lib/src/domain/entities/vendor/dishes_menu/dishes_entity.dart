@@ -2,6 +2,7 @@ import 'package:equatable/equatable.dart';
 import 'package:your_choices/src/domain/entities/vendor/add_ons/add_ons_entity.dart';
 
 class DishesEntity extends Equatable {
+  final String? dishesId;
   final String? menuName;
   final String? menuImg;
   final num? menuPrice;
@@ -9,6 +10,7 @@ class DishesEntity extends Equatable {
   final List<AddOnsEntity>? addOns;
 
   const DishesEntity({
+    this.dishesId,
     this.menuName,
     this.menuImg,
     this.menuPrice,

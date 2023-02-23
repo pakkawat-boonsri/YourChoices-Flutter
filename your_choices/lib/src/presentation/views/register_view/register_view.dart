@@ -6,10 +6,11 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:touchable_opacity/touchable_opacity.dart';
 import 'package:your_choices/src/domain/entities/vendor/vendor_entity.dart';
-import 'package:your_choices/src/presentation/views/customer_side/main_view/main_view.dart';
+import 'package:your_choices/src/presentation/views/customer_side/customer_main_view/customer_main_view.dart';
 import 'package:your_choices/utilities/hex_color.dart';
-import 'package:your_choices/utilities/reuseable_widget.dart';
+import 'package:your_choices/utilities/box_shadow.dart';
 import 'package:your_choices/utilities/text_style.dart';
 
 import '../../../../on_generate_routes.dart';
@@ -17,7 +18,7 @@ import '../../../../utilities/show_flutter_toast.dart';
 import '../../../domain/entities/customer/customer_entity.dart';
 import '../../blocs/auth/auth_cubit.dart';
 import '../../blocs/credential/credential_cubit.dart';
-import '../vendor_side/main_view/main_view.dart';
+import '../vendor_side/vendor_main_view/vendor_main_view.dart';
 
 class RegisterView extends StatefulWidget {
   const RegisterView({super.key});
@@ -691,7 +692,7 @@ class _RegisterViewState extends State<RegisterView> {
                             FontWeight.bold,
                           ),
                         ),
-                        GestureDetector(
+                        TouchableOpacity(
                           onTap: () {
                             setState(() {
                               isBottomSheetShow = false;
@@ -737,7 +738,7 @@ class _RegisterViewState extends State<RegisterView> {
                     height: 20,
                   ),
                   StatefulBuilder(
-                    builder: (context, setState) => GestureDetector(
+                    builder: (context, setState) => TouchableOpacity(
                       onTap: () async {
                         await optionToTakeImage();
                         setState(() {});
@@ -752,7 +753,7 @@ class _RegisterViewState extends State<RegisterView> {
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
                                 boxShadow: [
-                                  boxShadow(),
+                                  BoxShadowStyle.boxShadow1(),
                                 ],
                               ),
                               child: resImageFile == null
@@ -955,7 +956,7 @@ class _RegisterViewState extends State<RegisterView> {
               width: 15,
             ),
             StatefulBuilder(
-              builder: (context, setState) => GestureDetector(
+              builder: (context, setState) => TouchableOpacity(
                 onTap: () async {
                   await optionToTakeImage();
                   setState(() {});
@@ -1047,7 +1048,7 @@ class RichTextNavigatorText extends StatelessWidget {
               const SizedBox(
                 height: 10,
               ),
-              GestureDetector(
+              TouchableOpacity(
                 onTap: () {
                   Navigator.pushNamedAndRemoveUntil(
                       context, PageConst.loginPage, (route) => false);

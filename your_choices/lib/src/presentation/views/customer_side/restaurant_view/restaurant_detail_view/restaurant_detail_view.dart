@@ -1,12 +1,13 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 
 import 'package:flutter/material.dart';
+import 'package:touchable_opacity/touchable_opacity.dart';
 import 'package:your_choices/src/presentation/views/customer_side/restaurant_view/food_detail_view/food_detail_view.dart';
 import 'package:your_choices/src/restaurant_screen/model/restaurant_model.dart';
 import 'package:your_choices/utilities/hex_color.dart';
 import 'package:your_choices/utilities/text_style.dart';
 
-import '../../main_view/main_view.dart';
+import '../../customer_main_view/customer_main_view.dart';
 
 class RestaurantDetailView extends StatefulWidget {
   final RestaurantModel model;
@@ -215,7 +216,7 @@ class _RestaurantDetailViewState extends State<RestaurantDetailView> {
           final len = widget.model.foods?.length ?? 0;
           final food = widget.model.foods;
           if (food != null) {
-            return GestureDetector(
+            return TouchableOpacity(
               onTap: () {
                 Navigator.push(
                   context,

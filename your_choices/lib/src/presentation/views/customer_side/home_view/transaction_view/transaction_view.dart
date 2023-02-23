@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:touchable_opacity/touchable_opacity.dart';
 import 'package:your_choices/on_generate_routes.dart';
 import 'package:your_choices/src/domain/entities/customer/customer_entity.dart';
 import 'package:your_choices/utilities/date_format.dart';
@@ -165,7 +166,7 @@ class _TransactionViewState extends State<TransactionView> {
                   ),
                   Row(
                     children: [
-                      GestureDetector(
+                      TouchableOpacity(
                         onTap: () {
                           Navigator.pushNamed(context, PageConst.depositPage);
                           // Navigator.push(
@@ -220,7 +221,7 @@ class _TransactionViewState extends State<TransactionView> {
                           ),
                         ),
                       ),
-                      GestureDetector(
+                      TouchableOpacity(
                         onTap: () {
                           // Navigator.of(context).push(
                           //   MaterialPageRoute(

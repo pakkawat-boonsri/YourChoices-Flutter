@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:touchable_opacity/touchable_opacity.dart';
 import 'package:your_choices/on_generate_routes.dart';
 import 'package:your_choices/src/presentation/blocs/auth/auth_cubit.dart';
 import 'package:your_choices/src/presentation/blocs/credential/credential_cubit.dart';
-import 'package:your_choices/src/presentation/views/customer_side/main_view/main_view.dart';
+import 'package:your_choices/src/presentation/views/customer_side/customer_main_view/customer_main_view.dart';
 import 'package:your_choices/utilities/hex_color.dart';
 import 'package:your_choices/utilities/show_flutter_toast.dart';
 import 'package:your_choices/utilities/text_style.dart';
 
-import '../vendor_side/main_view/main_view.dart';
+import '../vendor_side/vendor_main_view/vendor_main_view.dart';
 
 class LoginView extends StatefulWidget {
   const LoginView({super.key});
@@ -303,7 +304,7 @@ class RichTextNavigatorText extends StatelessWidget {
           const SizedBox(
             height: 10,
           ),
-          GestureDetector(
+          TouchableOpacity(
             onTap: () {
               Navigator.pushNamedAndRemoveUntil(
                 context,

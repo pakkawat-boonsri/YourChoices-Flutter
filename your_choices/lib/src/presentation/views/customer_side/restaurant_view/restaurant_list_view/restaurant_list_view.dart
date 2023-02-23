@@ -3,6 +3,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:touchable_opacity/touchable_opacity.dart';
 
 import 'package:your_choices/src/domain/entities/customer/customer_entity.dart';
 import 'package:your_choices/src/restaurant_screen/view_model/bloc/restaurant_bloc.dart';
@@ -96,7 +97,7 @@ class _RestaurantViewState extends State<RestaurantView> {
             itemBuilder: (context, index) {
               // log("viewModel.length.toString() ${viewModel.length.toString()}");
               // log("${viewModel[index].resImg}");
-              return GestureDetector(
+              return TouchableOpacity(
                 onTap: () {
                   // Navigator.pushAndRemoveUntil(
                   //     context,

@@ -10,11 +10,10 @@ import 'package:your_choices/src/presentation/blocs/credential/credential_cubit.
 import 'package:your_choices/src/presentation/blocs/customer/customer_cubit.dart';
 import 'package:your_choices/src/presentation/blocs/vendor/vendor_cubit.dart';
 import 'package:your_choices/src/presentation/views/login_view/login_view.dart';
-import 'package:your_choices/src/presentation/views/customer_side/main_view/main_view.dart';
-import 'package:your_choices/src/presentation/views/vendor_side/main_view/main_view.dart';
+import 'package:your_choices/src/presentation/views/vendor_side/vendor_main_view/vendor_main_view.dart';
 import 'package:your_choices/src/restaurant_screen/repository/restaurant_repo.dart';
 import 'package:your_choices/src/restaurant_screen/view_model/bloc/restaurant_bloc.dart';
-
+import 'package:your_choices/src/presentation/views/customer_side/customer_main_view/customer_main_view.dart';
 import 'firebase_options.dart';
 import 'injection_container.dart' as di;
 
@@ -78,6 +77,7 @@ class _YourChoicesState extends State<YourChoices> {
                   if (state.type == "restaurant") {
                     return VendorMainView(uid: state.uid);
                   } else {
+                    
                     return CustomerMainView(uid: state.uid);
                   }
                 } else {

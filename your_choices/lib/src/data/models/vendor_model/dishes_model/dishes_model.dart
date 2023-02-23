@@ -5,17 +5,20 @@ import '../add_ons_model/add_ons_model.dart';
 
 class DishesModel extends DishesEntity {
   const DishesModel({
+    final String? dishesId,
     final String? menuName,
     final String? menuImg,
     final num? menuPrice,
     final String? menuDescription,
     final List<AddOnsModel>? addOns,
   }) : super(
-            addOns: addOns,
-            menuDescription: menuDescription,
-            menuImg: menuImg,
-            menuName: menuName,
-            menuPrice: menuPrice);
+          dishesId: dishesId,
+          addOns: addOns,
+          menuDescription: menuDescription,
+          menuImg: menuImg,
+          menuName: menuName,
+          menuPrice: menuPrice,
+        );
 
   factory DishesModel.fromFirebase(DocumentSnapshot snap) {
     var snapshot = snap.data() as Map<String, dynamic>;
