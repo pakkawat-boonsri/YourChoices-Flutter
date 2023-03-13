@@ -13,6 +13,10 @@ class CredentialLoading extends CredentialState {
   @override
   List<Object> get props => [];
 }
+class CredentialLoaded extends CredentialState {
+  @override
+  List<Object> get props => [];
+}
 
 class CredentialSuccess extends CredentialState {
   @override

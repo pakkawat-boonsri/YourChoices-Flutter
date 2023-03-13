@@ -7,6 +7,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:touchable_opacity/touchable_opacity.dart';
 import 'package:your_choices/on_generate_routes.dart';
 import 'package:your_choices/src/domain/entities/vendor/vendor_entity.dart';
+import 'package:your_choices/src/presentation/blocs/auth/auth_cubit.dart';
 import 'package:your_choices/src/presentation/blocs/vendor/vendor_cubit.dart';
 import 'package:your_choices/utilities/hex_color.dart';
 import 'package:your_choices/utilities/text_style.dart';
@@ -41,61 +42,92 @@ class _VendorMainViewState extends State<VendorMainView> {
   }
 
   String? logout;
+  bool? isActive;
 
   @override
   Widget build(BuildContext context) {
     Size size = MediaQuery.of(context).size;
-    return SafeArea(
-      child: Scaffold(
-        extendBodyBehindAppBar: true,
-        appBar: AppBar(
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          leading: PopupMenuButton(
-            child: const Icon(Icons.menu),
-            itemBuilder: (context) => [
-              PopupMenuItem(
-                textStyle: AppTextStyle.googleFont(
-                  Colors.black,
-                  14,
-                  FontWeight.w400,
-                ),
-                onTap: () => log("tapping on "),
-                child: const Text(
-                  "Logout",
-                ),
+    return Scaffold(
+      extendBodyBehindAppBar: true,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: PopupMenuButton(
+          child: const Icon(Icons.exit_to_app_rounded),
+          itemBuilder: (context) => [
+            PopupMenuItem(
+              textStyle: AppTextStyle.googleFont(
+                Colors.black,
+                14,
+                FontWeight.w400,
               ),
-            ],
-          ),
-        ),
-        body: Column(
-          children: [
-            _buildBlocHeaderSection(size),
-            const SizedBox(
-              height: 15,
+              onTap: () => BlocProvider.of<AuthCubit>(context).loggingOut(),
+              child: const Text(
+                "Logout",
+              ),
             ),
-            _buildOrderContainer(size),
-            const SizedBox(
-              height: 20,
-            ),
-            _buildFeatureText(size),
-            const SizedBox(
-              height: 10,
-            ),
-            _buildGridViewBuilder()
           ],
         ),
+      ),
+      body: Column(
+        children: [
+          _buildBlocHeaderSection(size),
+          const SizedBox(
+            height: 15,
+          ),
+          _buildOrderContainer(size),
+          const SizedBox(
+            height: 20,
+          ),
+          _buildFeatureText(size),
+          const SizedBox(
+            height: 10,
+          ),
+          BlocBuilder<VendorCubit, VendorState>(
+            builder: (context, state) {
+              if (state is VendorLoaded) {
+                VendorEntity vendorEntity = state.vendorEntity;
+                return _buildGridViewBuilder(vendorEntity);
+              }
+              return Container();
+            },
+          )
+        ],
       ),
     );
   }
 
-  _onSelectedRouter(int index) {
+  _onSelectedRouter(int index, VendorEntity vendorEntity) {
     switch (index) {
       case 0:
         {
           return Navigator.pushNamed(
             context,
-            PageConst.addMenuPage,
+            PageConst.menuPage,
+            arguments: widget.uid,
+          );
+        }
+      case 1:
+        {
+          return Navigator.pushNamed(
+            context,
+            PageConst.restaurantInfoPage,
+            arguments: vendorEntity,
+          );
+        }
+      case 2:
+        {
+          return Navigator.pushNamed(
+            context,
+            PageConst.orderHistoryPage,
+            arguments: vendorEntity,
+          );
+        }
+      case 3:
+        {
+          return Navigator.pushNamed(
+            context,
+            PageConst.historyRecordPage,
             arguments: widget.uid,
           );
         }
@@ -103,8 +135,9 @@ class _VendorMainViewState extends State<VendorMainView> {
     }
   }
 
-  GridView _buildGridViewBuilder() {
+  Widget _buildGridViewBuilder(VendorEntity vendorEntity) {
     return GridView.builder(
+      physics: const NeverScrollableScrollPhysics(),
       shrinkWrap: true,
       itemCount: 4,
       padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -116,9 +149,7 @@ class _VendorMainViewState extends State<VendorMainView> {
       ),
       itemBuilder: (BuildContext context, int index) {
         return TouchableOpacity(
-          onTap: () => 
-                 _onSelectedRouter(index),
-              
+          onTap: () => _onSelectedRouter(index, vendorEntity),
           child: Container(
             decoration: BoxDecoration(
               color: Colors.white,
@@ -203,13 +234,7 @@ class _VendorMainViewState extends State<VendorMainView> {
   BlocBuilder<VendorCubit, VendorState> _buildOrderContainer(Size size) {
     return BlocBuilder<VendorCubit, VendorState>(
       builder: (context, vendorState) {
-        if (vendorState is VendorLoading) {
-          return const Center(
-            child: CircularProgressIndicator(
-              color: Colors.orangeAccent,
-            ),
-          );
-        } else if (vendorState is VendorLoaded) {
+        if (vendorState is VendorLoaded) {
           VendorEntity vendorEntity = vendorState.vendorEntity;
           return TouchableOpacity(
             onTap: () => log("Today order"),
@@ -281,24 +306,18 @@ class _VendorMainViewState extends State<VendorMainView> {
   BlocBuilder<VendorCubit, VendorState> _buildBlocHeaderSection(Size size) {
     return BlocBuilder<VendorCubit, VendorState>(
       builder: (context, vendorState) {
-        if (vendorState is VendorLoading) {
-          return const Center(
-            child: CircularProgressIndicator(
-              color: Colors.orangeAccent,
-            ),
-          );
-        } else if (vendorState is VendorLoaded) {
+        if (vendorState is VendorLoaded) {
           VendorEntity vendorEntity = vendorState.vendorEntity;
           return Column(
             mainAxisSize: MainAxisSize.max,
             children: [
               SizedBox(
                 width: size.width,
-                height: size.height / 3.7,
+                height: size.height / 3.4,
                 child: Stack(
                   children: [
                     blurImageBg(size, vendorEntity),
-                    headerTitle(size, vendorEntity),
+                    headerTitle(size, vendorEntity, context),
                   ],
                 ),
               ),
@@ -310,11 +329,15 @@ class _VendorMainViewState extends State<VendorMainView> {
     );
   }
 
-  Positioned headerTitle(Size size, VendorEntity vendorEntity) {
+  Positioned headerTitle(
+    Size size,
+    VendorEntity vendorEntity,
+    BuildContext context,
+  ) {
     return Positioned(
       width: size.width,
       height: size.height / 4.2,
-      top: 50,
+      top: 75,
       child: Column(
         children: [
           Container(
@@ -417,7 +440,65 @@ class _VendorMainViewState extends State<VendorMainView> {
                     width: 3,
                   ),
                   TouchableOpacity(
-                    onTap: () => log("asdasd"),
+                    onTap: () {
+                      showModalBottomSheet(
+                        context: context,
+                        builder: (context) {
+                          return Wrap(
+                            children: [
+                              ListTile(
+                                onTap: () async {
+                                  await BlocProvider.of<VendorCubit>(context)
+                                      .openAndCloseRestaurant(
+                                    vendorEntity.copyWith(isActive: true),
+                                  )
+                                      .then((value) {
+                                    if (mounted) {
+                                      Navigator.of(context).pop();
+                                    }
+                                  });
+                                },
+                                title: Text(
+                                  "เปิดร้าน",
+                                  style: AppTextStyle.googleFont(
+                                    Colors.black,
+                                    18,
+                                    FontWeight.w500,
+                                  ),
+                                ),
+                              ),
+                              const Divider(
+                                indent: 10,
+                                endIndent: 10,
+                                height: 1,
+                                color: Colors.black,
+                              ),
+                              ListTile(
+                                onTap: () async {
+                                  await BlocProvider.of<VendorCubit>(context)
+                                      .openAndCloseRestaurant(
+                                    vendorEntity.copyWith(isActive: false),
+                                  )
+                                      .then((value) {
+                                    if (mounted) {
+                                      Navigator.of(context).pop();
+                                    }
+                                  });
+                                },
+                                title: Text(
+                                  "ปิดร้าน",
+                                  style: AppTextStyle.googleFont(
+                                    Colors.black,
+                                    18,
+                                    FontWeight.w500,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          );
+                        },
+                      );
+                    },
                     child: Text(
                       "เปลี่ยน",
                       style: AppTextStyle.googleFont(
@@ -464,155 +545,3 @@ class _VendorMainViewState extends State<VendorMainView> {
     );
   }
 }
-// Positioned headerContent(Size size, VendorEntity vendorEntity) {
-//     return Positioned(
-//       width: size.width,
-//       height: size.height / 4.2,
-//       top: 50,
-//       child: Column(
-//         children: [
-//           Container(
-//             margin: const EdgeInsets.symmetric(
-//               horizontal: 20,
-//             ),
-//             width: size.width,
-//             child: Text(
-//               "${vendorEntity.resName}",
-//               style: AppTextStyle.googleFont(
-//                 Colors.white,
-//                 24,
-//                 FontWeight.bold,
-//               ),
-//             ),
-//           ),
-//           Padding(
-//             padding: const EdgeInsets.symmetric(
-//               horizontal: 20,
-//             ),
-//             child: Row(
-//               mainAxisAlignment: MainAxisAlignment.spaceBetween,
-//               children: [
-//                 Text(
-//                   "${vendorEntity.username}",
-//                   style: AppTextStyle.googleFont(
-//                     Colors.white,
-//                     18,
-//                     FontWeight.w500,
-//                   ),
-//                 ),
-//                 CircleAvatar(
-//                   radius: 28,
-//                   backgroundColor: Colors.transparent,
-//                   child: Container(
-//                     decoration: BoxDecoration(
-//                       shape: BoxShape.circle,
-//                       image: DecorationImage(
-//                         image: NetworkImage(
-//                           vendorEntity.profileUrl!,
-//                         ),
-//                         fit: BoxFit.cover,
-//                       ),
-//                     ),
-//                   ),
-//                 )
-//               ],
-//             ),
-//           ),
-//           const SizedBox(
-//             height: 13,
-//           ),
-//           Container(
-//             width: size.width,
-//             height: 40,
-//             margin: const EdgeInsets.symmetric(
-//               horizontal: 20,
-//             ),
-//             decoration: BoxDecoration(
-//               color: Colors.white,
-//               borderRadius: BorderRadius.circular(5),
-//             ),
-//             child: Padding(
-//               padding: const EdgeInsets.symmetric(horizontal: 10),
-//               child: Row(
-//                 children: [
-//                   Icon(
-//                     Icons.storefront_outlined,
-//                     color: vendorEntity.isActive! ? Colors.black : Colors.grey,
-//                   ),
-//                   const SizedBox(
-//                     width: 10,
-//                   ),
-//                   vendorEntity.isActive!
-//                       ? Text(
-//                           "เปิดรับออเดอร์",
-//                           style: AppTextStyle.googleFont(
-//                             Colors.green,
-//                             15,
-//                             FontWeight.w500,
-//                           ),
-//                         )
-//                       : Text(
-//                           "ปิดรับออเดอร์",
-//                           style: AppTextStyle.googleFont(
-//                             Colors.red,
-//                             15,
-//                             FontWeight.w500,
-//                           ),
-//                         ),
-//                   const Spacer(),
-//                   const VerticalDivider(
-//                     endIndent: 7,
-//                     indent: 7,
-//                     color: Colors.grey,
-//                     thickness: 1,
-//                   ),
-//                   const SizedBox(
-//                     width: 3,
-//                   ),
-//                   TouchableOpacity(
-//                     onTap: () => log("asdasd"),
-//                     child: Text(
-//                       "เปลี่ยน",
-//                       style: AppTextStyle.googleFont(
-//                         Colors.grey,
-//                         15,
-//                         FontWeight.w500,
-//                       ),
-//                     ),
-//                   ),
-//                 ],
-//               ),
-//             ),
-//           )
-//         ],
-//       ),
-//     );
-//   }
-
-//   Container blurImageBackground(Size size, VendorEntity vendorEntity) {
-//     return Container(
-//       width: size.width,
-//       height: 180,
-//       decoration: BoxDecoration(
-//         image: DecorationImage(
-//           image: NetworkImage(
-//             vendorEntity.resProfileUrl!,
-//           ),
-//           fit: BoxFit.cover,
-//         ),
-//       ),
-//       child: ClipRRect(
-//         child: BackdropFilter(
-//           filter: ImageFilter.blur(
-//             sigmaX: 4,
-//             sigmaY: 4,
-//           ),
-//           child: Container(
-//             decoration: BoxDecoration(
-//               color: Colors.white.withOpacity(0.0),
-//             ),
-//           ),
-//         ),
-//       ),
-//     );
-//   }

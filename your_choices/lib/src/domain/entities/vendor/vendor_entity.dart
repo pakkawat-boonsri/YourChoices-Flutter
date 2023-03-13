@@ -1,3 +1,4 @@
+// ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'dart:io';
 
 import 'package:equatable/equatable.dart';
@@ -62,4 +63,42 @@ class VendorEntity extends Equatable {
         password,
         otherUid,
       ];
+
+  VendorEntity copyWith({
+    String? uid,
+    String? email,
+    String? username,
+    String? profileUrl,
+    String? type,
+    String? resName,
+    String? resProfileUrl,
+    bool? isActive,
+    num? onQueue,
+    String? description,
+    num? totalPriceSell,
+    List<DishesEntity>? dishes,
+    File? imageFile,
+    File? resImageFile,
+    String? password,
+    String? otherUid,
+  }) {
+    return VendorEntity(
+      uid: uid ?? this.uid,
+      email: email ?? this.email,
+      username: username ?? this.username,
+      profileUrl: profileUrl ?? this.profileUrl,
+      type: type ?? this.type,
+      resName: resName ?? this.resName,
+      resProfileUrl: resProfileUrl ?? this.resProfileUrl,
+      isActive: isActive ?? this.isActive,
+      onQueue: onQueue ?? this.onQueue,
+      description: description ?? this.description,
+      totalPriceSell: totalPriceSell ?? this.totalPriceSell,
+      dishes: dishes ?? this.dishes,
+      imageFile: imageFile ?? this.imageFile,
+      resImageFile: resImageFile ?? this.resImageFile,
+      password: password ?? this.password,
+      otherUid: otherUid ?? this.otherUid,
+    );
+  }
 }

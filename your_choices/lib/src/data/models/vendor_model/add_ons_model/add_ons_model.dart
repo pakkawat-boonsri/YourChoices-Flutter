@@ -3,9 +3,9 @@ import 'package:your_choices/src/domain/entities/vendor/add_ons/add_ons_entity.d
 
 class AddOnsModel extends AddOnsEntity {
   const AddOnsModel({
-    final String? addonsId,
-    final String? addonsType,
-    final num? price,
+  final String? addonsId,
+  final String? addonsType,
+  final num? price,
   }) : super(
           addonsType: addonsType,
           price: price,

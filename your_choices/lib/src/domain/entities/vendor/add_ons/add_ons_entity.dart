@@ -12,6 +12,7 @@ class AddOnsEntity extends Equatable {
   });
   @override
   List<Object?> get props => [
+        addonsId,
         addonsType,
         price,
       ];

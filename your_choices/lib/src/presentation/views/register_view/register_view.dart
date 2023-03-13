@@ -231,8 +231,19 @@ class _RegisterViewState extends State<RegisterView> {
                                 onPressed: () async {
                                   final result =
                                       _regisKey.currentState!.validate();
+                                  showDialog(
+                                    context: context,
+                                    builder: (context) {
+                                      return const Center(
+                                        child: CircularProgressIndicator(
+                                          color: Colors.amber,
+                                        ),
+                                      );
+                                    },
+                                  );
                                   if (result) {
-                                    BlocProvider.of<CredentialCubit>(context)
+                                    await BlocProvider.of<CredentialCubit>(
+                                            context)
                                         .signUpCustomer(
                                       customerEntity: CustomerEntity(
                                         email: email.text,
@@ -244,6 +255,9 @@ class _RegisterViewState extends State<RegisterView> {
                                         imageFile: imageFile,
                                       ),
                                     );
+                                    if (mounted) {
+                                      Navigator.of(context).pop();
+                                    }
                                   }
                                 },
                                 style: ButtonStyle(
@@ -616,7 +630,7 @@ class _RegisterViewState extends State<RegisterView> {
                         value: "customer",
                         groupValue: selectingType,
                         onChanged: ((value) {
-                          setState(() {
+                          this.setState(() {
                             selectingType = value.toString();
                             log(selectingType);
                           });
@@ -633,7 +647,7 @@ class _RegisterViewState extends State<RegisterView> {
                             value: "restaurant",
                             groupValue: selectingType,
                             onChanged: ((value) {
-                              setState(
+                              this.setState(
                                 () {
                                   selectingType = value.toString();
                                   log(selectingType);
@@ -866,6 +880,16 @@ class _RegisterViewState extends State<RegisterView> {
                   ElevatedButton(
                     onPressed: () async {
                       if (_btmFormKey.currentState!.validate()) {
+                        showDialog(
+                          context: context,
+                          builder: (context) {
+                            return const Center(
+                              child: CircularProgressIndicator(
+                                color: Colors.amber,
+                              ),
+                            );
+                          },
+                        );
                         await BlocProvider.of<CredentialCubit>(context)
                             .signUpVendor(
                           vendorEntity: VendorEntity(

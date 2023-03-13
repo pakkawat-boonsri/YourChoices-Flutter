@@ -3,13 +3,27 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 
 class DateConverter {
-  static String? dateFormat(Timestamp? date) {
+  static String? dateTimeFormat(Timestamp? date) {
     if (date != null) {
       final dataDate = date.toDate();
       final dateFormatter = DateFormat("dd MMMM yyyy");
       final timeFormatter = DateFormat("HH:mm");
       String dateConverted =
           "${dateFormatter.formatInBuddhistCalendarThai(dataDate)} เวลา ${timeFormatter.formatInBuddhistCalendarThai(dataDate)}";
+
+      return dateConverted;
+    } else {
+      return null;
+    }
+  }
+
+  static String? dateFormat(Timestamp? date) {
+    if (date != null) {
+      final dataDate = date.toDate();
+      final dateFormatter = DateFormat("dd MMMM yyyy");
+
+      String dateConverted =
+          dateFormatter.formatInBuddhistCalendarThai(dataDate);
 
       return dateConverted;
     } else {

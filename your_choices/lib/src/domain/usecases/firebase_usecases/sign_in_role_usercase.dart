@@ -1,4 +1,4 @@
-import '../../repositories/firebase_repository.dart';
+import 'package:your_choices/src/domain/repositories/firebase_repository.dart';
 
 class SignInRoleUseCase {
   final FirebaseRepository repository;
@@ -6,6 +6,6 @@ class SignInRoleUseCase {
   SignInRoleUseCase({required this.repository});
 
   Future<String> call(String uid) {
-    return repository.signinRole(uid);
+    return repository.signInRole(uid);
   }
 }

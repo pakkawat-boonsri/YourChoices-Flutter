@@ -321,7 +321,7 @@ class _TransactionViewState extends State<TransactionView> {
                   itemBuilder: (context, index) {
                     if (widget.customerEntity.transaction?.isNotEmpty ??
                         false) {
-                      final date = DateConverter.dateFormat(
+                      final date = DateConverter.dateTimeFormat(
                           widget.customerEntity.transaction![index].date);
                       return Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 10),

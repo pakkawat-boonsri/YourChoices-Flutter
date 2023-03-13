@@ -10,6 +10,7 @@ import 'package:your_choices/utilities/hex_color.dart';
 import 'package:your_choices/utilities/show_flutter_toast.dart';
 import 'package:your_choices/utilities/text_style.dart';
 
+import '../../../../utilities/loading_dialog.dart';
 import '../vendor_side/vendor_main_view/vendor_main_view.dart';
 
 class LoginView extends StatefulWidget {
@@ -31,14 +32,18 @@ class _LoginViewState extends State<LoginView> {
     super.dispose();
   }
 
-  bool isClick = false;
+  // bool isClick = false;
 
   @override
   Widget build(BuildContext context) {
     Size size = MediaQuery.of(context).size;
     return BlocConsumer<CredentialCubit, CredentialState>(
       listener: (context, credentialState) {
+        if (credentialState is CredentialLoading) {
+          loadingDialog(context);
+        }
         if (credentialState is CredentialSuccess) {
+          Navigator.of(context).pop();
           BlocProvider.of<AuthCubit>(context).loggedIn();
         }
         if (credentialState is CredentialFailure) {
@@ -70,7 +75,7 @@ class _LoginViewState extends State<LoginView> {
     return Scaffold(
       body: SafeArea(
         child: SingleChildScrollView(
-          reverse: isClick,
+          // reverse: isClick,
           child: Stack(
             alignment: Alignment.topCenter,
             children: [
@@ -100,11 +105,11 @@ class _LoginViewState extends State<LoginView> {
                           child: Column(
                             children: [
                               TextFormField(
-                                onTap: () {
-                                  setState(() {
-                                    isClick = true;
-                                  });
-                                },
+                                // onTap: () {
+                                //   setState(() {
+                                //     isClick = true;
+                                //   });
+                                // },
                                 onChanged: (value) {
                                   setState(() {});
                                 },
@@ -165,11 +170,11 @@ class _LoginViewState extends State<LoginView> {
                                 height: 15,
                               ),
                               TextFormField(
-                                onTap: () {
-                                  setState(() {
-                                    isClick = true;
-                                  });
-                                },
+                                // onTap: () {
+                                //   setState(() {
+                                //     isClick = true;
+                                //   });
+                                // },
                                 onChanged: (value) {
                                   setState(() {});
                                 },
@@ -233,13 +238,15 @@ class _LoginViewState extends State<LoginView> {
                         height: 40,
                       ),
                       ElevatedButton(
-                        onPressed: () {
+                        onPressed: () async {
+                          // log("${_formkey.currentState!.validate()}");
                           if (_formkey.currentState!.validate()) {
-                            BlocProvider.of<CredentialCubit>(context)
-                                .checkSignInRole(
-                              email: email.text,
-                              password: password.text,
-                            );
+                            await BlocProvider.of<CredentialCubit>(context)
+                                .signInUser(
+                                  email: email.text,
+                                  password: password.text,
+                                )
+                                .then((value) => _clear());
                           }
                         },
                         style: ButtonStyle(
@@ -275,6 +282,13 @@ class _LoginViewState extends State<LoginView> {
         ),
       ),
     );
+  }
+
+  _clear() {
+    setState(() {
+      email.clear();
+      password.clear();
+    });
   }
 }
 
