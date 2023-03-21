@@ -19,7 +19,7 @@ abstract class FirebaseRemoteDataSource {
   Future<void> updateRestaurantInfo(VendorEntity vendorEntity);
   //menu features
   Future<void> createMenu(DishesEntity dishesEntity);
-  Stream<List<DishesEntity>> getMenu(DishesEntity dishesEntity);
+  Stream<List<DishesEntity>> getMenu(String uid);
   Future<void> updateMenu(DishesEntity dishesEntity);
   Future<void> deleteMenu(DishesEntity dishesEntity);
   //menu filterOption feature

@@ -8,13 +8,16 @@ import 'package:your_choices/on_generate_routes.dart';
 import 'package:your_choices/src/presentation/blocs/auth/auth_cubit.dart';
 import 'package:your_choices/src/presentation/blocs/credential/credential_cubit.dart';
 import 'package:your_choices/src/presentation/blocs/customer/customer_cubit.dart';
+import 'package:your_choices/src/presentation/blocs/vendor/filter_option/filter_option_cubit.dart';
+import 'package:your_choices/src/presentation/blocs/vendor/menu/menu_cubit.dart';
 import 'package:your_choices/src/presentation/blocs/vendor/vendor_cubit.dart';
+import 'package:your_choices/src/presentation/views/customer_side/customer_main_view/customer_main_view.dart';
 import 'package:your_choices/src/presentation/views/login_view/login_view.dart';
 import 'package:your_choices/src/presentation/views/vendor_side/vendor_main_view/vendor_main_view.dart';
 import 'package:your_choices/src/restaurant_screen/repository/restaurant_repo.dart';
 import 'package:your_choices/src/restaurant_screen/view_model/bloc/restaurant_bloc.dart';
-import 'package:your_choices/src/presentation/views/customer_side/customer_main_view/customer_main_view.dart';
 import 'package:your_choices/utilities/loading_dialog.dart';
+
 import 'firebase_options.dart';
 import 'injection_container.dart' as di;
 
@@ -41,25 +44,16 @@ class _YourChoicesState extends State<YourChoices> {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        BlocProvider(
-          create: (_) => di.sl<AuthCubit>()..appStarted(context),
-        ),
-        BlocProvider(
-          create: (_) => di.sl<CredentialCubit>(),
-        ),
-        BlocProvider(
-          create: (_) => di.sl<CustomerCubit>(),
-        ),
-        BlocProvider(
-          create: (_) => di.sl<VendorCubit>(),
-        ),
-        RepositoryProvider(
-          create: (context) => RestaurantRepository(),
-        ),
+        BlocProvider(create: (_) => di.sl<AuthCubit>()..appStarted(context)),
+        BlocProvider(create: (_) => di.sl<CredentialCubit>()),
+        BlocProvider(create: (_) => di.sl<CustomerCubit>()),
+        BlocProvider(create: (_) => di.sl<VendorCubit>()),
+        BlocProvider(create: (_) => di.sl<MenuCubit>()),
+        BlocProvider(create: (_) => di.sl<FilterOptionCubit>()),
+        RepositoryProvider(create: (context) => RestaurantRepository()),
         BlocProvider(
           create: (context) => RestaurantBloc(
-            RepositoryProvider.of<RestaurantRepository>(context),
-          ),
+              RepositoryProvider.of<RestaurantRepository>(context)),
         ),
       ],
       child: MaterialApp(

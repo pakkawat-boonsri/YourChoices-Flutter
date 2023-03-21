@@ -29,6 +29,8 @@ import 'package:your_choices/src/domain/usecases/firebase_usecases/vendor/update
 import 'package:your_choices/src/presentation/blocs/auth/auth_cubit.dart';
 import 'package:your_choices/src/presentation/blocs/credential/credential_cubit.dart';
 import 'package:your_choices/src/presentation/blocs/customer/customer_cubit.dart';
+import 'package:your_choices/src/presentation/blocs/vendor/filter_option/filter_option_cubit.dart';
+import 'package:your_choices/src/presentation/blocs/vendor/menu/menu_cubit.dart';
 import 'package:your_choices/src/presentation/blocs/vendor/vendor_cubit.dart';
 
 import 'src/data/data_sources/remote_data_source_impl/remote_data_source_impl.dart';
@@ -68,6 +70,17 @@ Future<void> init() async {
       signUpVendorUseCase: sl.call(),
       signUpCustomerUseCase: sl.call(),
     ),
+  );
+  sl.registerFactory(
+    () => MenuCubit(
+      createMenuUseCase: sl.call(),
+      deleteMenuUseCase: sl.call(),
+      getMenuUseCase: sl.call(),
+      updateMenuUseCase: sl.call(),
+    ),
+  );
+  sl.registerFactory(
+    () => FilterOptionCubit(),
   );
 
   //use-cases customer

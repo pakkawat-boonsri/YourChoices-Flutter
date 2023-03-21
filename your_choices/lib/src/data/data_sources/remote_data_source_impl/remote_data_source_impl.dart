@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:developer';
 import 'dart:io';
 
@@ -6,13 +7,14 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:your_choices/src/data/data_sources/remote_data_source/remote_data_source.dart';
 import 'package:your_choices/src/data/models/customer_model/customer_model.dart';
+import 'package:your_choices/src/data/models/vendor_model/add_ons_model/add_ons_model.dart';
 import 'package:your_choices/src/data/models/vendor_model/dishes_model/dishes_model.dart';
+import 'package:your_choices/src/data/models/vendor_model/filter_option_model/filter_option_model.dart';
 import 'package:your_choices/src/data/models/vendor_model/vendor_model.dart';
 import 'package:your_choices/src/domain/entities/customer/customer_entity.dart';
 import 'package:your_choices/src/domain/entities/vendor/dishes_menu/dishes_entity.dart';
 import 'package:your_choices/src/domain/entities/vendor/filter_options/filter_option_entity.dart';
 import 'package:your_choices/src/domain/entities/vendor/vendor_entity.dart';
-
 import '../../../../utilities/show_flutter_toast.dart';
 import '../../../domain/entities/vendor/add_ons/add_ons_entity.dart';
 
@@ -269,23 +271,194 @@ class FirebaseRemoteDataSourceImpl implements FirebaseRemoteDataSource {
         .doc(uid)
         .collection(FirebaseConst.menu);
 
-    menuSubCollection.doc(dishesEntity.dishesId).get().then((menuDoc) {
+    menuSubCollection.doc(dishesEntity.dishesId).get().then((menuDoc) async {
       final newMenu = DishesModel(
         dishesId: dishesEntity.dishesId,
         createdAt: dishesEntity.createdAt,
-      );
-      if (menuDoc.exists) {}
+        isActive: dishesEntity.isActive,
+        menuImg: dishesEntity.disheImageFile != null
+            ? await uploadImageToStorage(
+                dishesEntity.disheImageFile,
+                "menuImages_${dishesEntity.dishesId}",
+              )
+            : "",
+        menuName: dishesEntity.menuName,
+        menuDescription: dishesEntity.menuDescription,
+        menuPrice: dishesEntity.menuPrice,
+      ).toJson();
+
+      if (menuDoc.exists) {
+        menuSubCollection.doc(dishesEntity.dishesId).update(newMenu);
+      } else {
+        menuSubCollection.doc(dishesEntity.dishesId).set(newMenu);
+      }
+
+      if (dishesEntity.filterOption != null) {
+        final filterOptionSubCollection = menuSubCollection
+            .doc(dishesEntity.dishesId)
+            .collection(FirebaseConst.filterOption);
+        for (var filterOption in dishesEntity.filterOption!) {
+          final newFilterOption = FilterOptionModel(
+            filterId: filterOption.filterId,
+            filterName: filterOption.filterName,
+            isRequired: filterOption.isRequired,
+            isMultiple: filterOption.isMultiple,
+          ).toJson();
+
+          filterOptionSubCollection
+              .doc(filterOption.filterId)
+              .get()
+              .then((filterOptionDoc) {
+            if (filterOptionDoc.exists) {
+              filterOptionSubCollection
+                  .doc(filterOption.filterId)
+                  .update(newFilterOption);
+            } else {
+              filterOptionSubCollection
+                  .doc(filterOption.filterId)
+                  .set(newFilterOption);
+            }
+          });
+
+          if (filterOption.addOns != null) {
+            final addOnsSubCollection = filterOptionSubCollection
+                .doc(filterOption.filterId)
+                .collection(FirebaseConst.addons);
+
+            for (var addOns in filterOption.addOns!) {
+              final newAddOns = AddOnsModel(
+                addonsId: addOns.addonsId,
+                addonsName: addOns.addonsName,
+                price: addOns.price,
+                priceType: addOns.priceType,
+              ).toJson();
+
+              addOnsSubCollection.doc(addOns.addonsId).get().then((addOnsDoc) {
+                if (addOnsDoc.exists) {
+                  addOnsSubCollection.doc(addOns.addonsId).update(newAddOns);
+                } else {
+                  addOnsSubCollection.doc(addOns.addonsId).set(newAddOns);
+                }
+              });
+            }
+          }
+        }
+      }
     });
   }
 
   @override
-  Future<void> deleteMenu(DishesEntity dishesEntity) async {}
+  Stream<List<DishesEntity>> getMenu(String uid) {
+    final menuSubCollection = firebaseFireStore
+        .collection(FirebaseConst.restaurant)
+        .doc(uid)
+        .collection(FirebaseConst.menu);
+
+    return menuSubCollection.snapshots().map((querySnapshot) {
+      return querySnapshot.docs.map((menuDoc) {
+        List<FilterOptionModel> filterOptionsModel = [];
+
+        menuDoc.reference
+            .collection(FirebaseConst.filterOption)
+            .snapshots()
+            .listen((filterOptionSnapshot) {
+          filterOptionsModel.clear();
+          for (var filterOptionDoc in filterOptionSnapshot.docs) {
+            List<AddOnsModel> addOnsModel = [];
+
+            filterOptionDoc.reference
+                .collection(FirebaseConst.addons)
+                .snapshots()
+                .listen((addOnSnapshot) {
+              addOnsModel.clear();
+              for (var addOnDoc in addOnSnapshot.docs) {
+                addOnsModel.add(AddOnsModel(
+                  addonsId: addOnDoc['addonsId'],
+                  addonsName: addOnDoc['addonsName'],
+                  priceType: addOnDoc['priceType'],
+                  price: addOnDoc['price'],
+                ));
+              }
+            });
+
+            filterOptionsModel.add(FilterOptionModel(
+              filterId: filterOptionDoc['filterId'],
+              filterName: filterOptionDoc['filterName'],
+              isMultiple: filterOptionDoc['isMultiple'],
+              isRequired: filterOptionDoc['isRequired'],
+              addOns: addOnsModel,
+            ));
+          }
+        });
+
+        return DishesModel(
+          dishesId: menuDoc['dishesId'],
+          createdAt: menuDoc['createdAt'],
+          isActive: menuDoc['isActive'],
+          menuDescription: menuDoc['menuDescription'],
+          menuImg: menuDoc['menuImg'],
+          menuName: menuDoc['menuName'],
+          menuPrice: menuDoc['menuPrice'],
+          filterOption: filterOptionsModel,
+        );
+      }).toList();
+    });
+  }
 
   @override
-  Stream<List<DishesEntity>> getMenu(DishesEntity dishesEntity) async* {}
+  Future<void> deleteMenu(DishesEntity dishesEntity) async {
+    final uid = await getCurrentUid();
+    final menuSubCollection = firebaseFireStore
+        .collection(FirebaseConst.restaurant)
+        .doc(uid)
+        .collection(FirebaseConst.menu);
+    try {
+      await menuSubCollection.doc(dishesEntity.dishesId).delete();
+    } catch (e) {
+      showFlutterToast(e.toString());
+    }
+  }
 
   @override
-  Future<void> updateMenu(DishesEntity dishesEntity) async {}
+  Future<void> updateMenu(DishesEntity dishesEntity) async {
+    final uid = await getCurrentUid();
+    final menuSubCollection = firebaseFireStore
+        .collection(FirebaseConst.restaurant)
+        .doc(uid)
+        .collection(FirebaseConst.menu);
+    final menuDoc = await menuSubCollection.doc(dishesEntity.dishesId).get();
+
+    final Map<String, dynamic> menuInfomation = {};
+
+    if (dishesEntity.menuName != "" && dishesEntity.menuName != null) {
+      menuInfomation['menuName'] = dishesEntity.menuName;
+    }
+    if (dishesEntity.menuDescription != "" &&
+        dishesEntity.menuDescription != null) {
+      menuInfomation['menuDescription'] = dishesEntity.menuDescription;
+    }
+    if (dishesEntity.menuPrice != null) {
+      menuInfomation['menuPrice'] = dishesEntity.menuPrice;
+    }
+    if (dishesEntity.menuImg != "" && dishesEntity.menuImg != null) {
+      menuInfomation['menuImg'] = dishesEntity.menuImg;
+    }
+    if (dishesEntity.isActive != null) {
+      menuInfomation['isActive'] = dishesEntity.isActive;
+    }
+
+    if (menuDoc.exists) {
+      try {
+        await menuSubCollection
+            .doc(dishesEntity.dishesId)
+            .update(menuInfomation);
+      } catch (_) {
+        showFlutterToast(_.toString());
+      }
+    } else {
+      showFlutterToast("Can't Update Restaurant Infomation right now");
+    }
+  }
 
   @override
   Future<void> createFilterOption(FilterOptionEntity filterOptionEntity) {

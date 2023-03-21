@@ -1,7 +1,13 @@
 import 'dart:developer';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:touchable_opacity/touchable_opacity.dart';
+import 'package:uuid/uuid.dart';
+import 'package:your_choices/src/domain/entities/vendor/add_ons/add_ons_entity.dart';
+import 'package:your_choices/src/domain/entities/vendor/filter_options/filter_option_entity.dart';
+import 'package:your_choices/src/presentation/blocs/vendor/filter_option/filter_option_cubit.dart';
+import 'package:your_choices/src/presentation/blocs/vendor/menu/menu_cubit.dart';
 import 'package:your_choices/src/presentation/widgets/custom_vendor_appbar.dart';
 
 import '../../../../../../utilities/text_style.dart';
@@ -12,23 +18,42 @@ enum RadioTypes {
   priceDecrease,
 }
 
-class AddOptionView extends StatefulWidget {
-  const AddOptionView({super.key});
+class AddFilterOptionView extends StatefulWidget {
+  const AddFilterOptionView({super.key});
 
   @override
-  State<AddOptionView> createState() => _AddOptionViewState();
+  State<AddFilterOptionView> createState() => _AddFilterOptionViewState();
 }
 
-class _AddOptionViewState extends State<AddOptionView> {
+class _AddFilterOptionViewState extends State<AddFilterOptionView> {
   bool isRequire = false;
   bool isMultipleChoice = false;
-
   RadioTypes? _options;
+  final filterOptionName = TextEditingController();
+  final addOnsName = TextEditingController();
+  final addOnsPrice = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
+  final _dialogKey = GlobalKey<FormState>();
+
+  @override
+  void initState() {
+    BlocProvider.of<FilterOptionCubit>(context).resetAddOnsList();
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    filterOptionName.dispose();
+    addOnsName.dispose();
+    addOnsPrice.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     Size size = MediaQuery.of(context).size;
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       appBar: CustomAppbar(
         title: "สร้างตัวเลือกใหม่",
         onTap: () {
@@ -53,12 +78,180 @@ class _AddOptionViewState extends State<AddOptionView> {
                   thickness: 1,
                 ),
               ),
-              _buildTextButton(),
+              const SizedBox(
+                width: 10,
+              ),
+              Text(
+                "แต่ละช้อยส์ในตัวเลือก",
+                style: AppTextStyle.googleFont(
+                  Colors.white,
+                  20,
+                  FontWeight.w500,
+                ),
+              ),
+              _buildListOfAddOnsBloc(),
               _buildAddChoiceButton(context),
+              const Spacer(),
+              _buildConfirmAndCancelButton(context)
             ],
           ),
         ),
       ),
+    );
+  }
+
+  Row _buildConfirmAndCancelButton(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      children: [
+        TouchableOpacity(
+          onTap: () {
+            Navigator.pop(context);
+          },
+          child: Container(
+            alignment: Alignment.center,
+            width: 150,
+            height: 40,
+            decoration: BoxDecoration(
+              color: Colors.grey,
+              borderRadius: BorderRadius.circular(5),
+            ),
+            child: Text(
+              "ยกเลิก",
+              style: AppTextStyle.googleFont(
+                Colors.white,
+                20,
+                FontWeight.w500,
+              ),
+            ),
+          ),
+        ),
+        TouchableOpacity(
+          onTap: () {
+            final addOnsList = List<AddOnsEntity>.of(
+                context.read<FilterOptionCubit>().getAddOnsList);
+
+            BlocProvider.of<MenuCubit>(context).addFilterOption(
+              FilterOptionEntity(
+                filterId: const Uuid().v1(),
+                filterName: filterOptionName.text,
+                isMultiple: isMultipleChoice,
+                isRequired: isRequire,
+                addOns: addOnsList,
+              ),
+            );
+
+            context.read<FilterOptionCubit>().resetAddOnsList();
+            log("${context.read<FilterOptionCubit>().getAddOnsList}");
+            Navigator.pop(context);
+          },
+          child: Container(
+            alignment: Alignment.center,
+            width: 150,
+            height: 40,
+            decoration: BoxDecoration(
+              color: Colors.amber.shade900,
+              borderRadius: BorderRadius.circular(5),
+            ),
+            child: Text(
+              "ยืนยัน",
+              style: AppTextStyle.googleFont(
+                Colors.white,
+                20,
+                FontWeight.w500,
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildListOfAddOnsBloc() {
+    return BlocBuilder<FilterOptionCubit, FilterOptionState>(
+      builder: (context, state) {
+        if (state is FilterOptionAddAddOns) {
+          return ListView.separated(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            separatorBuilder: (context, index) => const SizedBox(
+              height: 10,
+            ),
+            itemCount: state.addOnsEntity.length,
+            itemBuilder: (context, index) {
+              final addOnsEntity = state.addOnsEntity[index];
+              // log("${state.addOnsEntity[index]}");
+              return Container(
+                height: 45,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(5),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 10),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        addOnsEntity.addonsName ?? "No Name",
+                        style: AppTextStyle.googleFont(
+                          Colors.black,
+                          18,
+                          FontWeight.w500,
+                        ),
+                      ),
+                      Row(
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.only(right: 8.0),
+                            child: addOnsEntity.price == null
+                                ? const Text("")
+                                : addOnsEntity.priceType ==
+                                        RadioTypes.priceIncrease.toString()
+                                    ? Text(
+                                        "+${addOnsEntity.price ?? ""} ฿",
+                                        style: AppTextStyle.googleFont(
+                                          Colors.black,
+                                          18,
+                                          FontWeight.w500,
+                                        ),
+                                      )
+                                    : Text(
+                                        "-${addOnsEntity.price ?? ""} ฿",
+                                        style: AppTextStyle.googleFont(
+                                          Colors.black,
+                                          18,
+                                          FontWeight.w500,
+                                        ),
+                                      ),
+                          ),
+                          const VerticalDivider(
+                            endIndent: 7,
+                            indent: 7,
+                            color: Colors.grey,
+                            thickness: 1,
+                          ),
+                          IconButton(
+                            onPressed: () {
+                              BlocProvider.of<FilterOptionCubit>(context)
+                                  .removeAddOns(addOnsEntity);
+                            },
+                            icon: Icon(
+                              Icons.delete,
+                              color: Colors.amber.shade900,
+                            ),
+                          )
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          );
+        }
+        return Container();
+      },
     );
   }
 
@@ -115,12 +308,13 @@ class _AddOptionViewState extends State<AddOptionView> {
                   const SizedBox(
                     height: 10,
                   ),
-                  const TextField(
-                    style: TextStyle(
-                      color: Colors.white,
+                  TextFormField(
+                    controller: addOnsName,
+                    style: const TextStyle(
+                      color: Colors.black,
                       fontSize: 14,
                     ),
-                    decoration: InputDecoration(
+                    decoration: const InputDecoration(
                       contentPadding: EdgeInsets.all(10),
                       isDense: true,
                       hintText: "กรอกชื่อชื่อช้อยส์",
@@ -190,6 +384,7 @@ class _AddOptionViewState extends State<AddOptionView> {
                             _options == RadioTypes.priceIncrease
                                 ? Expanded(
                                     child: TextField(
+                                      controller: addOnsPrice,
                                       keyboardType: TextInputType.number,
                                       decoration: InputDecoration(
                                         icon: const Text(
@@ -235,6 +430,7 @@ class _AddOptionViewState extends State<AddOptionView> {
                             _options == RadioTypes.priceDecrease
                                 ? Expanded(
                                     child: TextField(
+                                      controller: addOnsPrice,
                                       keyboardType: TextInputType.number,
                                       decoration: InputDecoration(
                                         icon: const Text(
@@ -294,8 +490,22 @@ class _AddOptionViewState extends State<AddOptionView> {
                         ),
                       ),
                       TouchableOpacity(
-                        onTap: () {
-                          Navigator.pop(context);
+                        onTap: () async {
+                          await BlocProvider.of<FilterOptionCubit>(context)
+                              .addAddOns(AddOnsEntity(
+                            addonsId: const Uuid().v1(),
+                            addonsName: addOnsName.text,
+                            priceType: _options.toString(),
+                            price: _options == RadioTypes.nochange
+                                ? null
+                                : int.parse(addOnsPrice.text),
+                          ))
+                              .then((value) {
+                            addOnsName.clear();
+                            addOnsPrice.clear();
+                            _options = null;
+                            Navigator.pop(context);
+                          });
                         },
                         child: Container(
                           alignment: Alignment.center,
@@ -323,31 +533,6 @@ class _AddOptionViewState extends State<AddOptionView> {
           ),
         );
       },
-    );
-  }
-
-  TouchableOpacity _buildTextButton() {
-    return TouchableOpacity(
-      onTap: () {},
-      child: Row(
-        children: [
-          const Icon(
-            Icons.menu,
-            color: Colors.white,
-          ),
-          const SizedBox(
-            width: 10,
-          ),
-          Text(
-            "แก้ไขลำดับ",
-            style: AppTextStyle.googleFont(
-              Colors.white,
-              20,
-              FontWeight.w500,
-            ),
-          ),
-        ],
-      ),
     );
   }
 
@@ -437,7 +622,14 @@ class _AddOptionViewState extends State<AddOptionView> {
         ),
         SizedBox(
           width: 250,
-          child: TextField(
+          child: TextFormField(
+            validator: (value) {
+              if (value!.isEmpty) {
+                return "โปรดกรอกชื่อตัวเลือก";
+              }
+              return null;
+            },
+            controller: filterOptionName,
             style: AppTextStyle.googleFont(
               Colors.white,
               18,
@@ -448,7 +640,7 @@ class _AddOptionViewState extends State<AddOptionView> {
               isDense: true,
               hintText: "กรอกชื่อตัวเลือก",
               hintStyle: AppTextStyle.googleFont(
-                Colors.white,
+                Colors.grey,
                 18,
                 FontWeight.w500,
               ),

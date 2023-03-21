@@ -83,8 +83,8 @@ class FirebaseRepositoryImpl implements FirebaseRepository {
   }
 
   @override
-  Stream<List<DishesEntity>> getMenu(DishesEntity dishesEntity) {
-    return remoteDataSource.getMenu(dishesEntity);
+  Stream<List<DishesEntity>> getMenu(String uid) {
+    return remoteDataSource.getMenu(uid);
   }
 
   @override

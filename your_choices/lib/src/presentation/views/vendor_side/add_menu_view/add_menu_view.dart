@@ -1,15 +1,19 @@
 import 'dart:developer';
 import 'dart:io';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:touchable_opacity/touchable_opacity.dart';
+import 'package:uuid/uuid.dart';
 import 'package:your_choices/on_generate_routes.dart';
-import 'package:your_choices/src/presentation/blocs/vendor/vendor_cubit.dart';
-
+import 'package:your_choices/src/domain/entities/vendor/dishes_menu/dishes_entity.dart';
+import 'package:your_choices/src/domain/entities/vendor/filter_options/filter_option_entity.dart';
+import 'package:your_choices/src/presentation/blocs/vendor/menu/menu_cubit.dart';
+import '../../../../../utilities/loading_dialog.dart';
 import '../../../../../utilities/text_style.dart';
 import '../../../widgets/custom_vendor_appbar.dart';
 
@@ -22,9 +26,6 @@ class AddMenuView extends StatefulWidget {
 
 class _AddMenuViewState extends State<AddMenuView> {
   File? imageFile;
-
-  bool isToggle = false;
-
   Future pickImageFromGallery() async {
     try {
       final file = await ImagePicker().pickImage(source: ImageSource.gallery);
@@ -126,10 +127,18 @@ class _AddMenuViewState extends State<AddMenuView> {
     );
   }
 
+  TextEditingController menuName = TextEditingController();
+  TextEditingController menuDescription = TextEditingController();
+  TextEditingController menuPrice = TextEditingController();
+  bool isToggle = false;
+  final _formKey = GlobalKey<FormState>();
+
   @override
-  void initState() {
-    super.initState();
-    BlocProvider.of<VendorCubit>(context).getSingleVendor(uid: widget.uid);
+  void dispose() {
+    menuName.dispose();
+    menuDescription.dispose();
+    menuPrice.dispose();
+    super.dispose();
   }
 
   @override
@@ -144,157 +153,331 @@ class _AddMenuViewState extends State<AddMenuView> {
       ),
       body: SingleChildScrollView(
         physics: const BouncingScrollPhysics(),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            imageFile == null
-                ? _buildNoImageUpload(size)
-                : _buildUploadedImage(size),
-            _buildFoodNameTextField(),
-            const SizedBox(
-              height: 12,
-            ),
-            _buildFoodDescriptionTextField(),
-            const SizedBox(
-              height: 12,
-            ),
-            _buildFoodPrice(),
-            const SizedBox(
-              height: 15,
-            ),
-            _buildSwitch(),
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 15, vertical: 8),
-              child: Divider(
-                color: Colors.grey,
-                thickness: 1,
+        child: Form(
+          key: _formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              imageFile == null
+                  ? _buildNoImageUpload(size)
+                  : _buildUploadedImage(size),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildFoodNameTextFormField(),
+                  const SizedBox(
+                    height: 12,
+                  ),
+                  _buildFoodDescriptionTextFormField(),
+                  const SizedBox(
+                    height: 12,
+                  ),
+                  _buildFoodPriceTextFormField(),
+                  const SizedBox(
+                    height: 15,
+                  ),
+                ],
               ),
-            ),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 25),
-                  child: Text(
-                    "ตัวเลือก",
-                    style: AppTextStyle.googleFont(
-                      Colors.white,
-                      20,
-                      FontWeight.w500,
-                    ),
-                  ),
+              _buildSwitch(),
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 15, vertical: 8),
+                child: Divider(
+                  color: Colors.grey,
+                  thickness: 1,
                 ),
-                ListView.separated(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  separatorBuilder: (context, index) => const SizedBox(
-                    height: 5,
-                  ),
-                  itemCount: 1,
-                  itemBuilder: (context, index) {
-                    return Container(
-                      margin: const EdgeInsets.symmetric(
-                        horizontal: 20,
-                      ),
-                      color: Colors.white,
-                    );
-                  },
-                ),
-                TouchableOpacity(
-                  activeOpacity: 0.5,
-                  onTap: () {
-                    Navigator.pushNamed(
-                      context,
-                      PageConst.addOptionPage,
-                    );
-                  },
-                  child: Container(
-                    width: size.width / 2,
-                    margin: const EdgeInsets.symmetric(
-                      horizontal: 25,
-                      vertical: 10,
-                    ),
-                    height: size.height * 0.05,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(10),
-                      color: Colors.amber[900],
-                    ),
-                    child: Align(
-                      alignment: Alignment.center,
-                      child: Text(
-                        "+ เพิ่มตัวเลือก",
-                        style: AppTextStyle.googleFont(
-                          Colors.white,
-                          22,
-                          FontWeight.w500,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 15, vertical: 8),
-              child: Divider(
-                color: Colors.grey,
-                thickness: 1,
               ),
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                TouchableOpacity(
-                  activeOpacity: 0.5,
-                  onTap: () {},
-                  child: Container(
-                    width: 125,
-                    height: 50,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(10),
-                      color: Colors.grey,
-                    ),
-                    child: Align(
-                      alignment: Alignment.center,
-                      child: Text(
-                        "ยกเลิก",
-                        style: AppTextStyle.googleFont(
-                          Colors.white,
-                          22,
-                          FontWeight.w500,
-                        ),
-                      ),
-                    ),
-                  ),
+              _buildFilterOptionItem(context, size),
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 15, vertical: 8),
+                child: Divider(
+                  color: Colors.grey,
+                  thickness: 1,
                 ),
-                TouchableOpacity(
-                  activeOpacity: 0.5,
-                  onTap: () {},
-                  child: Container(
-                    width: 125,
-                    height: 50,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(10),
-                      color: Colors.amber[900],
-                    ),
-                    child: Align(
-                      alignment: Alignment.center,
-                      child: Text(
-                        "ยืนยัน",
-                        style: AppTextStyle.googleFont(
-                          Colors.white,
-                          22,
-                          FontWeight.w500,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            )
-          ],
+              ),
+              _buildConfirmAndCancelButton()
+            ],
+          ),
         ),
       ),
+    );
+  }
+
+  Widget _buildFilterOptionItem(BuildContext context, Size size) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 25),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                "ตัวเลือก",
+                style: AppTextStyle.googleFont(
+                  Colors.white,
+                  20,
+                  FontWeight.w500,
+                ),
+              ),
+              TouchableOpacity(
+                activeOpacity: 0.5,
+                onTap: () {
+                  Navigator.pushNamed(
+                    context,
+                    PageConst.addOptionPage,
+                  );
+                },
+                child: Text(
+                  "+ เพิ่มตัวเลือก",
+                  style: AppTextStyle.googleFont(
+                    Colors.white,
+                    20,
+                    FontWeight.w500,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(
+          height: 10,
+        ),
+        BlocBuilder<MenuCubit, MenuState>(
+          builder: (context, state) {
+            if (state is MenuAddFilterOption) {
+              return ListView.separated(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                separatorBuilder: (context, index) => const SizedBox(
+                  height: 5,
+                ),
+                itemCount: state.filterOptionEntity.length,
+                itemBuilder: (context, index) {
+                  final filterOptionEntity = state.filterOptionEntity[index];
+
+                  return Container(
+                    padding: const EdgeInsets.only(bottom: 10),
+                    margin: const EdgeInsets.symmetric(
+                      horizontal: 23,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(5),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 10),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Text(
+                                filterOptionEntity.filterName!,
+                                style: AppTextStyle.googleFont(
+                                  Colors.black,
+                                  20,
+                                  FontWeight.w500,
+                                ),
+                              ),
+                              const SizedBox(
+                                width: 5,
+                              ),
+                              filterOptionEntity.isRequired!
+                                  ? Text(
+                                      "(ต้องเลือก)",
+                                      style: AppTextStyle.googleFont(
+                                        Colors.grey,
+                                        14,
+                                        FontWeight.w500,
+                                      ),
+                                    )
+                                  : Text(
+                                      "(ไม่จำเป็นต้องเลือก)",
+                                      style: AppTextStyle.googleFont(
+                                        Colors.grey,
+                                        14,
+                                        FontWeight.w500,
+                                      ),
+                                    ),
+                            ],
+                          ),
+                          ListView.builder(
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            itemCount: filterOptionEntity.addOns!.length,
+                            itemBuilder: (context, index) {
+                              final addOnsEntity =
+                                  filterOptionEntity.addOns![index];
+                              return Container(
+                                child: Row(
+                                  children: [
+                                    filterOptionEntity.isMultiple!
+                                        ? const Icon(
+                                            Icons.circle_outlined,
+                                            size: 14,
+                                          )
+                                        : const Icon(
+                                            Icons.rectangle_outlined,
+                                            size: 14,
+                                          ),
+                                    const SizedBox(
+                                      width: 5,
+                                    ),
+                                    Text(
+                                      addOnsEntity.addonsName!,
+                                      style: AppTextStyle.googleFont(
+                                        Colors.black,
+                                        14,
+                                        FontWeight.normal,
+                                      ),
+                                    ),
+                                    const Spacer(),
+                                    addOnsEntity.price == null
+                                        ? Text(
+                                            "",
+                                            style: AppTextStyle.googleFont(
+                                              Colors.black,
+                                              14,
+                                              FontWeight.normal,
+                                            ),
+                                          )
+                                        : addOnsEntity.priceType ==
+                                                "RadioTypes.priceIncrease"
+                                            ? Text(
+                                                "+",
+                                                style: AppTextStyle.googleFont(
+                                                  Colors.black,
+                                                  14,
+                                                  FontWeight.normal,
+                                                ),
+                                              )
+                                            : Text(
+                                                "-",
+                                                style: AppTextStyle.googleFont(
+                                                  Colors.black,
+                                                  14,
+                                                  FontWeight.normal,
+                                                ),
+                                              ),
+                                    addOnsEntity.price == null
+                                        ? const Text("")
+                                        : addOnsEntity.priceType ==
+                                                "RadioTypes.priceIncrease"
+                                            ? Text(
+                                                "${addOnsEntity.price ?? ""} ฿",
+                                                style: AppTextStyle.googleFont(
+                                                  Colors.black,
+                                                  14,
+                                                  FontWeight.normal,
+                                                ),
+                                              )
+                                            : Text(
+                                                "${addOnsEntity.price ?? ""} ฿",
+                                                style: AppTextStyle.googleFont(
+                                                  Colors.black,
+                                                  14,
+                                                  FontWeight.normal,
+                                                ),
+                                              ),
+                                  ],
+                                ),
+                              );
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              );
+            }
+            return Container();
+          },
+        ),
+      ],
+    );
+  }
+
+  Row _buildConfirmAndCancelButton() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      children: [
+        TouchableOpacity(
+          activeOpacity: 0.5,
+          onTap: () {
+            Navigator.pop(context);
+          },
+          child: Container(
+            width: 125,
+            height: 50,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(10),
+              color: Colors.grey,
+            ),
+            child: Align(
+              alignment: Alignment.center,
+              child: Text(
+                "ยกเลิก",
+                style: AppTextStyle.googleFont(
+                  Colors.white,
+                  22,
+                  FontWeight.w500,
+                ),
+              ),
+            ),
+          ),
+        ),
+        TouchableOpacity(
+          activeOpacity: 0.5,
+          onTap: () {
+            if (_formKey.currentState!.validate()) {
+              loadingDialog(context);
+              final filterOptionList = List<FilterOptionEntity>.of(
+                  context.read<MenuCubit>().getfilterOptionList);
+
+              final newMenu = DishesEntity(
+                dishesId: const Uuid().v1(),
+                createdAt: Timestamp.now(),
+                disheImageFile: imageFile,
+                isActive: isToggle,
+                menuDescription: menuDescription.text,
+                menuName: menuName.text,
+                menuPrice: int.parse(menuPrice.text),
+                filterOption: filterOptionList,
+              );
+
+              BlocProvider.of<MenuCubit>(context).createMenu(newMenu);
+
+              Navigator.pop(context);
+
+              Navigator.pushNamedAndRemoveUntil(
+                  context,
+                  PageConst.menuPage,
+                  arguments: widget.uid,
+                  (route) => false);
+            }
+          },
+          child: Container(
+            width: 125,
+            height: 50,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(10),
+              color: Colors.amber[900],
+            ),
+            child: Align(
+              alignment: Alignment.center,
+              child: Text(
+                "ยืนยัน",
+                style: AppTextStyle.googleFont(
+                  Colors.white,
+                  22,
+                  FontWeight.w500,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -327,7 +510,7 @@ class _AddMenuViewState extends State<AddMenuView> {
     );
   }
 
-  Column _buildFoodPrice() {
+  Column _buildFoodPriceTextFormField() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -343,9 +526,16 @@ class _AddMenuViewState extends State<AddMenuView> {
           ),
         ),
         Container(
-          width: 120,
+          width: 200,
           margin: const EdgeInsets.symmetric(horizontal: 25),
-          child: TextField(
+          child: TextFormField(
+            controller: menuPrice,
+            validator: (value) {
+              if (value!.isEmpty) {
+                return "โปรดกรอกราคาเมนูของท่าน";
+              }
+              return null;
+            },
             keyboardType: TextInputType.number,
             style: const TextStyle(
               color: Colors.white,
@@ -377,7 +567,7 @@ class _AddMenuViewState extends State<AddMenuView> {
     );
   }
 
-  Column _buildFoodDescriptionTextField() {
+  Column _buildFoodDescriptionTextFormField() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -408,7 +598,14 @@ class _AddMenuViewState extends State<AddMenuView> {
         ),
         Container(
           margin: const EdgeInsets.symmetric(horizontal: 25),
-          child: TextField(
+          child: TextFormField(
+            controller: menuDescription,
+            validator: (value) {
+              if (value!.isEmpty) {
+                return "โปรดกรอกรายละเอียดเมนูของท่าน";
+              }
+              return null;
+            },
             maxLines: 3,
             minLines: 1,
             style: const TextStyle(
@@ -438,7 +635,7 @@ class _AddMenuViewState extends State<AddMenuView> {
     );
   }
 
-  Column _buildFoodNameTextField() {
+  Column _buildFoodNameTextFormField() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -469,7 +666,14 @@ class _AddMenuViewState extends State<AddMenuView> {
         ),
         Container(
           margin: const EdgeInsets.symmetric(horizontal: 25),
-          child: TextField(
+          child: TextFormField(
+            controller: menuName,
+            validator: (value) {
+              if (value!.isEmpty) {
+                return "โปรดกรอกชื่อเมนูของท่าน";
+              }
+              return null;
+            },
             style: const TextStyle(
               color: Colors.white,
               fontSize: 16,

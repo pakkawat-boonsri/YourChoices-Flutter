@@ -4,14 +4,17 @@ import 'package:your_choices/src/presentation/views/customer_side/home_view/depo
 import 'package:your_choices/src/presentation/views/customer_side/home_view/withdraw_view/withdraw_view.dart';
 import 'package:your_choices/src/presentation/views/login_view/login_view.dart';
 import 'package:your_choices/src/presentation/views/register_view/register_view.dart';
+import 'package:your_choices/src/presentation/views/vendor_side/add_menu_view/add_filter_option_view.dart/add_filter_option_view.dart';
 import 'package:your_choices/src/presentation/views/vendor_side/add_menu_view/add_menu_view.dart';
-import 'package:your_choices/src/presentation/views/vendor_side/add_menu_view/add_option_view.dart/add_option_view.dart';
 import 'package:your_choices/src/presentation/views/vendor_side/history_record_view/history_record_view.dart';
+import 'package:your_choices/src/presentation/views/vendor_side/menu_view/menu_detail_view/menu_detail_view.dart';
 import 'package:your_choices/src/presentation/views/vendor_side/menu_view/menu_view.dart';
 import 'package:your_choices/src/presentation/views/vendor_side/order_history_view.dart/order_history_view.dart';
 import 'package:your_choices/src/presentation/views/vendor_side/restaurant_infomation_view/edit_restaurant_info_view/edit_restaurant_info_view.dart';
 import 'package:your_choices/src/presentation/views/vendor_side/restaurant_infomation_view/restaurant_infomation_view.dart';
 import 'package:your_choices/src/presentation/views/vendor_side/vendor_main_view/vendor_main_view.dart';
+
+import 'src/domain/entities/vendor/dishes_menu/dishes_entity.dart';
 
 class OnGenerateRoute {
   static Route<dynamic>? route(RouteSettings settings) {
@@ -64,6 +67,20 @@ class OnGenerateRoute {
             return routeBuilder(
               MenuView(
                 uid: args,
+              ),
+            );
+          } else {
+            return routeBuilder(
+              const NoPageFound(),
+            );
+          }
+        }
+      case PageConst.menuDetailPage:
+        {
+          if (args is DishesEntity) {
+            return routeBuilder(
+              MenuDetailView(
+                dishesEntity: args,
               ),
             );
           } else {
@@ -128,7 +145,7 @@ class OnGenerateRoute {
         }
       case PageConst.addOptionPage:
         {
-          return routeBuilder(const AddOptionView());
+          return routeBuilder(const AddFilterOptionView());
           // return args is String
           //     ? routeBuilder(
           //         HistoryRecordView(uid: args),
@@ -159,6 +176,7 @@ class PageConst {
   //vendor routes
   static const String vendorMainView = "vendorMainView";
   static const String menuPage = "menuPage";
+  static const String menuDetailPage = "menuDetailPage";
   static const String addMenuPage = "addMenuPage";
   static const String restaurantInfoPage = "restaurantInfoPage";
   static const String orderHistoryPage = "orderHistoryPage";

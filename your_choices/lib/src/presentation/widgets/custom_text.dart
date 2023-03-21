@@ -16,9 +16,13 @@ class CustomText extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Text(
-      text,
-      style: AppTextStyle.googleFont(color, fontSize, fontWeight),
+    return Container(
+      child: Text(
+        text,
+        style: AppTextStyle.googleFont(color, fontSize, fontWeight),
+        overflow: TextOverflow.ellipsis,
+        maxLines: 1,
+      ),
     );
   }
 }

@@ -7,7 +7,7 @@ class GetMenuUseCase {
 
   GetMenuUseCase({required this.repository});
 
-  Stream<List<DishesEntity>> call(DishesEntity dishesEntity) {
-    return repository.getMenu(dishesEntity);
+  Stream<List<DishesEntity>> call(String uid) {
+    return repository.getMenu(uid);
   }
 }

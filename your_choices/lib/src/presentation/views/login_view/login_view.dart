@@ -105,11 +105,7 @@ class _LoginViewState extends State<LoginView> {
                           child: Column(
                             children: [
                               TextFormField(
-                                // onTap: () {
-                                //   setState(() {
-                                //     isClick = true;
-                                //   });
-                                // },
+                               
                                 onChanged: (value) {
                                   setState(() {});
                                 },
@@ -170,11 +166,7 @@ class _LoginViewState extends State<LoginView> {
                                 height: 15,
                               ),
                               TextFormField(
-                                // onTap: () {
-                                //   setState(() {
-                                //     isClick = true;
-                                //   });
-                                // },
+                              
                                 onChanged: (value) {
                                   setState(() {});
                                 },

@@ -1,6 +1,7 @@
 import 'dart:developer';
 import 'dart:ui';
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -369,18 +370,14 @@ class _VendorMainViewState extends State<VendorMainView> {
                     FontWeight.w500,
                   ),
                 ),
-                CircleAvatar(
-                  radius: 28,
-                  backgroundColor: Colors.transparent,
-                  child: Container(
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      image: DecorationImage(
-                        image: NetworkImage(
-                          vendorEntity.profileUrl!,
-                        ),
-                        fit: BoxFit.cover,
-                      ),
+                SizedBox(
+                  width: 56,
+                  height: 56,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(10),
+                    child: CachedNetworkImage(
+                      imageUrl: vendorEntity.profileUrl!,
+                      fit: BoxFit.cover,
                     ),
                   ),
                 )
@@ -523,9 +520,7 @@ class _VendorMainViewState extends State<VendorMainView> {
       height: 180,
       decoration: BoxDecoration(
         image: DecorationImage(
-          image: NetworkImage(
-            vendorEntity.resProfileUrl!,
-          ),
+          image: CachedNetworkImageProvider(vendorEntity.resProfileUrl!),
           fit: BoxFit.cover,
         ),
       ),

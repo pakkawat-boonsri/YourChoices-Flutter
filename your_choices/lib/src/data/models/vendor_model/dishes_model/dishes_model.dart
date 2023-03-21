@@ -1,5 +1,4 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:your_choices/src/data/models/vendor_model/filter_option_model/filter_option_model.dart';
 import 'package:your_choices/src/domain/entities/vendor/dishes_menu/dishes_entity.dart';
 import 'package:your_choices/src/domain/entities/vendor/filter_options/filter_option_entity.dart';
 
@@ -29,9 +28,7 @@ class DishesModel extends DishesEntity {
     return DishesModel(
       createdAt: snapshot['createdAt'],
       dishesId: snapshot['dishesId'],
-      filterOption: (snapshot['filterOption'] as List)
-          .map((e) => FilterOptionModel.fromFirebase(e))
-          .toList(),
+      filterOption: const [],
       menuDescription: snapshot['menuDescription'],
       menuImg: snapshot['menuImg'],
       menuName: snapshot['menuName'],
@@ -43,11 +40,32 @@ class DishesModel extends DishesEntity {
   Map<String, dynamic> toJson() => {
         "isActive": isActive,
         "dishesId": dishesId,
-        "filterOption": filterOption,
         "menuDescription": menuDescription,
         "menuImg": menuImg,
         "menuName": menuName,
         "menuPrice": menuPrice,
         "createdAt": createdAt,
       };
+
+  DishesModel copyWith({
+    final String? dishesId,
+    final Timestamp? createdAt,
+    final bool? isActive,
+    final String? menuName,
+    final String? menuImg,
+    final num? menuPrice,
+    final String? menuDescription,
+    final List<FilterOptionEntity>? filterOption,
+  }) {
+    return DishesModel(
+      dishesId: dishesId ?? this.dishesId,
+      createdAt: createdAt ?? this.createdAt,
+      isActive: isActive ?? this.isActive,
+      menuDescription: menuDescription ?? this.menuDescription,
+      menuImg: menuImg ?? this.menuImg,
+      menuName: menuName ?? this.menuName,
+      menuPrice: menuPrice ?? this.menuPrice,
+      filterOption: filterOption ?? this.filterOption,
+    );
+  }
 }
