@@ -1,4 +1,3 @@
-import 'dart:developer';
 import 'dart:ui';
 
 import 'package:cached_network_image/cached_network_image.dart';
@@ -15,6 +14,7 @@ import 'package:your_choices/utilities/text_style.dart';
 
 class VendorMainView extends StatefulWidget {
   final String uid;
+
   const VendorMainView({super.key, required this.uid});
 
   @override
@@ -26,14 +26,12 @@ class _VendorMainViewState extends State<VendorMainView> {
     const AssetImage("assets/images/menu.png"),
     const AssetImage("assets/images/restaurant.png"),
     const AssetImage("assets/images/record.png"),
-    const AssetImage("assets/images/record_report.png"),
   ];
 
   List<String> imageTitles = [
     "เมนูอาหาร",
     "ข้อมูลร้าน",
     "ประวัติการสั่งซื้อ",
-    "รายการ",
   ];
 
   @override
@@ -53,7 +51,7 @@ class _VendorMainViewState extends State<VendorMainView> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        leading: PopupMenuButton(
+        title: PopupMenuButton(
           child: const Icon(Icons.exit_to_app_rounded),
           itemBuilder: (context) => [
             PopupMenuItem(
@@ -74,7 +72,7 @@ class _VendorMainViewState extends State<VendorMainView> {
         children: [
           _buildBlocHeaderSection(size),
           const SizedBox(
-            height: 15,
+            height: 20,
           ),
           _buildOrderContainer(size),
           const SizedBox(
@@ -124,14 +122,6 @@ class _VendorMainViewState extends State<VendorMainView> {
             arguments: vendorEntity,
           );
         }
-      case 3:
-        {
-          return Navigator.pushNamed(
-            context,
-            PageConst.historyRecordPage,
-            arguments: widget.uid,
-          );
-        }
       default:
     }
   }
@@ -140,7 +130,7 @@ class _VendorMainViewState extends State<VendorMainView> {
     return GridView.builder(
       physics: const NeverScrollableScrollPhysics(),
       shrinkWrap: true,
-      itemCount: 4,
+      itemCount: images.length,
       padding: const EdgeInsets.symmetric(horizontal: 20),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 3,
@@ -220,7 +210,7 @@ class _VendorMainViewState extends State<VendorMainView> {
   Container _buildFeatureText(Size size) {
     return Container(
       width: size.width,
-      margin: const EdgeInsets.symmetric(horizontal: 33),
+      margin: const EdgeInsets.symmetric(horizontal: 20),
       child: Text(
         "ฟีเจอร์ต่างๆ",
         style: AppTextStyle.googleFont(
@@ -237,14 +227,19 @@ class _VendorMainViewState extends State<VendorMainView> {
       builder: (context, vendorState) {
         if (vendorState is VendorLoaded) {
           VendorEntity vendorEntity = vendorState.vendorEntity;
+
           return TouchableOpacity(
-            onTap: () => log("Today order"),
+            onTap: vendorEntity.isActive == true
+                ? () {
+                    Navigator.pushNamed(context, PageConst.todayOrderPage);
+                  }
+                : null,
             child: Container(
               width: size.width,
               height: 50,
               margin: const EdgeInsets.symmetric(horizontal: 20),
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(5),
                 color: vendorEntity.isActive! ? Colors.green : Colors.red,
               ),
               child: Padding(
@@ -309,19 +304,10 @@ class _VendorMainViewState extends State<VendorMainView> {
       builder: (context, vendorState) {
         if (vendorState is VendorLoaded) {
           VendorEntity vendorEntity = vendorState.vendorEntity;
-          return Column(
-            mainAxisSize: MainAxisSize.max,
+          return Stack(
             children: [
-              SizedBox(
-                width: size.width,
-                height: size.height / 3.4,
-                child: Stack(
-                  children: [
-                    blurImageBg(size, vendorEntity),
-                    headerTitle(size, vendorEntity, context),
-                  ],
-                ),
-              ),
+              blurImageBg(size, vendorEntity),
+              headerTitle(size, vendorEntity, context),
             ],
           );
         }
@@ -330,15 +316,13 @@ class _VendorMainViewState extends State<VendorMainView> {
     );
   }
 
-  Positioned headerTitle(
+  Widget headerTitle(
     Size size,
     VendorEntity vendorEntity,
     BuildContext context,
   ) {
-    return Positioned(
-      width: size.width,
-      height: size.height / 4.2,
-      top: 75,
+    return Padding(
+      padding: EdgeInsets.only(top: size.height / 9),
       child: Column(
         children: [
           Container(
@@ -517,7 +501,7 @@ class _VendorMainViewState extends State<VendorMainView> {
   Container blurImageBg(Size size, VendorEntity vendorEntity) {
     return Container(
       width: size.width,
-      height: 180,
+      height: size.height * 1 / 3.3,
       decoration: BoxDecoration(
         image: DecorationImage(
           image: CachedNetworkImageProvider(vendorEntity.resProfileUrl!),

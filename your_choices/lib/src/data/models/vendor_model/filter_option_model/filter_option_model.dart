@@ -9,13 +9,18 @@ class FilterOptionModel extends FilterOptionEntity {
     final String? filterName,
     final bool? isRequired,
     final bool? isMultiple,
+    final bool? isSelected,
+    final int? multipleQuantity,
     final List<AddOnsEntity>? addOns,
   }) : super(
-            filterId: filterId,
-            isRequired: isRequired,
-            isMultiple: isMultiple,
-            addOns: addOns,
-            filterName: filterName);
+          filterId: filterId,
+          isRequired: isRequired,
+          isMultiple: isMultiple,
+          multipleQuantity: multipleQuantity,
+          addOns: addOns,
+          isSelected: isSelected,
+          filterName: filterName,
+        );
 
   factory FilterOptionModel.fromFirebase(DocumentSnapshot snap) {
     var snapshot = snap.data() as Map<String, dynamic>;
@@ -24,6 +29,8 @@ class FilterOptionModel extends FilterOptionEntity {
       filterName: snapshot['filterName'],
       isRequired: snapshot['isRequired'],
       isMultiple: snapshot['isMultiple'],
+      isSelected: snapshot['isSelected'],
+      multipleQuantity: snapshot['multipleQuantity'],
       addOns: const [],
     );
   }
@@ -33,22 +40,7 @@ class FilterOptionModel extends FilterOptionEntity {
         "isRequired": isRequired,
         "isMultiple": isMultiple,
         "filterName": filterName,
+        "isSelected": isSelected,
+        "multipleQuantity": multipleQuantity,
       };
-
-  @override
-  FilterOptionModel copyWith({
-    final String? filterId,
-    final String? filterName,
-    final bool? isRequired,
-    final bool? isMultiple,
-    final List<AddOnsEntity>? addOns,
-  }) {
-    return FilterOptionModel(
-      filterId: filterId ?? this.filterId,
-      filterName: filterName ?? this.filterName,
-      isMultiple: isMultiple ?? this.isMultiple,
-      isRequired: isRequired ?? this.isRequired,
-      addOns: addOns ?? this.addOns,
-    );
-  }
 }

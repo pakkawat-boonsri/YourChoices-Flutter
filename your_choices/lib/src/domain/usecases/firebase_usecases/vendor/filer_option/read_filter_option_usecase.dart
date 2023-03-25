@@ -7,7 +7,7 @@ class ReadFilterOptionUseCase {
 
   ReadFilterOptionUseCase({required this.repository});
 
-  Stream<List<FilterOptionEntity>> call(FilterOptionEntity filterOptionEntity) {
-    return repository.readFilterOption(filterOptionEntity);
+  Stream<List<FilterOptionEntity>> call(String uid) {
+    return repository.readFilterOption(uid);
   }
 }

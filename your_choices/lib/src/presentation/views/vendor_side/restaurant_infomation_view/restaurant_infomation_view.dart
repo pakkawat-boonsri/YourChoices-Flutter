@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:touchable_opacity/touchable_opacity.dart';
 import 'package:your_choices/on_generate_routes.dart';
@@ -118,51 +119,6 @@ class _RestaurantInfoViewState extends State<RestaurantInfoView> {
             ),
           ),
         ),
-        Container(
-          margin: const EdgeInsets.symmetric(
-            horizontal: 20,
-          ),
-          width: size.width,
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: Row(
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(5.0),
-                child: Container(
-                  width: 60,
-                  height: 50,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: "D9D9D9".toColor(),
-                  ),
-                  child: Image.asset(
-                    "assets/images/record_report.png",
-                    scale: 1.5,
-                  ),
-                ),
-              ),
-              const SizedBox(
-                width: 10,
-              ),
-              Text(
-                "รายงาน",
-                style: AppTextStyle.googleFont(
-                  Colors.black,
-                  16,
-                  FontWeight.w500,
-                ),
-              ),
-              const Spacer(),
-              const Padding(
-                padding: EdgeInsets.only(right: 8.0),
-                child: Icon(Icons.arrow_forward_ios),
-              ),
-            ],
-          ),
-        ),
       ],
     );
   }
@@ -233,7 +189,7 @@ class _RestaurantInfoViewState extends State<RestaurantInfoView> {
         color: Colors.black,
         image: DecorationImage(
           fit: BoxFit.cover,
-          image: NetworkImage(
+          image: CachedNetworkImageProvider(
             vendorEntity.resProfileUrl!,
           ),
         ),
@@ -287,7 +243,7 @@ class _RestaurantInfoViewState extends State<RestaurantInfoView> {
                 borderRadius: BorderRadius.circular(1000),
                 image: DecorationImage(
                   fit: BoxFit.cover,
-                  image: NetworkImage(
+                  image: CachedNetworkImageProvider(
                     vendorEntity.profileUrl ?? "",
                   ),
                 ),

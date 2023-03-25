@@ -46,26 +46,4 @@ class DishesModel extends DishesEntity {
         "menuPrice": menuPrice,
         "createdAt": createdAt,
       };
-
-  DishesModel copyWith({
-    final String? dishesId,
-    final Timestamp? createdAt,
-    final bool? isActive,
-    final String? menuName,
-    final String? menuImg,
-    final num? menuPrice,
-    final String? menuDescription,
-    final List<FilterOptionEntity>? filterOption,
-  }) {
-    return DishesModel(
-      dishesId: dishesId ?? this.dishesId,
-      createdAt: createdAt ?? this.createdAt,
-      isActive: isActive ?? this.isActive,
-      menuDescription: menuDescription ?? this.menuDescription,
-      menuImg: menuImg ?? this.menuImg,
-      menuName: menuName ?? this.menuName,
-      menuPrice: menuPrice ?? this.menuPrice,
-      filterOption: filterOption ?? this.filterOption,
-    );
-  }
 }

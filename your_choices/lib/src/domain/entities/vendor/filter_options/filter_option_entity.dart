@@ -8,6 +8,8 @@ class FilterOptionEntity extends Equatable {
   final String? filterName;
   final bool? isRequired;
   final bool? isMultiple;
+  final bool? isSelected;
+  final int? multipleQuantity;
   final List<AddOnsEntity>? addOns;
 
   const FilterOptionEntity({
@@ -15,6 +17,8 @@ class FilterOptionEntity extends Equatable {
     this.filterName,
     this.isRequired,
     this.isMultiple,
+    this.multipleQuantity,
+    this.isSelected,
     this.addOns,
   });
 
@@ -24,7 +28,9 @@ class FilterOptionEntity extends Equatable {
         filterName,
         isRequired,
         isMultiple,
+        isSelected,
         addOns,
+        multipleQuantity,
       ];
 
   FilterOptionEntity copyWith({
@@ -32,6 +38,8 @@ class FilterOptionEntity extends Equatable {
     String? filterName,
     bool? isRequired,
     bool? isMultiple,
+    bool? isSelected,
+    int? multipleQuantity,
     List<AddOnsEntity>? addOns,
   }) {
     return FilterOptionEntity(
@@ -39,6 +47,8 @@ class FilterOptionEntity extends Equatable {
       filterName: filterName ?? this.filterName,
       isRequired: isRequired ?? this.isRequired,
       isMultiple: isMultiple ?? this.isMultiple,
+      isSelected: isSelected ?? this.isSelected,
+      multipleQuantity: multipleQuantity ?? this.multipleQuantity,
       addOns: addOns ?? this.addOns,
     );
   }

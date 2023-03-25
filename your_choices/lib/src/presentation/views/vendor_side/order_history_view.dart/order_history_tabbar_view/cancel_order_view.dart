@@ -1,8 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
-import '../../../../../utilities/date_format.dart';
-import '../../../widgets/custom_text.dart';
+import '../../../../../../utilities/date_format.dart';
+import '../../../../widgets/custom_text.dart';
 
 class CancelOrderView extends StatelessWidget {
   const CancelOrderView({super.key});

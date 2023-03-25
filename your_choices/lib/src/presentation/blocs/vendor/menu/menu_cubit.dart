@@ -73,25 +73,27 @@ class MenuCubit extends Cubit<MenuState> {
 
   final List<FilterOptionEntity> filterOptionList = [];
 
-  List<FilterOptionEntity> get getfilterOptionList => filterOptionList;
+  List<FilterOptionEntity> get getFilterOptionList => filterOptionList;
 
-  Future<void> addFilterOption(
-    FilterOptionEntity filterOptionEntity,
-  ) async {
-    filterOptionList.add(filterOptionEntity);
-    emit(MenuAddFilterOption(filterOptionList));
+  void addFilterOption(
+    List<FilterOptionEntity> filterOptionEntityList,
+  ) {
+    for (var element in filterOptionEntityList) {
+      filterOptionList.add(element);
+    }
+    final newFilterOptionList = List<FilterOptionEntity>.from(filterOptionList);
+    emit(MenuAddFilterOption(newFilterOptionList));
   }
 
-  Future<void> removeFilterOption(
-    FilterOptionEntity filterOptionEntity,
-  ) async {
+  void removeFilterOption(FilterOptionEntity filterOptionEntity) {
     filterOptionList.removeWhere(
       (element) => element.filterId == filterOptionEntity.filterId,
     );
-    emit(MenuAddFilterOption(filterOptionList));
+    final newFilterOptionList = List<FilterOptionEntity>.from(filterOptionList);
+    emit(MenuAddFilterOption(newFilterOptionList));
   }
 
-  Future<void> resetFilterOptionList() async {
+  void resetFilterOption() {
     filterOptionList.clear();
   }
 }

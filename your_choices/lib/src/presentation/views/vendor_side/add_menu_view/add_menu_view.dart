@@ -10,11 +10,12 @@ import 'package:image_picker/image_picker.dart';
 import 'package:touchable_opacity/touchable_opacity.dart';
 import 'package:uuid/uuid.dart';
 import 'package:your_choices/on_generate_routes.dart';
-import 'package:your_choices/src/domain/entities/vendor/dishes_menu/dishes_entity.dart';
 import 'package:your_choices/src/domain/entities/vendor/filter_options/filter_option_entity.dart';
 import 'package:your_choices/src/presentation/blocs/vendor/menu/menu_cubit.dart';
 import '../../../../../utilities/loading_dialog.dart';
 import '../../../../../utilities/text_style.dart';
+import '../../../../domain/entities/vendor/dishes_menu/dishes_entity.dart';
+import '../../../blocs/vendor/filter_option/filter_option_cubit.dart';
 import '../../../widgets/custom_vendor_appbar.dart';
 
 class AddMenuView extends StatefulWidget {
@@ -134,6 +135,14 @@ class _AddMenuViewState extends State<AddMenuView> {
   final _formKey = GlobalKey<FormState>();
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    BlocProvider.of<FilterOptionCubit>(context).resetFilterOption();
+    BlocProvider.of<FilterOptionCubit>(context)
+        .updateAllIsSelectedFilterOption();
+  }
+
+  @override
   void dispose() {
     menuName.dispose();
     menuDescription.dispose();
@@ -215,7 +224,7 @@ class _AddMenuViewState extends State<AddMenuView> {
                 "ตัวเลือก",
                 style: AppTextStyle.googleFont(
                   Colors.white,
-                  20,
+                  22,
                   FontWeight.w500,
                 ),
               ),
@@ -224,15 +233,23 @@ class _AddMenuViewState extends State<AddMenuView> {
                 onTap: () {
                   Navigator.pushNamed(
                     context,
-                    PageConst.addOptionPage,
+                    PageConst.listOfFilterOption,
+                    arguments: widget.uid,
                   );
                 },
-                child: Text(
-                  "+ เพิ่มตัวเลือก",
-                  style: AppTextStyle.googleFont(
-                    Colors.white,
-                    20,
-                    FontWeight.w500,
+                child: Container(
+                  padding: const EdgeInsets.all(3),
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
+                    // borderRadius:
+                  ),
+                  child: Text(
+                    "+ เพิ่มตัวเลือก",
+                    style: AppTextStyle.googleFont(
+                      Colors.black,
+                      22,
+                      FontWeight.w500,
+                    ),
                   ),
                 ),
               ),
@@ -245,15 +262,17 @@ class _AddMenuViewState extends State<AddMenuView> {
         BlocBuilder<MenuCubit, MenuState>(
           builder: (context, state) {
             if (state is MenuAddFilterOption) {
+              List<FilterOptionEntity> filterOptionList =
+                  state.filterOptionEntity;
               return ListView.separated(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
                 separatorBuilder: (context, index) => const SizedBox(
                   height: 5,
                 ),
-                itemCount: state.filterOptionEntity.length,
+                itemCount: filterOptionList.length,
                 itemBuilder: (context, index) {
-                  final filterOptionEntity = state.filterOptionEntity[index];
+                  final filterOptionEntity = filterOptionList[index];
 
                   return Container(
                     padding: const EdgeInsets.only(bottom: 10),
@@ -332,35 +351,33 @@ class _AddMenuViewState extends State<AddMenuView> {
                                       ),
                                     ),
                                     const Spacer(),
-                                    addOnsEntity.price == null
+                                    addOnsEntity.priceType ==
+                                            "RadioTypes.priceIncrease"
                                         ? Text(
-                                            "",
+                                            "+",
                                             style: AppTextStyle.googleFont(
                                               Colors.black,
                                               14,
                                               FontWeight.normal,
                                             ),
                                           )
-                                        : addOnsEntity.priceType ==
-                                                "RadioTypes.priceIncrease"
-                                            ? Text(
-                                                "+",
-                                                style: AppTextStyle.googleFont(
-                                                  Colors.black,
-                                                  14,
-                                                  FontWeight.normal,
-                                                ),
-                                              )
-                                            : Text(
-                                                "-",
-                                                style: AppTextStyle.googleFont(
-                                                  Colors.black,
-                                                  14,
-                                                  FontWeight.normal,
-                                                ),
-                                              ),
+                                        : Text(
+                                            "-",
+                                            style: AppTextStyle.googleFont(
+                                              Colors.black,
+                                              14,
+                                              FontWeight.normal,
+                                            ),
+                                          ),
                                     addOnsEntity.price == null
-                                        ? const Text("")
+                                        ? Text(
+                                            "0 ฿",
+                                            style: AppTextStyle.googleFont(
+                                              Colors.black,
+                                              14,
+                                              FontWeight.normal,
+                                            ),
+                                          )
                                         : addOnsEntity.priceType ==
                                                 "RadioTypes.priceIncrease"
                                             ? Text(
@@ -398,86 +415,56 @@ class _AddMenuViewState extends State<AddMenuView> {
     );
   }
 
-  Row _buildConfirmAndCancelButton() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: [
-        TouchableOpacity(
-          activeOpacity: 0.5,
-          onTap: () {
-            Navigator.pop(context);
-          },
-          child: Container(
-            width: 125,
-            height: 50,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(10),
-              color: Colors.grey,
-            ),
-            child: Align(
-              alignment: Alignment.center,
-              child: Text(
-                "ยกเลิก",
-                style: AppTextStyle.googleFont(
-                  Colors.white,
-                  22,
-                  FontWeight.w500,
-                ),
-              ),
+  Widget _buildConfirmAndCancelButton() {
+    return TouchableOpacity(
+      activeOpacity: 0.5,
+      onTap: () {
+        if (_formKey.currentState!.validate()) {
+          loadingDialog(context);
+
+          final newFilterOptionList =
+              BlocProvider.of<MenuCubit>(context).getFilterOptionList;
+          final newMenu = DishesEntity(
+            dishesId: const Uuid().v1(),
+            createdAt: Timestamp.now(),
+            disheImageFile: imageFile,
+            isActive: isToggle,
+            menuDescription: menuDescription.text,
+            menuName: menuName.text,
+            menuPrice: int.parse(menuPrice.text),
+            filterOption: List<FilterOptionEntity>.from(newFilterOptionList),
+          );
+
+          BlocProvider.of<MenuCubit>(context).createMenu(newMenu);
+
+          Navigator.pop(context);
+
+          Navigator.pushNamedAndRemoveUntil(
+              context,
+              PageConst.menuPage,
+              arguments: widget.uid,
+              (route) => false);
+        }
+      },
+      child: Container(
+        height: 40,
+        margin: const EdgeInsets.symmetric(horizontal: 20),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(5),
+          color: Colors.amber[900],
+        ),
+        child: Align(
+          alignment: Alignment.center,
+          child: Text(
+            "ยืนยัน",
+            style: AppTextStyle.googleFont(
+              Colors.white,
+              22,
+              FontWeight.w500,
             ),
           ),
         ),
-        TouchableOpacity(
-          activeOpacity: 0.5,
-          onTap: () {
-            if (_formKey.currentState!.validate()) {
-              loadingDialog(context);
-              final filterOptionList = List<FilterOptionEntity>.of(
-                  context.read<MenuCubit>().getfilterOptionList);
-
-              final newMenu = DishesEntity(
-                dishesId: const Uuid().v1(),
-                createdAt: Timestamp.now(),
-                disheImageFile: imageFile,
-                isActive: isToggle,
-                menuDescription: menuDescription.text,
-                menuName: menuName.text,
-                menuPrice: int.parse(menuPrice.text),
-                filterOption: filterOptionList,
-              );
-
-              BlocProvider.of<MenuCubit>(context).createMenu(newMenu);
-
-              Navigator.pop(context);
-
-              Navigator.pushNamedAndRemoveUntil(
-                  context,
-                  PageConst.menuPage,
-                  arguments: widget.uid,
-                  (route) => false);
-            }
-          },
-          child: Container(
-            width: 125,
-            height: 50,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(10),
-              color: Colors.amber[900],
-            ),
-            child: Align(
-              alignment: Alignment.center,
-              child: Text(
-                "ยืนยัน",
-                style: AppTextStyle.googleFont(
-                  Colors.white,
-                  22,
-                  FontWeight.w500,
-                ),
-              ),
-            ),
-          ),
-        ),
-      ],
+      ),
     );
   }
 
@@ -536,6 +523,9 @@ class _AddMenuViewState extends State<AddMenuView> {
               }
               return null;
             },
+            onFieldSubmitted: (value) {
+              if (_formKey.currentState!.validate()) {}
+            },
             keyboardType: TextInputType.number,
             style: const TextStyle(
               color: Colors.white,
@@ -550,6 +540,11 @@ class _AddMenuViewState extends State<AddMenuView> {
                 ),
               ),
               isDense: true,
+              errorBorder: const OutlineInputBorder(
+                borderSide: BorderSide(
+                  color: Colors.red,
+                ),
+              ),
               enabledBorder: OutlineInputBorder(
                 borderSide: BorderSide(
                   color: Colors.amber.shade900,
@@ -606,6 +601,9 @@ class _AddMenuViewState extends State<AddMenuView> {
               }
               return null;
             },
+            onFieldSubmitted: (value) {
+              if (_formKey.currentState!.validate()) {}
+            },
             maxLines: 3,
             minLines: 1,
             style: const TextStyle(
@@ -617,6 +615,11 @@ class _AddMenuViewState extends State<AddMenuView> {
               hintText: "กรอกชื่อรายละเอียดอาหาร เช่น เผ็ดสุดทาง ย่างเข้าป่า",
               hintStyle: const TextStyle(
                 color: Colors.grey,
+              ),
+              errorBorder: const OutlineInputBorder(
+                borderSide: BorderSide(
+                  color: Colors.red,
+                ),
               ),
               enabledBorder: OutlineInputBorder(
                 borderSide: BorderSide(
@@ -674,6 +677,9 @@ class _AddMenuViewState extends State<AddMenuView> {
               }
               return null;
             },
+            onFieldSubmitted: (value) {
+              if (_formKey.currentState!.validate()) {}
+            },
             style: const TextStyle(
               color: Colors.white,
               fontSize: 16,
@@ -683,6 +689,11 @@ class _AddMenuViewState extends State<AddMenuView> {
               hintText: "กรอกชื่ออาหาร",
               hintStyle: const TextStyle(
                 color: Colors.grey,
+              ),
+              errorBorder: const OutlineInputBorder(
+                borderSide: BorderSide(
+                  color: Colors.red,
+                ),
               ),
               enabledBorder: OutlineInputBorder(
                 borderSide: BorderSide(
@@ -772,7 +783,6 @@ class _AddMenuViewState extends State<AddMenuView> {
       child: Container(
         margin: const EdgeInsets.all(25),
         width: size.width / 1.7,
-        height: size.height / 5.8,
         decoration: BoxDecoration(
           color: Colors.grey[400],
           borderRadius: BorderRadius.circular(5),
@@ -813,7 +823,7 @@ class _AddMenuViewState extends State<AddMenuView> {
                 alignment: Alignment.bottomRight,
                 child: Container(
                   width: 70,
-                  margin: const EdgeInsets.only(top: 5, right: 5),
+                  margin: const EdgeInsets.only(bottom: 5, right: 5),
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(5),

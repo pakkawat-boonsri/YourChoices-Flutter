@@ -2,8 +2,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:your_choices/src/domain/entities/vendor/vendor_entity.dart';
-import 'package:your_choices/src/presentation/views/vendor_side/order_history_view.dart/accepted_order_view.dart';
-import 'package:your_choices/src/presentation/views/vendor_side/order_history_view.dart/cancel_order_view.dart';
+import 'package:your_choices/src/presentation/views/vendor_side/order_history_view.dart/order_history_tabbar_view/accepted_order_view.dart';
+import 'package:your_choices/src/presentation/views/vendor_side/order_history_view.dart/order_history_tabbar_view/cancel_order_view.dart';
 import 'package:your_choices/src/presentation/widgets/custom_text.dart';
 import 'package:your_choices/utilities/hex_color.dart';
 

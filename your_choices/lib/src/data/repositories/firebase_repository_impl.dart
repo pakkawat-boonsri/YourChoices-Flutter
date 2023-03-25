@@ -1,10 +1,9 @@
 import 'dart:io';
 
-import 'package:your_choices/src/domain/entities/vendor/add_ons/add_ons_entity.dart';
 import 'package:your_choices/src/domain/entities/vendor/dishes_menu/dishes_entity.dart';
-import 'package:your_choices/src/domain/entities/vendor/filter_options/filter_option_entity.dart';
 
 import '../../domain/entities/customer/customer_entity.dart';
+import '../../domain/entities/vendor/filter_options/filter_option_entity.dart';
 import '../../domain/entities/vendor/vendor_entity.dart';
 import '../../domain/repositories/firebase_repository.dart';
 import '../data_sources/remote_data_source/remote_data_source.dart';
@@ -93,41 +92,33 @@ class FirebaseRepositoryImpl implements FirebaseRepository {
   }
 
   @override
-  Future<void> createFilterOption(FilterOptionEntity filterOptionEntity) async {
-    return await remoteDataSource.createFilterOption(filterOptionEntity);
-  }
-
-  @override
-  Stream<List<FilterOptionEntity>> readFilterOption(
-      FilterOptionEntity filterOptionEntity) {
-    return remoteDataSource.readFilterOption(filterOptionEntity);
-  }
-
-  @override
-  Future<void> deleteFilterOption(FilterOptionEntity filterOptionEntity) async {
-    return await remoteDataSource.deleteFilterOption(filterOptionEntity);
-  }
-
-  @override
-  Future<void> createAddons(AddOnsEntity addOnsEntity) async {
-    return await remoteDataSource.createAddons(addOnsEntity);
-  }
-
-  @override
-  Stream<List<AddOnsEntity>> readAddons(AddOnsEntity addOnsEntity) {
-    return remoteDataSource.readAddons(addOnsEntity);
-  }
-
-  @override
-  Future<void> deleteAddons(AddOnsEntity addOnsEntity) async {
-    return await remoteDataSource.deleteAddons(addOnsEntity);
-  }
-
-  @override
   Future<void> openAndCloseRestaurant(VendorEntity vendorEntity) async =>
       await remoteDataSource.openAndCloseRestaurant(vendorEntity);
 
   @override
   Future<void> updateRestaurantInfo(VendorEntity vendorEntity) async =>
       await remoteDataSource.updateRestaurantInfo(vendorEntity);
+
+  @override
+  Future<void> createFilterOption(
+          FilterOptionEntity filterOptionEntity) async =>
+      await remoteDataSource.createFilterOption(filterOptionEntity);
+
+  @override
+  Future<void> deleteFilterOption(
+          FilterOptionEntity filterOptionEntity) async =>
+      await remoteDataSource.deleteFilterOption(filterOptionEntity);
+
+  @override
+  Stream<List<FilterOptionEntity>> readFilterOption(String uid) =>
+      remoteDataSource.readFilterOption(uid);
+
+  @override
+  Future<void> updateFilterOption(
+          FilterOptionEntity filterOptionEntity) async =>
+      await remoteDataSource.updateFilterOption(filterOptionEntity);
+
+  @override
+  Future<void> updateAllFilterOptionIsSelectedToFalse() async =>
+      remoteDataSource.updateAllFilterOptionIsSelectedToFalse();
 }

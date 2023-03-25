@@ -1,8 +1,7 @@
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:equatable/equatable.dart';
+import 'package:bloc/bloc.dart';
 
-part 'add_ons_state.dart';
+import 'add_ons_state.dart';
 
 class AddOnsCubit extends Cubit<AddOnsState> {
-  AddOnsCubit() : super(AddOnsInitial());
+  AddOnsCubit() : super(const AddOnsInitial());
 }

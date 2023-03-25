@@ -40,4 +40,12 @@ class MenuAddFilterOption extends MenuState {
 
   @override
   List<Object?> get props => [filterOptionEntity];
+
+  MenuAddFilterOption copyWith({
+    List<FilterOptionEntity>? filterOptionEntity,
+  }) {
+    return MenuAddFilterOption(
+      filterOptionEntity ?? this.filterOptionEntity,
+    );
+  }
 }

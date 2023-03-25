@@ -16,7 +16,6 @@ import 'package:your_choices/src/domain/entities/vendor/dishes_menu/dishes_entit
 import 'package:your_choices/src/domain/entities/vendor/filter_options/filter_option_entity.dart';
 import 'package:your_choices/src/domain/entities/vendor/vendor_entity.dart';
 import '../../../../utilities/show_flutter_toast.dart';
-import '../../../domain/entities/vendor/add_ons/add_ons_entity.dart';
 
 class FirebaseRemoteDataSourceImpl implements FirebaseRemoteDataSource {
   final FirebaseFirestore firebaseFireStore;
@@ -303,6 +302,7 @@ class FirebaseRemoteDataSourceImpl implements FirebaseRemoteDataSource {
             filterName: filterOption.filterName,
             isRequired: filterOption.isRequired,
             isMultiple: filterOption.isMultiple,
+            multipleQuantity: filterOption.multipleQuantity,
           ).toJson();
 
           filterOptionSubCollection
@@ -386,6 +386,7 @@ class FirebaseRemoteDataSourceImpl implements FirebaseRemoteDataSource {
               filterName: filterOptionDoc['filterName'],
               isMultiple: filterOptionDoc['isMultiple'],
               isRequired: filterOptionDoc['isRequired'],
+              multipleQuantity: filterOptionDoc['multipleQuantity'],
               addOns: addOnsModel,
             ));
           }
@@ -413,7 +414,24 @@ class FirebaseRemoteDataSourceImpl implements FirebaseRemoteDataSource {
         .doc(uid)
         .collection(FirebaseConst.menu);
     try {
-      await menuSubCollection.doc(dishesEntity.dishesId).delete();
+      final dishesColRef = menuSubCollection.doc(dishesEntity.dishesId);
+
+      final filterOptionColRef =
+          dishesColRef.collection(FirebaseConst.filterOption);
+
+      final filterQuerySnapShot = await filterOptionColRef.get();
+
+      for (final filterDoc in filterQuerySnapShot.docs) {
+        final addOnsColRef =
+            filterDoc.reference.collection(FirebaseConst.addons);
+        final addOnsQuerySnapShot = await addOnsColRef.get();
+
+        for (final addOnsDoc in addOnsQuerySnapShot.docs) {
+          await addOnsDoc.reference.delete();
+        }
+        await filterDoc.reference.delete();
+      }
+      await dishesColRef.delete();
     } catch (e) {
       showFlutterToast(e.toString());
     }
@@ -458,43 +476,6 @@ class FirebaseRemoteDataSourceImpl implements FirebaseRemoteDataSource {
     } else {
       showFlutterToast("Can't Update Restaurant Infomation right now");
     }
-  }
-
-  @override
-  Future<void> createFilterOption(FilterOptionEntity filterOptionEntity) {
-    // TODO: implement createFilterOption
-    throw UnimplementedError();
-  }
-
-  @override
-  Stream<List<FilterOptionEntity>> readFilterOption(
-      FilterOptionEntity filterOptionEntity) {
-    // TODO: implement readFilterOption
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<void> deleteFilterOption(FilterOptionEntity filterOptionEntity) {
-    // TODO: implement deleteFilterOption
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<void> createAddons(AddOnsEntity addOnsEntity) {
-    // TODO: implement createAddons
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<void> deleteAddons(AddOnsEntity addOnsEntity) {
-    // TODO: implement deleteAddons
-    throw UnimplementedError();
-  }
-
-  @override
-  Stream<List<AddOnsEntity>> readAddons(AddOnsEntity addOnsEntity) {
-    // TODO: implement readAddons
-    throw UnimplementedError();
   }
 
   @override
@@ -551,6 +532,199 @@ class FirebaseRemoteDataSourceImpl implements FirebaseRemoteDataSource {
     } else {
       showFlutterToast("Can't Update Restaurant Infomation right now");
     }
+  }
+
+  @override
+  Future<void> createFilterOption(FilterOptionEntity filterOptionEntity) async {
+    final uid = await getCurrentUid();
+    final filterOptionSubCollection = firebaseFireStore
+        .collection(FirebaseConst.restaurant)
+        .doc(uid)
+        .collection(FirebaseConst.filterOption);
+
+    filterOptionSubCollection
+        .doc(filterOptionEntity.filterId)
+        .get()
+        .then((filterOptionDoc) {
+      final newFilterOptionModel = FilterOptionModel(
+        filterId: filterOptionEntity.filterId,
+        filterName: filterOptionEntity.filterName,
+        isMultiple: filterOptionEntity.isMultiple,
+        isRequired: filterOptionEntity.isRequired,
+        isSelected: filterOptionEntity.isSelected,
+        multipleQuantity: filterOptionEntity.multipleQuantity,
+      ).toJson();
+
+      if (filterOptionDoc.exists) {
+        filterOptionSubCollection
+            .doc(filterOptionEntity.filterId)
+            .update(newFilterOptionModel);
+      } else {
+        filterOptionSubCollection
+            .doc(filterOptionEntity.filterId)
+            .set(newFilterOptionModel);
+      }
+
+      if (filterOptionEntity.addOns != null) {
+        final addOnsSubCollection = filterOptionSubCollection
+            .doc(filterOptionEntity.filterId)
+            .collection(FirebaseConst.addons);
+
+        for (var addOnsEntity in filterOptionEntity.addOns!) {
+          final newAddOnsModel = AddOnsModel(
+            addonsId: addOnsEntity.addonsId,
+            addonsName: addOnsEntity.addonsName,
+            priceType: addOnsEntity.priceType,
+            price: addOnsEntity.price,
+          ).toJson();
+
+          addOnsSubCollection
+              .doc(addOnsEntity.addonsId)
+              .get()
+              .then((addOnsDoc) {
+            if (addOnsDoc.exists) {
+              addOnsSubCollection
+                  .doc(addOnsEntity.addonsId)
+                  .update(newAddOnsModel);
+            } else {
+              addOnsSubCollection
+                  .doc(addOnsEntity.addonsId)
+                  .set(newAddOnsModel);
+            }
+          });
+        }
+      }
+    });
+  }
+
+  @override
+  Stream<List<FilterOptionEntity>> readFilterOption(String uid) {
+    final filterOptionSubCollection = firebaseFireStore
+        .collection(FirebaseConst.restaurant)
+        .doc(uid)
+        .collection(FirebaseConst.filterOption);
+    return filterOptionSubCollection.snapshots().map((querySnapshot) {
+      return querySnapshot.docs.map((filterOptionDoc) {
+        List<AddOnsModel> addOnsModel = [];
+
+        filterOptionDoc.reference
+            .collection(FirebaseConst.addons)
+            .snapshots()
+            .listen((addOnsSnapshot) {
+          addOnsModel.clear();
+
+          for (var addOnsDoc in addOnsSnapshot.docs) {
+            addOnsModel.add(AddOnsModel(
+              addonsId: addOnsDoc['addonsId'],
+              addonsName: addOnsDoc['addonsName'],
+              priceType: addOnsDoc['priceType'],
+              price: addOnsDoc['price'],
+            ));
+          }
+        });
+
+        return FilterOptionModel(
+          filterId: filterOptionDoc['filterId'],
+          filterName: filterOptionDoc['filterName'],
+          isMultiple: filterOptionDoc['isMultiple'],
+          isRequired: filterOptionDoc['isRequired'],
+          isSelected: filterOptionDoc['isSelected'],
+          multipleQuantity: filterOptionDoc['multipleQuantity'],
+          addOns: addOnsModel,
+        );
+      }).toList();
+    });
+  }
+
+  @override
+  Future<void> deleteFilterOption(
+    FilterOptionEntity filterOptionEntity,
+  ) async {
+    final uid = await getCurrentUid();
+    final filterOptionSubCollection = firebaseFireStore
+        .collection(FirebaseConst.restaurant)
+        .doc(uid)
+        .collection(FirebaseConst.filterOption);
+    try {
+      final filterDocRef =
+          filterOptionSubCollection.doc(filterOptionEntity.filterId);
+      final addOnsColRef = filterDocRef.collection(FirebaseConst.addons);
+      final addOnsQuerySnapShot = await addOnsColRef.get();
+
+      for (DocumentSnapshot addOnsDoc in addOnsQuerySnapShot.docs) {
+        await addOnsDoc.reference.delete();
+      }
+      await filterDocRef.delete();
+    } catch (e) {
+      showFlutterToast(e.toString());
+    }
+  }
+
+  @override
+  Future<void> updateFilterOption(
+    FilterOptionEntity filterOptionEntity,
+  ) async {
+    final uid = await getCurrentUid();
+    final filterSubCollection = firebaseFireStore
+        .collection(FirebaseConst.restaurant)
+        .doc(uid)
+        .collection(FirebaseConst.filterOption);
+    final filterOptionDoc =
+        await filterSubCollection.doc(filterOptionEntity.filterId).get();
+
+    final Map<String, dynamic> filterOptionInfo = {};
+
+    if (filterOptionEntity.filterName != "" &&
+        filterOptionEntity.filterName != null) {
+      filterOptionInfo['filterName'] = filterOptionEntity.filterName;
+    }
+    if (filterOptionEntity.isRequired != null) {
+      filterOptionInfo['isRequired'] = filterOptionEntity.isRequired;
+    }
+    if (filterOptionEntity.isMultiple != null) {
+      filterOptionInfo['isMultiple'] = filterOptionEntity.isMultiple;
+    }
+    if (filterOptionEntity.isSelected != null) {
+      filterOptionInfo['isSelected'] = filterOptionEntity.isSelected;
+    }
+    if (filterOptionEntity.multipleQuantity != null) {
+      filterOptionInfo['multipleQuantity'] =
+          filterOptionEntity.multipleQuantity;
+    }
+
+    if (filterOptionDoc.exists) {
+      try {
+        await filterSubCollection
+            .doc(filterOptionEntity.filterId)
+            .update(filterOptionInfo);
+      } catch (_) {
+        showFlutterToast(_.toString());
+      }
+    } else {
+      showFlutterToast("Can't Update Restaurant Infomation right now");
+    }
+  }
+
+  @override
+  Future<void> updateAllFilterOptionIsSelectedToFalse() async {
+    final uid = await getCurrentUid();
+    final filterSubCollection = firebaseFireStore
+        .collection(FirebaseConst.restaurant)
+        .doc(uid)
+        .collection(FirebaseConst.filterOption);
+
+    final querySnapshot = await filterSubCollection.get();
+
+    final batch = firebaseFireStore.batch();
+    for (var doc in querySnapshot.docs) {
+      final updateData = {
+        'isSelected': false,
+      };
+      final docRef = filterSubCollection.doc(doc.id);
+      batch.update(docRef, updateData);
+    }
+
+    await batch.commit();
   }
 }
 

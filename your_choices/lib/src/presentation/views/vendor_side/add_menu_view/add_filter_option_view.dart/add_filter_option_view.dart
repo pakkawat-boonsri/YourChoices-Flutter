@@ -4,13 +4,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:touchable_opacity/touchable_opacity.dart';
 import 'package:uuid/uuid.dart';
+import 'package:your_choices/on_generate_routes.dart';
 import 'package:your_choices/src/domain/entities/vendor/add_ons/add_ons_entity.dart';
 import 'package:your_choices/src/domain/entities/vendor/filter_options/filter_option_entity.dart';
+import 'package:your_choices/src/domain/usecases/firebase_usecases/customer/get_current_uid_usecase.dart';
 import 'package:your_choices/src/presentation/blocs/vendor/filter_option/filter_option_cubit.dart';
-import 'package:your_choices/src/presentation/blocs/vendor/menu/menu_cubit.dart';
 import 'package:your_choices/src/presentation/widgets/custom_vendor_appbar.dart';
-
+import 'package:your_choices/injection_container.dart' as di;
+import 'package:your_choices/utilities/loading_dialog.dart';
+import 'package:your_choices/utilities/show_flutter_toast.dart';
 import '../../../../../../utilities/text_style.dart';
+import '../../../../blocs/vendor/filter_option/filter_option_state.dart';
 
 enum RadioTypes {
   nochange,
@@ -30,15 +34,17 @@ class _AddFilterOptionViewState extends State<AddFilterOptionView> {
   bool isMultipleChoice = false;
   RadioTypes? _options;
   final filterOptionName = TextEditingController();
+  final filterQuantity = TextEditingController();
   final addOnsName = TextEditingController();
   final addOnsPrice = TextEditingController();
   final _formKey = GlobalKey<FormState>();
   final _dialogKey = GlobalKey<FormState>();
+  int quantity = 2;
 
   @override
-  void initState() {
+  void didChangeDependencies() {
+    super.didChangeDependencies();
     BlocProvider.of<FilterOptionCubit>(context).resetAddOnsList();
-    super.initState();
   }
 
   @override
@@ -56,114 +62,103 @@ class _AddFilterOptionViewState extends State<AddFilterOptionView> {
       resizeToAvoidBottomInset: false,
       appBar: CustomAppbar(
         title: "สร้างตัวเลือกใหม่",
-        onTap: () {
-          Navigator.pop(context);
+        onTap: () async {
+          Navigator.pushNamedAndRemoveUntil(
+            context,
+            PageConst.listOfFilterOption,
+            arguments: await di.sl<GetCurrentUidUseCase>().call(),
+            (route) => route.isFirst,
+          );
         },
       ),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(20.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildOptionTitle(),
-              Padding(
-                padding: const EdgeInsets.only(top: 5),
-                child: _buildCheckBoxs(),
-              ),
-              const Padding(
-                padding: EdgeInsets.fromLTRB(0, 0, 0, 10),
-                child: Divider(
-                  color: Colors.grey,
-                  thickness: 1,
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildOptionTitle(),
+                Padding(
+                  padding: const EdgeInsets.only(top: 5),
+                  child: _buildCheckBoxs(),
                 ),
-              ),
-              const SizedBox(
-                width: 10,
-              ),
-              Text(
-                "แต่ละช้อยส์ในตัวเลือก",
-                style: AppTextStyle.googleFont(
-                  Colors.white,
-                  20,
-                  FontWeight.w500,
+                const Padding(
+                  padding: EdgeInsets.fromLTRB(0, 0, 0, 10),
+                  child: Divider(
+                    color: Colors.grey,
+                    thickness: 1,
+                  ),
                 ),
-              ),
-              _buildListOfAddOnsBloc(),
-              _buildAddChoiceButton(context),
-              const Spacer(),
-              _buildConfirmAndCancelButton(context)
-            ],
+                const SizedBox(
+                  width: 10,
+                ),
+                Text(
+                  "แต่ละช้อยส์ในตัวเลือก",
+                  style: AppTextStyle.googleFont(
+                    Colors.white,
+                    20,
+                    FontWeight.w500,
+                  ),
+                ),
+                _buildListOfAddOnsBloc(),
+                _buildAddChoiceButton(context),
+                const Spacer(),
+                _buildConfirmAndCancelButton(context)
+              ],
+            ),
           ),
         ),
       ),
     );
   }
 
-  Row _buildConfirmAndCancelButton(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: [
-        TouchableOpacity(
-          onTap: () {
-            Navigator.pop(context);
-          },
-          child: Container(
-            alignment: Alignment.center,
-            width: 150,
-            height: 40,
-            decoration: BoxDecoration(
-              color: Colors.grey,
-              borderRadius: BorderRadius.circular(5),
-            ),
-            child: Text(
-              "ยกเลิก",
-              style: AppTextStyle.googleFont(
-                Colors.white,
-                20,
-                FontWeight.w500,
-              ),
-            ),
+  Widget _buildConfirmAndCancelButton(BuildContext context) {
+    return TouchableOpacity(
+      onTap: () async {
+        if (_formKey.currentState!.validate()) {
+          loadingDialog(context);
+          final addOnsLists = context.read<FilterOptionCubit>().getAddOnsList;
+          final addOnsList = List<AddOnsEntity>.from(addOnsLists);
+
+          await BlocProvider.of<FilterOptionCubit>(context).createFilterOption(
+              filterOptionEntity: FilterOptionEntity(
+            filterId: const Uuid().v1(),
+            filterName: filterOptionName.text,
+            isMultiple: isMultipleChoice,
+            isRequired: isRequire,
+            isSelected: false,
+            multipleQuantity: isMultipleChoice == false ? null : quantity,
+            addOns: addOnsList,
+          ));
+          if (!mounted) {}
+          Navigator.pop(context);
+          context.read<FilterOptionCubit>().resetAddOnsList();
+          Navigator.pushNamedAndRemoveUntil(
+            context,
+            PageConst.listOfFilterOption,
+            arguments: await di.sl<GetCurrentUidUseCase>().call(),
+            (route) => route.isFirst,
+          );
+        }
+      },
+      child: Container(
+        alignment: Alignment.center,
+        height: 40,
+        decoration: BoxDecoration(
+          color: Colors.amber.shade900,
+          borderRadius: BorderRadius.circular(5),
+        ),
+        child: Text(
+          "สร้างตัวเลือก",
+          style: AppTextStyle.googleFont(
+            Colors.white,
+            22,
+            FontWeight.w500,
           ),
         ),
-        TouchableOpacity(
-          onTap: () {
-            final addOnsList = List<AddOnsEntity>.of(
-                context.read<FilterOptionCubit>().getAddOnsList);
-
-            BlocProvider.of<MenuCubit>(context).addFilterOption(
-              FilterOptionEntity(
-                filterId: const Uuid().v1(),
-                filterName: filterOptionName.text,
-                isMultiple: isMultipleChoice,
-                isRequired: isRequire,
-                addOns: addOnsList,
-              ),
-            );
-
-            context.read<FilterOptionCubit>().resetAddOnsList();
-            log("${context.read<FilterOptionCubit>().getAddOnsList}");
-            Navigator.pop(context);
-          },
-          child: Container(
-            alignment: Alignment.center,
-            width: 150,
-            height: 40,
-            decoration: BoxDecoration(
-              color: Colors.amber.shade900,
-              borderRadius: BorderRadius.circular(5),
-            ),
-            child: Text(
-              "ยืนยัน",
-              style: AppTextStyle.googleFont(
-                Colors.white,
-                20,
-                FontWeight.w500,
-              ),
-            ),
-          ),
-        ),
-      ],
+      ),
     );
   }
 
@@ -196,8 +191,8 @@ class _AddFilterOptionViewState extends State<AddFilterOptionView> {
                         addOnsEntity.addonsName ?? "No Name",
                         style: AppTextStyle.googleFont(
                           Colors.black,
-                          18,
-                          FontWeight.w500,
+                          16,
+                          FontWeight.w400,
                         ),
                       ),
                       Row(
@@ -205,23 +200,30 @@ class _AddFilterOptionViewState extends State<AddFilterOptionView> {
                           Padding(
                             padding: const EdgeInsets.only(right: 8.0),
                             child: addOnsEntity.price == null
-                                ? const Text("")
+                                ? Text(
+                                    "0 ฿",
+                                    style: AppTextStyle.googleFont(
+                                      Colors.black,
+                                      16,
+                                      FontWeight.normal,
+                                    ),
+                                  )
                                 : addOnsEntity.priceType ==
                                         RadioTypes.priceIncrease.toString()
                                     ? Text(
                                         "+${addOnsEntity.price ?? ""} ฿",
                                         style: AppTextStyle.googleFont(
                                           Colors.black,
-                                          18,
-                                          FontWeight.w500,
+                                          16,
+                                          FontWeight.normal,
                                         ),
                                       )
                                     : Text(
                                         "-${addOnsEntity.price ?? ""} ฿",
                                         style: AppTextStyle.googleFont(
                                           Colors.black,
-                                          18,
-                                          FontWeight.w500,
+                                          16,
+                                          FontWeight.normal,
                                         ),
                                       ),
                           ),
@@ -293,242 +295,232 @@ class _AddFilterOptionViewState extends State<AddFilterOptionView> {
           actionsAlignment: MainAxisAlignment.center,
           content: Wrap(
             children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    "ชื่อช้อยส์",
-                    style: AppTextStyle.googleFont(
-                      Colors.black,
-                      18,
-                      FontWeight.w500,
-                    ),
+              Text(
+                "ชื่อช้อยส์",
+                style: AppTextStyle.googleFont(
+                  Colors.black,
+                  18,
+                  FontWeight.w500,
+                ),
+              ),
+              TextFormField(
+                controller: addOnsName,
+                style: const TextStyle(
+                  color: Colors.black,
+                  fontSize: 14,
+                ),
+                decoration: const InputDecoration(
+                  contentPadding: EdgeInsets.all(10),
+                  isDense: true,
+                  hintText: "กรอกชื่อชื่อช้อยส์",
+                  hintStyle: TextStyle(
+                    color: Colors.grey,
                   ),
-                  const SizedBox(
-                    height: 10,
-                  ),
-                  TextFormField(
-                    controller: addOnsName,
-                    style: const TextStyle(
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(
                       color: Colors.black,
-                      fontSize: 14,
-                    ),
-                    decoration: const InputDecoration(
-                      contentPadding: EdgeInsets.all(10),
-                      isDense: true,
-                      hintText: "กรอกชื่อชื่อช้อยส์",
-                      hintStyle: TextStyle(
-                        color: Colors.grey,
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderSide: BorderSide(
-                          color: Colors.black,
-                        ),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderSide: BorderSide(
-                          color: Colors.black,
-                        ),
-                      ),
                     ),
                   ),
-                  const SizedBox(
-                    height: 15,
-                  ),
-                  Text(
-                    "เลือกช้อยส์นี้มีผลต่อราคาของเมนูหรือไม่ ?",
-                    style: AppTextStyle.googleFont(
-                      Colors.black,
-                      15,
-                      FontWeight.normal,
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(
+                      color: Colors.black,
                     ),
                   ),
-                  StatefulBuilder(
-                    builder: (context, setState) => Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                ),
+              ),
+              const SizedBox(
+                height: 15,
+              ),
+              Text(
+                "เลือกช้อยส์นี้มีผลต่อราคาของเมนูหรือไม่ ?",
+                style: AppTextStyle.googleFont(
+                  Colors.black,
+                  15,
+                  FontWeight.normal,
+                ),
+              ),
+              StatefulBuilder(
+                builder: (context, setState) => Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    RadioListTile(
+                      controlAffinity: ListTileControlAffinity.leading,
+                      contentPadding: EdgeInsets.zero,
+                      activeColor: Colors.amber.shade900,
+                      title: const Text("ไม่มีการเปลี่ยนแปลงราคา"),
+                      value: RadioTypes.nochange,
+                      groupValue: _options,
+                      onChanged: (val) {
+                        setState(() {
+                          _options = val;
+                          log(_options.toString());
+                        });
+                      },
+                    ),
+                    Row(
                       children: [
-                        RadioListTile(
-                          controlAffinity: ListTileControlAffinity.leading,
-                          contentPadding: EdgeInsets.zero,
-                          activeColor: Colors.amber.shade900,
-                          title: const Text("ไม่มีการเปลี่ยนแปลงราคา"),
-                          value: RadioTypes.nochange,
-                          groupValue: _options,
-                          onChanged: (val) {
-                            setState(() {
-                              _options = val;
-                              log(_options.toString());
-                            });
-                          },
+                        Expanded(
+                          child: RadioListTile(
+                            controlAffinity: ListTileControlAffinity.leading,
+                            contentPadding: EdgeInsets.zero,
+                            activeColor: Colors.amber.shade900,
+                            title: const Text("เพิ่มราคา"),
+                            value: RadioTypes.priceIncrease,
+                            groupValue: _options,
+                            onChanged: (val) {
+                              setState(() {
+                                _options = val;
+                                log(_options.toString());
+                              });
+                            },
+                          ),
                         ),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: RadioListTile(
-                                controlAffinity:
-                                    ListTileControlAffinity.leading,
-                                contentPadding: EdgeInsets.zero,
-                                activeColor: Colors.amber.shade900,
-                                title: const Text("เพิ่มราคา"),
-                                value: RadioTypes.priceIncrease,
-                                groupValue: _options,
-                                onChanged: (val) {
-                                  setState(() {
-                                    _options = val;
-                                    log(_options.toString());
-                                  });
-                                },
-                              ),
-                            ),
-                            _options == RadioTypes.priceIncrease
-                                ? Expanded(
-                                    child: TextField(
-                                      controller: addOnsPrice,
-                                      keyboardType: TextInputType.number,
-                                      decoration: InputDecoration(
-                                        icon: const Text(
-                                          "+",
-                                        ),
-                                        suffixText: "฿",
-                                        isDense: true,
-                                        enabledBorder: OutlineInputBorder(
-                                          borderSide: BorderSide(
-                                            color: Colors.amber.shade900,
-                                          ),
-                                        ),
-                                        focusedBorder: OutlineInputBorder(
-                                          borderSide: BorderSide(
-                                            color: Colors.amber.shade900,
-                                          ),
-                                        ),
+                        _options == RadioTypes.priceIncrease
+                            ? Expanded(
+                                child: TextField(
+                                  controller: addOnsPrice,
+                                  keyboardType: TextInputType.number,
+                                  decoration: InputDecoration(
+                                    icon: const Text(
+                                      "+",
+                                    ),
+                                    suffixText: "฿",
+                                    isDense: true,
+                                    enabledBorder: OutlineInputBorder(
+                                      borderSide: BorderSide(
+                                        color: Colors.amber.shade900,
                                       ),
                                     ),
-                                  )
-                                : Container(),
-                          ],
-                        ),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: RadioListTile(
-                                controlAffinity:
-                                    ListTileControlAffinity.leading,
-                                contentPadding: EdgeInsets.zero,
-                                activeColor: Colors.amber.shade900,
-                                title: const Text("ลดราคา"),
-                                value: RadioTypes.priceDecrease,
-                                groupValue: _options,
-                                onChanged: (val) {
-                                  setState(() {
-                                    _options = val;
-                                    log(_options.toString());
-                                  });
-                                },
-                              ),
-                            ),
-                            _options == RadioTypes.priceDecrease
-                                ? Expanded(
-                                    child: TextField(
-                                      controller: addOnsPrice,
-                                      keyboardType: TextInputType.number,
-                                      decoration: InputDecoration(
-                                        icon: const Text(
-                                          "-",
-                                        ),
-                                        suffixText: "฿",
-                                        isDense: true,
-                                        enabledBorder: OutlineInputBorder(
-                                          borderSide: BorderSide(
-                                            color: Colors.amber.shade900,
-                                          ),
-                                        ),
-                                        focusedBorder: OutlineInputBorder(
-                                          borderSide: BorderSide(
-                                            color: Colors.amber.shade900,
-                                          ),
-                                        ),
+                                    focusedBorder: OutlineInputBorder(
+                                      borderSide: BorderSide(
+                                        color: Colors.amber.shade900,
                                       ),
                                     ),
-                                  )
-                                : Container(),
-                          ],
-                        ),
+                                  ),
+                                ),
+                              )
+                            : Container(),
                       ],
                     ),
-                  ),
-                  const Padding(
-                    padding: EdgeInsets.fromLTRB(0, 0, 0, 10),
-                    child: Divider(
-                      color: Colors.grey,
-                      thickness: 1,
+                    Row(
+                      children: [
+                        Expanded(
+                          child: RadioListTile(
+                            controlAffinity: ListTileControlAffinity.leading,
+                            contentPadding: EdgeInsets.zero,
+                            activeColor: Colors.amber.shade900,
+                            title: const Text("ลดราคา"),
+                            value: RadioTypes.priceDecrease,
+                            groupValue: _options,
+                            onChanged: (val) {
+                              setState(() {
+                                _options = val;
+                                log(_options.toString());
+                              });
+                            },
+                          ),
+                        ),
+                        _options == RadioTypes.priceDecrease
+                            ? Expanded(
+                                child: TextField(
+                                  controller: addOnsPrice,
+                                  keyboardType: TextInputType.number,
+                                  decoration: InputDecoration(
+                                    icon: const Text(
+                                      "-",
+                                    ),
+                                    suffixText: "฿",
+                                    isDense: true,
+                                    enabledBorder: OutlineInputBorder(
+                                      borderSide: BorderSide(
+                                        color: Colors.amber.shade900,
+                                      ),
+                                    ),
+                                    focusedBorder: OutlineInputBorder(
+                                      borderSide: BorderSide(
+                                        color: Colors.amber.shade900,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              )
+                            : Container(),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              const Padding(
+                padding: EdgeInsets.fromLTRB(0, 0, 0, 10),
+                child: Divider(
+                  color: Colors.grey,
+                  thickness: 1,
+                ),
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  TouchableOpacity(
+                    onTap: () {
+                      Navigator.pop(context);
+                    },
+                    child: Container(
+                      alignment: Alignment.center,
+                      width: 100,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: Colors.grey,
+                        borderRadius: BorderRadius.circular(5),
+                      ),
+                      child: Text(
+                        "ยกเลิก",
+                        style: AppTextStyle.googleFont(
+                          Colors.white,
+                          20,
+                          FontWeight.w500,
+                        ),
+                      ),
                     ),
                   ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      TouchableOpacity(
-                        onTap: () {
-                          Navigator.pop(context);
-                        },
-                        child: Container(
-                          alignment: Alignment.center,
-                          width: 100,
-                          height: 40,
-                          decoration: BoxDecoration(
-                            color: Colors.grey,
-                            borderRadius: BorderRadius.circular(5),
-                          ),
-                          child: Text(
-                            "ยกเลิก",
-                            style: AppTextStyle.googleFont(
-                              Colors.white,
-                              20,
-                              FontWeight.w500,
-                            ),
-                          ),
+                  TouchableOpacity(
+                    onTap: () async {
+                      await BlocProvider.of<FilterOptionCubit>(context)
+                          .addAddOns(AddOnsEntity(
+                        addonsId: const Uuid().v1(),
+                        addonsName: addOnsName.text,
+                        priceType: _options.toString(),
+                        price: _options == RadioTypes.nochange
+                            ? null
+                            : int.parse(addOnsPrice.text),
+                      ))
+                          .then((value) {
+                        log("${context.read<FilterOptionCubit>().getAddOnsList}");
+                        addOnsName.clear();
+                        addOnsPrice.clear();
+                        _options = null;
+                        Navigator.pop(context);
+                      });
+                    },
+                    child: Container(
+                      alignment: Alignment.center,
+                      width: 100,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: Colors.amber.shade900,
+                        borderRadius: BorderRadius.circular(5),
+                      ),
+                      child: Text(
+                        "ยืนยัน",
+                        style: AppTextStyle.googleFont(
+                          Colors.white,
+                          20,
+                          FontWeight.w500,
                         ),
                       ),
-                      TouchableOpacity(
-                        onTap: () async {
-                          await BlocProvider.of<FilterOptionCubit>(context)
-                              .addAddOns(AddOnsEntity(
-                            addonsId: const Uuid().v1(),
-                            addonsName: addOnsName.text,
-                            priceType: _options.toString(),
-                            price: _options == RadioTypes.nochange
-                                ? null
-                                : int.parse(addOnsPrice.text),
-                          ))
-                              .then((value) {
-                            addOnsName.clear();
-                            addOnsPrice.clear();
-                            _options = null;
-                            Navigator.pop(context);
-                          });
-                        },
-                        child: Container(
-                          alignment: Alignment.center,
-                          width: 100,
-                          height: 40,
-                          decoration: BoxDecoration(
-                            color: Colors.amber.shade900,
-                            borderRadius: BorderRadius.circular(5),
-                          ),
-                          child: Text(
-                            "ยืนยัน",
-                            style: AppTextStyle.googleFont(
-                              Colors.white,
-                              20,
-                              FontWeight.w500,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  )
+                    ),
+                  ),
                 ],
-              ),
+              )
             ],
           ),
         );
@@ -591,12 +583,72 @@ class _AddFilterOptionViewState extends State<AddFilterOptionView> {
               },
             ),
           ),
+          const SizedBox(
+            height: 10,
+          ),
+          isMultipleChoice
+              ? Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    TouchableOpacity(
+                      onTap: quantity < 3
+                          ? () {
+                              return showFlutterToast(
+                                  "ไม่สามารถเลือกต่ำกว่า 2 ได้");
+                            }
+                          : () {
+                              quantity--;
+                              setState(() {});
+                            },
+                      child: Container(
+                        padding: const EdgeInsets.all(3),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(5),
+                        ),
+                        child: const Icon(
+                          Icons.remove,
+                          color: Colors.black,
+                        ),
+                      ),
+                    ),
+                    Text(
+                      "$quantity",
+                      style: AppTextStyle.googleFont(
+                        Colors.white,
+                        22,
+                        FontWeight.w500,
+                      ),
+                    ),
+                    TouchableOpacity(
+                      onTap: () {
+                        quantity++;
+                        setState(() {});
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.all(3),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(5),
+                        ),
+                        child: const Icon(
+                          Icons.add,
+                          color: Colors.black,
+                        ),
+                      ),
+                    ),
+                  ],
+                )
+              : const SizedBox.shrink(),
+          const SizedBox(
+            height: 10,
+          ),
         ],
       ),
     );
   }
 
-  Column _buildOptionTitle() {
+  Widget _buildOptionTitle() {
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -629,6 +681,9 @@ class _AddFilterOptionViewState extends State<AddFilterOptionView> {
               }
               return null;
             },
+            onFieldSubmitted: (value) {
+              if (_formKey.currentState!.validate()) {}
+            },
             controller: filterOptionName,
             style: AppTextStyle.googleFont(
               Colors.white,
@@ -643,6 +698,11 @@ class _AddFilterOptionViewState extends State<AddFilterOptionView> {
                 Colors.grey,
                 18,
                 FontWeight.w500,
+              ),
+              errorBorder: const OutlineInputBorder(
+                borderSide: BorderSide(
+                  color: Colors.red,
+                ),
               ),
               enabledBorder: OutlineInputBorder(
                 borderSide: BorderSide(

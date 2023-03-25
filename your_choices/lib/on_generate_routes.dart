@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:your_choices/src/domain/entities/vendor/filter_options/filter_option_entity.dart';
 import 'package:your_choices/src/domain/entities/vendor/vendor_entity.dart';
 import 'package:your_choices/src/presentation/views/customer_side/home_view/deposit_view/deposit_view.dart';
 import 'package:your_choices/src/presentation/views/customer_side/home_view/withdraw_view/withdraw_view.dart';
@@ -6,12 +7,14 @@ import 'package:your_choices/src/presentation/views/login_view/login_view.dart';
 import 'package:your_choices/src/presentation/views/register_view/register_view.dart';
 import 'package:your_choices/src/presentation/views/vendor_side/add_menu_view/add_filter_option_view.dart/add_filter_option_view.dart';
 import 'package:your_choices/src/presentation/views/vendor_side/add_menu_view/add_menu_view.dart';
-import 'package:your_choices/src/presentation/views/vendor_side/history_record_view/history_record_view.dart';
+import 'package:your_choices/src/presentation/views/vendor_side/add_menu_view/list_of_filter_option_view/list_of_filter_option_view.dart';
+import 'package:your_choices/src/presentation/views/vendor_side/menu_view/filter_option_detail_view/filter_option_detail_view.dart';
 import 'package:your_choices/src/presentation/views/vendor_side/menu_view/menu_detail_view/menu_detail_view.dart';
 import 'package:your_choices/src/presentation/views/vendor_side/menu_view/menu_view.dart';
 import 'package:your_choices/src/presentation/views/vendor_side/order_history_view.dart/order_history_view.dart';
 import 'package:your_choices/src/presentation/views/vendor_side/restaurant_infomation_view/edit_restaurant_info_view/edit_restaurant_info_view.dart';
 import 'package:your_choices/src/presentation/views/vendor_side/restaurant_infomation_view/restaurant_infomation_view.dart';
+import 'package:your_choices/src/presentation/views/vendor_side/today_order_view/today_order_view.dart';
 import 'package:your_choices/src/presentation/views/vendor_side/vendor_main_view/vendor_main_view.dart';
 
 import 'src/domain/entities/vendor/dishes_menu/dishes_entity.dart';
@@ -47,6 +50,12 @@ class OnGenerateRoute {
           }
         }
       // vendor route
+      case PageConst.todayOrderPage:
+        {
+          return routeBuilder(
+            const TodayOrderView(),
+          );
+        }
       case PageConst.vendorMainView:
         {
           if (args is String) {
@@ -81,6 +90,34 @@ class OnGenerateRoute {
             return routeBuilder(
               MenuDetailView(
                 dishesEntity: args,
+              ),
+            );
+          } else {
+            return routeBuilder(
+              const NoPageFound(),
+            );
+          }
+        }
+      case PageConst.listOfFilterOption:
+        {
+          if (args is String) {
+            return routeBuilder(
+              ListOfFilterOptionView(
+                uid: args,
+              ),
+            );
+          } else {
+            return routeBuilder(
+              const NoPageFound(),
+            );
+          }
+        }
+      case PageConst.filterOptionDetailPage:
+        {
+          if (args is FilterOptionEntity) {
+            return routeBuilder(
+              FilterOptionDetailView(
+                filterOptionEntity: args,
               ),
             );
           } else {
@@ -133,16 +170,7 @@ class OnGenerateRoute {
                   const NoPageFound(),
                 );
         }
-      case PageConst.historyRecordPage:
-        {
-          return args is String
-              ? routeBuilder(
-                  HistoryRecordView(uid: args),
-                )
-              : routeBuilder(
-                  const NoPageFound(),
-                );
-        }
+
       case PageConst.addOptionPage:
         {
           return routeBuilder(const AddFilterOptionView());
@@ -180,9 +208,11 @@ class PageConst {
   static const String addMenuPage = "addMenuPage";
   static const String restaurantInfoPage = "restaurantInfoPage";
   static const String orderHistoryPage = "orderHistoryPage";
-  static const String historyRecordPage = "historyRecordPage";
   static const String addOptionPage = "addOptionPage";
   static const String editResInfoPage = "editResInfoPage";
+  static const String todayOrderPage = "todayOrderPage";
+  static const String filterOptionDetailPage = "filterOptionDetailPage";
+  static const String listOfFilterOption = "listOfFilterOption";
 
   //etc routes
 

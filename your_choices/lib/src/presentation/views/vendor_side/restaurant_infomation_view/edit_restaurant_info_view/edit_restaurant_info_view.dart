@@ -1,6 +1,7 @@
 import 'dart:developer';
 import 'dart:io';
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -446,7 +447,8 @@ class _EditRestaurantInfoViewState extends State<EditRestaurantInfoView> {
                         backgroundImage: vendorEntity.profileUrl == null
                             ? const AssetImage("assets/images/image_picker.png")
                                 as ImageProvider
-                            : NetworkImage(vendorEntity.profileUrl!),
+                            : CachedNetworkImageProvider(
+                                vendorEntity.profileUrl!),
                       ),
                     )
                   : Padding(
@@ -508,7 +510,7 @@ class _EditRestaurantInfoViewState extends State<EditRestaurantInfoView> {
           image: DecorationImage(
             fit: BoxFit.cover,
             image: resImage == null
-                ? NetworkImage(
+                ? CachedNetworkImageProvider(
                     vendorEntity.resProfileUrl!,
                   )
                 : FileImage(
