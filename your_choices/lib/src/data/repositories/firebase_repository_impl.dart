@@ -87,6 +87,10 @@ class FirebaseRepositoryImpl implements FirebaseRepository {
   }
 
   @override
+  Stream<List<FilterOptionEntity>> getFilterOptionInMenu(DishesEntity dishesEntity) =>
+      remoteDataSource.getFilterOptionInMenu(dishesEntity);
+
+  @override
   Future<void> updateMenu(DishesEntity dishesEntity) async {
     return await remoteDataSource.updateMenu(dishesEntity);
   }
@@ -119,6 +123,17 @@ class FirebaseRepositoryImpl implements FirebaseRepository {
       await remoteDataSource.updateFilterOption(filterOptionEntity);
 
   @override
-  Future<void> updateAllFilterOptionIsSelectedToFalse() async =>
-      remoteDataSource.updateAllFilterOptionIsSelectedToFalse();
+  Future<void> addFilterOptionInMenu(
+          FilterOptionEntity filterOptionEntity) async =>
+      remoteDataSource.addFilterOptionInMenu(filterOptionEntity);
+
+  @override
+  Future<void> deleteFilterOptionInMenu(
+          FilterOptionEntity filterOptionEntity) async =>
+      remoteDataSource.deleteFilterOptionInMenu(filterOptionEntity);
+
+  @override
+  Future<void> updateFilterOptionInMenu(
+          FilterOptionEntity filterOptionEntity) async =>
+      remoteDataSource.updateFilterOptionInMenu(filterOptionEntity);
 }

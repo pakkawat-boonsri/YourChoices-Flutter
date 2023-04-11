@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:touchable_opacity/touchable_opacity.dart';
-import 'package:your_choices/on_generate_routes.dart';
+import 'package:your_choices/src/config/app_routes/on_generate_routes.dart';
 import 'package:your_choices/src/presentation/blocs/auth/auth_cubit.dart';
 import 'package:your_choices/src/presentation/blocs/credential/credential_cubit.dart';
 import 'package:your_choices/src/presentation/views/customer_side/customer_main_view/customer_main_view.dart';

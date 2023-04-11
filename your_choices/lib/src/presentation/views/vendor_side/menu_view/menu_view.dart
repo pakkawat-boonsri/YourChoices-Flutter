@@ -3,13 +3,13 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:touchable_opacity/touchable_opacity.dart';
-import 'package:your_choices/on_generate_routes.dart';
+import 'package:your_choices/src/config/app_routes/on_generate_routes.dart';
 import 'package:your_choices/src/domain/entities/vendor/dishes_menu/dishes_entity.dart';
+import 'package:your_choices/src/presentation/blocs/add_filter_in_menu/add_filter_in_menu_cubit.dart';
+import 'package:your_choices/src/presentation/blocs/menu/menu_cubit.dart';
+import 'package:your_choices/src/presentation/blocs/menu/menu_state.dart';
 import 'package:your_choices/src/presentation/widgets/custom_vendor_appbar.dart';
 import 'package:your_choices/utilities/text_style.dart';
-
-import '../../../blocs/vendor/filter_option/filter_option_cubit.dart';
-import '../../../blocs/vendor/menu/menu_cubit.dart';
 
 class MenuView extends StatefulWidget {
   const MenuView({super.key, required this.uid});
@@ -22,11 +22,16 @@ class MenuView extends StatefulWidget {
 
 class _MenuViewState extends State<MenuView> {
   @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
+  void initState() {
+    super.initState();
     BlocProvider.of<MenuCubit>(context).getMenu(uid: widget.uid);
-    BlocProvider.of<MenuCubit>(context).resetFilterOption();
-    BlocProvider.of<FilterOptionCubit>(context).resetAddOnsList();
+    BlocProvider.of<AddFilterInMenuCubit>(context).resetFiltersInMenu();
+  }
+
+  @override
+  void didChangeDependencies() {
+    BlocProvider.of<MenuCubit>(context).getMenu(uid: widget.uid);
+    super.didChangeDependencies();
   }
 
   @override
@@ -64,19 +69,21 @@ class _MenuViewState extends State<MenuView> {
             ),
           );
         } else if (menuState is MenuLoadCompleted) {
-          List<DishesEntity> dishesEntityList = menuState.dishesEntity;
-          return dishesEntityList.isEmpty
+          return menuState.dishesList.isEmpty
               ? _buildNoMenuItem(size, context)
-              : _buildListOfMenuItem(dishesEntityList, context, size);
+              : _buildListOfMenuItem(menuState.dishesList, context, size);
         } else {
-          return Container();
+          return const SizedBox();
         }
       },
     );
   }
 
   Column _buildListOfMenuItem(
-      List<DishesEntity> dishesEntityList, BuildContext context, Size size) {
+    List<DishesEntity> dishesEntityList,
+    BuildContext context,
+    Size size,
+  ) {
     return Column(
       children: [
         GridView.builder(
@@ -97,13 +104,16 @@ class _MenuViewState extends State<MenuView> {
                 Navigator.pushNamed(
                   context,
                   PageConst.menuDetailPage,
-                  arguments: dishesEntity,
+                  arguments: {
+                    "uid": widget.uid,
+                    "dishesEntity": dishesEntity,
+                  },
                 );
               },
               child: Container(
                 decoration: BoxDecoration(
                   color: Colors.white,
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: BorderRadius.circular(5),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -117,11 +127,20 @@ class _MenuViewState extends State<MenuView> {
                         width: 166,
                         height: 60,
                         child: ClipRRect(
-                          borderRadius: BorderRadius.circular(10),
-                          child: CachedNetworkImage(
-                            imageUrl: dishesEntity.menuImg ?? "",
-                            fit: BoxFit.cover,
-                          ),
+                          borderRadius: BorderRadius.circular(5),
+                          child: dishesEntity.menuImg != null &&
+                                  dishesEntity.menuImg != ""
+                              ? CachedNetworkImage(
+                                  imageUrl: dishesEntity.menuImg!,
+                                  fit: BoxFit.cover,
+                                )
+                              : Container(
+                                  color: Colors.grey,
+                                  child: Image.asset(
+                                    "assets/images/no_menu_item.png",
+                                    color: Colors.white,
+                                  ),
+                                ),
                         ),
                       ),
                     ),
@@ -225,7 +244,7 @@ class _MenuViewState extends State<MenuView> {
               horizontal: 15,
             ),
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(5),
               color: Colors.amber[900],
             ),
             child: Align(

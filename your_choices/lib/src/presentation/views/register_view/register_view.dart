@@ -13,7 +13,7 @@ import 'package:your_choices/utilities/hex_color.dart';
 import 'package:your_choices/utilities/box_shadow.dart';
 import 'package:your_choices/utilities/text_style.dart';
 
-import '../../../../on_generate_routes.dart';
+import '../../../config/app_routes/on_generate_routes.dart';
 import '../../../../utilities/show_flutter_toast.dart';
 import '../../../domain/entities/customer/customer_entity.dart';
 import '../../blocs/auth/auth_cubit.dart';

@@ -4,12 +4,16 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-import 'package:your_choices/on_generate_routes.dart';
+import 'package:your_choices/src/config/app_routes/on_generate_routes.dart';
+import 'package:your_choices/src/presentation/blocs/add_add_ons/add_add_ons_cubit.dart';
+import 'package:your_choices/src/presentation/blocs/add_filter_in_menu/add_filter_in_menu_cubit.dart';
+import 'package:your_choices/src/presentation/blocs/add_filter_option/add_filter_option_cubit.dart';
 import 'package:your_choices/src/presentation/blocs/auth/auth_cubit.dart';
 import 'package:your_choices/src/presentation/blocs/credential/credential_cubit.dart';
 import 'package:your_choices/src/presentation/blocs/customer/customer_cubit.dart';
-import 'package:your_choices/src/presentation/blocs/vendor/filter_option/filter_option_cubit.dart';
-import 'package:your_choices/src/presentation/blocs/vendor/menu/menu_cubit.dart';
+import 'package:your_choices/src/presentation/blocs/filter_option/filter_options_cubit.dart';
+import 'package:your_choices/src/presentation/blocs/filter_option_in_menu/filter_option_in_menu_cubit.dart';
+import 'package:your_choices/src/presentation/blocs/menu/menu_cubit.dart';
 import 'package:your_choices/src/presentation/blocs/vendor/vendor_cubit.dart';
 import 'package:your_choices/src/presentation/views/customer_side/customer_main_view/customer_main_view.dart';
 import 'package:your_choices/src/presentation/views/login_view/login_view.dart';
@@ -50,6 +54,10 @@ class _YourChoicesState extends State<YourChoices> {
         BlocProvider(create: (_) => di.sl<VendorCubit>()),
         BlocProvider(create: (_) => di.sl<MenuCubit>()),
         BlocProvider(create: (_) => di.sl<FilterOptionCubit>()),
+        BlocProvider(create: (_) => di.sl<AddFilterOptionCubit>()),
+        BlocProvider(create: (_) => di.sl<AddAddOnsCubit>()),
+        BlocProvider(create: (_) => di.sl<AddFilterInMenuCubit>()),
+        BlocProvider(create: (_) => di.sl<FilterOptionInMenuCubit>()),
         RepositoryProvider(create: (context) => RestaurantRepository()),
         BlocProvider(
           create: (context) => RestaurantBloc(

@@ -12,6 +12,7 @@ import 'package:your_choices/src/data/models/vendor_model/dishes_model/dishes_mo
 import 'package:your_choices/src/data/models/vendor_model/filter_option_model/filter_option_model.dart';
 import 'package:your_choices/src/data/models/vendor_model/vendor_model.dart';
 import 'package:your_choices/src/domain/entities/customer/customer_entity.dart';
+import 'package:your_choices/src/domain/entities/vendor/add_ons/add_ons_entity.dart';
 import 'package:your_choices/src/domain/entities/vendor/dishes_menu/dishes_entity.dart';
 import 'package:your_choices/src/domain/entities/vendor/filter_options/filter_option_entity.dart';
 import 'package:your_choices/src/domain/entities/vendor/vendor_entity.dart';
@@ -43,7 +44,6 @@ class FirebaseRemoteDataSourceImpl implements FirebaseRemoteDataSource {
         email: customer.email,
         profileUrl: profileUrl,
         type: customer.type,
-        transaction: customer.transaction,
         username: customer.username,
       ).toJson();
       if (!value.exists) {
@@ -183,7 +183,6 @@ class FirebaseRemoteDataSourceImpl implements FirebaseRemoteDataSource {
       final newVendor = VendorModel(
         uid: uid,
         description: vendorEntity.description,
-        dishes: vendorEntity.dishes,
         email: vendorEntity.email,
         isActive: vendorEntity.isActive,
         onQueue: vendorEntity.onQueue,
@@ -280,7 +279,9 @@ class FirebaseRemoteDataSourceImpl implements FirebaseRemoteDataSource {
                 dishesEntity.disheImageFile,
                 "menuImages_${dishesEntity.dishesId}",
               )
-            : "",
+            : dishesEntity.menuImg != ""
+                ? dishesEntity.menuImg
+                : "",
         menuName: dishesEntity.menuName,
         menuDescription: dishesEntity.menuDescription,
         menuPrice: dishesEntity.menuPrice,
@@ -354,45 +355,45 @@ class FirebaseRemoteDataSourceImpl implements FirebaseRemoteDataSource {
         .doc(uid)
         .collection(FirebaseConst.menu);
 
-    return menuSubCollection.snapshots().map((querySnapshot) {
-      return querySnapshot.docs.map((menuDoc) {
-        List<FilterOptionModel> filterOptionsModel = [];
+    return menuSubCollection.snapshots().asyncMap((querySnapshot) async {
+      final dishesList = <DishesEntity>[];
 
-        menuDoc.reference
+      for (var menuDoc in querySnapshot.docs) {
+        final filterOptionsModel = <FilterOptionEntity>[];
+
+        final filterOptionSnapshot = await menuDoc.reference
             .collection(FirebaseConst.filterOption)
-            .snapshots()
-            .listen((filterOptionSnapshot) {
-          filterOptionsModel.clear();
-          for (var filterOptionDoc in filterOptionSnapshot.docs) {
-            List<AddOnsModel> addOnsModel = [];
+            .get();
 
-            filterOptionDoc.reference
-                .collection(FirebaseConst.addons)
-                .snapshots()
-                .listen((addOnSnapshot) {
-              addOnsModel.clear();
-              for (var addOnDoc in addOnSnapshot.docs) {
-                addOnsModel.add(AddOnsModel(
-                  addonsId: addOnDoc['addonsId'],
-                  addonsName: addOnDoc['addonsName'],
-                  priceType: addOnDoc['priceType'],
-                  price: addOnDoc['price'],
-                ));
-              }
-            });
+        for (var filterOptionDoc in filterOptionSnapshot.docs) {
+          final addOnsModel = <AddOnsEntity>[];
 
-            filterOptionsModel.add(FilterOptionModel(
-              filterId: filterOptionDoc['filterId'],
-              filterName: filterOptionDoc['filterName'],
-              isMultiple: filterOptionDoc['isMultiple'],
-              isRequired: filterOptionDoc['isRequired'],
-              multipleQuantity: filterOptionDoc['multipleQuantity'],
-              addOns: addOnsModel,
-            ));
+          final addOnSnapshot = await filterOptionDoc.reference
+              .collection(FirebaseConst.addons)
+              .get();
+
+          for (var addOnDoc in addOnSnapshot.docs) {
+            final addOnsEntity = AddOnsEntity(
+              addonsId: addOnDoc['addonsId'],
+              addonsName: addOnDoc['addonsName'],
+              priceType: addOnDoc['priceType'],
+              price: addOnDoc['price'],
+            );
+            addOnsModel.add(addOnsEntity);
           }
-        });
 
-        return DishesModel(
+          final filterOptionEntity = FilterOptionEntity(
+            filterId: filterOptionDoc['filterId'],
+            filterName: filterOptionDoc['filterName'],
+            isMultiple: filterOptionDoc['isMultiple'],
+            isRequired: filterOptionDoc['isRequired'],
+            multipleQuantity: filterOptionDoc['multipleQuantity'],
+            addOns: addOnsModel,
+          );
+          filterOptionsModel.add(filterOptionEntity);
+        }
+
+        final dishesEntity = DishesEntity(
           dishesId: menuDoc['dishesId'],
           createdAt: menuDoc['createdAt'],
           isActive: menuDoc['isActive'],
@@ -402,7 +403,10 @@ class FirebaseRemoteDataSourceImpl implements FirebaseRemoteDataSource {
           menuPrice: menuDoc['menuPrice'],
           filterOption: filterOptionsModel,
         );
-      }).toList();
+        dishesList.add(dishesEntity);
+      }
+
+      return dishesList;
     });
   }
 
@@ -542,25 +546,24 @@ class FirebaseRemoteDataSourceImpl implements FirebaseRemoteDataSource {
         .doc(uid)
         .collection(FirebaseConst.filterOption);
 
+    final newFilterOptionModel = FilterOptionModel(
+      filterId: filterOptionEntity.filterId,
+      filterName: filterOptionEntity.filterName,
+      isMultiple: filterOptionEntity.isMultiple,
+      isRequired: filterOptionEntity.isRequired,
+      multipleQuantity: filterOptionEntity.multipleQuantity,
+    ).toJson();
+
     filterOptionSubCollection
         .doc(filterOptionEntity.filterId)
         .get()
-        .then((filterOptionDoc) {
-      final newFilterOptionModel = FilterOptionModel(
-        filterId: filterOptionEntity.filterId,
-        filterName: filterOptionEntity.filterName,
-        isMultiple: filterOptionEntity.isMultiple,
-        isRequired: filterOptionEntity.isRequired,
-        isSelected: filterOptionEntity.isSelected,
-        multipleQuantity: filterOptionEntity.multipleQuantity,
-      ).toJson();
-
+        .then((filterOptionDoc) async {
       if (filterOptionDoc.exists) {
-        filterOptionSubCollection
+        await filterOptionSubCollection
             .doc(filterOptionEntity.filterId)
             .update(newFilterOptionModel);
       } else {
-        filterOptionSubCollection
+        await filterOptionSubCollection
             .doc(filterOptionEntity.filterId)
             .set(newFilterOptionModel);
       }
@@ -581,13 +584,13 @@ class FirebaseRemoteDataSourceImpl implements FirebaseRemoteDataSource {
           addOnsSubCollection
               .doc(addOnsEntity.addonsId)
               .get()
-              .then((addOnsDoc) {
+              .then((addOnsDoc) async {
             if (addOnsDoc.exists) {
-              addOnsSubCollection
+              await addOnsSubCollection
                   .doc(addOnsEntity.addonsId)
                   .update(newAddOnsModel);
             } else {
-              addOnsSubCollection
+              await addOnsSubCollection
                   .doc(addOnsEntity.addonsId)
                   .set(newAddOnsModel);
             }
@@ -603,36 +606,34 @@ class FirebaseRemoteDataSourceImpl implements FirebaseRemoteDataSource {
         .collection(FirebaseConst.restaurant)
         .doc(uid)
         .collection(FirebaseConst.filterOption);
-    return filterOptionSubCollection.snapshots().map((querySnapshot) {
-      return querySnapshot.docs.map((filterOptionDoc) {
-        List<AddOnsModel> addOnsModel = [];
-
-        filterOptionDoc.reference
+    return filterOptionSubCollection
+        .snapshots()
+        .asyncMap((querySnapshot) async {
+      final filterOptionModels =
+          await Future.wait(querySnapshot.docs.map((filterOptionDoc) async {
+        final addOnsSnapshot = await filterOptionDoc.reference
             .collection(FirebaseConst.addons)
-            .snapshots()
-            .listen((addOnsSnapshot) {
-          addOnsModel.clear();
-
-          for (var addOnsDoc in addOnsSnapshot.docs) {
-            addOnsModel.add(AddOnsModel(
-              addonsId: addOnsDoc['addonsId'],
-              addonsName: addOnsDoc['addonsName'],
-              priceType: addOnsDoc['priceType'],
-              price: addOnsDoc['price'],
-            ));
-          }
-        });
+            .get();
+        final addOnsModel = addOnsSnapshot.docs.map((addOnsDoc) {
+          return AddOnsModel(
+            addonsId: addOnsDoc['addonsId'],
+            addonsName: addOnsDoc['addonsName'],
+            priceType: addOnsDoc['priceType'],
+            price: addOnsDoc['price'],
+          );
+        }).toList();
 
         return FilterOptionModel(
           filterId: filterOptionDoc['filterId'],
           filterName: filterOptionDoc['filterName'],
           isMultiple: filterOptionDoc['isMultiple'],
           isRequired: filterOptionDoc['isRequired'],
-          isSelected: filterOptionDoc['isSelected'],
           multipleQuantity: filterOptionDoc['multipleQuantity'],
           addOns: addOnsModel,
         );
-      }).toList();
+      }).toList());
+
+      return filterOptionModels;
     });
   }
 
@@ -684,9 +685,6 @@ class FirebaseRemoteDataSourceImpl implements FirebaseRemoteDataSource {
     if (filterOptionEntity.isMultiple != null) {
       filterOptionInfo['isMultiple'] = filterOptionEntity.isMultiple;
     }
-    if (filterOptionEntity.isSelected != null) {
-      filterOptionInfo['isSelected'] = filterOptionEntity.isSelected;
-    }
     if (filterOptionEntity.multipleQuantity != null) {
       filterOptionInfo['multipleQuantity'] =
           filterOptionEntity.multipleQuantity;
@@ -706,25 +704,164 @@ class FirebaseRemoteDataSourceImpl implements FirebaseRemoteDataSource {
   }
 
   @override
-  Future<void> updateAllFilterOptionIsSelectedToFalse() async {
+  Future<void> addFilterOptionInMenu(
+    FilterOptionEntity filterOptionEntity,
+  ) async {
     final uid = await getCurrentUid();
-    final filterSubCollection = firebaseFireStore
+
+    final menuCollection = firebaseFireStore
         .collection(FirebaseConst.restaurant)
         .doc(uid)
-        .collection(FirebaseConst.filterOption);
+        .collection(FirebaseConst.menu);
 
-    final querySnapshot = await filterSubCollection.get();
+    final menuQuerySnapshot = await menuCollection.get();
 
-    final batch = firebaseFireStore.batch();
-    for (var doc in querySnapshot.docs) {
-      final updateData = {
-        'isSelected': false,
-      };
-      final docRef = filterSubCollection.doc(doc.id);
-      batch.update(docRef, updateData);
+    final menuDocId = menuQuerySnapshot.docs.firstWhere((element) =>
+        element.reference
+            .collection(FirebaseConst.filterOption)
+            .doc(filterOptionEntity.filterId)
+            .id ==
+        filterOptionEntity.filterId);
+
+    final menuDoc = await menuCollection.doc(menuDocId.id).get();
+
+    final filterOptionCollectionRef =
+        menuDoc.reference.collection(FirebaseConst.filterOption);
+
+    filterOptionCollectionRef
+        .doc(filterOptionEntity.filterId)
+        .get()
+        .then((filterOptionDoc) async {
+      final newFilterOptionModel = FilterOptionModel(
+        filterId: filterOptionEntity.filterId,
+        filterName: filterOptionEntity.filterName,
+        isMultiple: filterOptionEntity.isMultiple,
+        isRequired: filterOptionEntity.isRequired,
+        isSelected: filterOptionEntity.isSelected,
+        multipleQuantity: filterOptionEntity.multipleQuantity,
+      ).toJson();
+
+      if (filterOptionDoc.exists) {
+        await filterOptionCollectionRef
+            .doc(filterOptionEntity.filterId)
+            .update(newFilterOptionModel);
+      } else {
+        await filterOptionCollectionRef
+            .doc(filterOptionEntity.filterId)
+            .set(newFilterOptionModel);
+      }
+
+      if (filterOptionEntity.addOns != null) {
+        final addOnsSubCollection = filterOptionCollectionRef
+            .doc(filterOptionEntity.filterId)
+            .collection(FirebaseConst.addons);
+
+        for (var addOnsEntity in filterOptionEntity.addOns!) {
+          final newAddOnsModel = AddOnsModel(
+            addonsId: addOnsEntity.addonsId,
+            addonsName: addOnsEntity.addonsName,
+            priceType: addOnsEntity.priceType,
+            price: addOnsEntity.price,
+          ).toJson();
+
+          addOnsSubCollection
+              .doc(addOnsEntity.addonsId)
+              .get()
+              .then((addOnsDoc) async {
+            if (addOnsDoc.exists) {
+              await addOnsSubCollection
+                  .doc(addOnsEntity.addonsId)
+                  .update(newAddOnsModel);
+            } else {
+              await addOnsSubCollection
+                  .doc(addOnsEntity.addonsId)
+                  .set(newAddOnsModel);
+            }
+          });
+        }
+      }
+    });
+  }
+
+  @override
+  Future<void> deleteFilterOptionInMenu(
+    FilterOptionEntity filterOptionEntity,
+  ) async {
+    final uid = await getCurrentUid();
+
+    final menuCollection = firebaseFireStore
+        .collection(FirebaseConst.restaurant)
+        .doc(uid)
+        .collection(FirebaseConst.menu);
+
+    final menuQuerySnapshot = await menuCollection.get();
+
+    final menuDocId = menuQuerySnapshot.docs.firstWhere((element) =>
+        element.reference
+            .collection(FirebaseConst.filterOption)
+            .doc(filterOptionEntity.filterId)
+            .id ==
+        filterOptionEntity.filterId);
+
+    final menuDoc = await menuCollection.doc(menuDocId.id).get();
+
+    final filterOptionDocRef = menuDoc.reference
+        .collection(FirebaseConst.filterOption)
+        .doc(filterOptionEntity.filterId);
+
+    final addOnsColRef = filterOptionDocRef.collection(FirebaseConst.addons);
+    final addOnsAllDoc = await addOnsColRef.get();
+    for (DocumentSnapshot addOns in addOnsAllDoc.docs) {
+      await addOns.reference.delete();
     }
+    await filterOptionDocRef.delete();
+  }
 
-    await batch.commit();
+  @override
+  Future<void> updateFilterOptionInMenu(
+    FilterOptionEntity filterOptionEntity,
+  ) async {}
+
+  @override
+  Stream<List<FilterOptionEntity>> getFilterOptionInMenu(
+    DishesEntity dishesEntity,
+  ) async* {
+    final uid = await getCurrentUid();
+    final menuDocRef = FirebaseFirestore.instance
+        .collection(FirebaseConst.restaurant)
+        .doc(uid)
+        .collection(FirebaseConst.menu)
+        .doc(dishesEntity.dishesId);
+
+    final filterOptionSnapshot =
+        menuDocRef.collection(FirebaseConst.filterOption).snapshots();
+
+    yield* filterOptionSnapshot.asyncMap((querySnapshot) async {
+      final filterOptionModels =
+          await Future.wait(querySnapshot.docs.map((filterOptionDoc) async {
+        final addOnsSnapshot = await filterOptionDoc.reference
+            .collection(FirebaseConst.addons)
+            .get();
+        final addOnsModel = addOnsSnapshot.docs.map((addOnsDoc) {
+          return AddOnsModel(
+            addonsId: addOnsDoc['addonsId'],
+            addonsName: addOnsDoc['addonsName'],
+            priceType: addOnsDoc['priceType'],
+            price: addOnsDoc['price'],
+          );
+        }).toList();
+
+        return FilterOptionModel(
+          filterId: filterOptionDoc['filterId'],
+          filterName: filterOptionDoc['filterName'],
+          isMultiple: filterOptionDoc['isMultiple'],
+          isRequired: filterOptionDoc['isRequired'],
+          multipleQuantity: filterOptionDoc['multipleQuantity'],
+          addOns: addOnsModel,
+        );
+      }).toList());
+      return filterOptionModels;
+    });
   }
 }
 

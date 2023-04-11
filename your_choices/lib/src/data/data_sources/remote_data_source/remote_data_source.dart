@@ -19,16 +19,20 @@ abstract class FirebaseRemoteDataSource {
   //menu features
   Future<void> createMenu(DishesEntity dishesEntity);
   Stream<List<DishesEntity>> getMenu(String uid);
+  Stream<List<FilterOptionEntity>> getFilterOptionInMenu(DishesEntity dishesEntity);
   Future<void> updateMenu(DishesEntity dishesEntity);
   Future<void> deleteMenu(DishesEntity dishesEntity);
+  
+  //menuDetail features
+  Future<void> addFilterOptionInMenu(FilterOptionEntity filterOptionEntity);
+  Future<void> deleteFilterOptionInMenu(FilterOptionEntity filterOptionEntity);
+  Future<void> updateFilterOptionInMenu(FilterOptionEntity filterOptionEntity);
 
   //filter option features
-
   Future<void> createFilterOption(FilterOptionEntity filterOptionEntity);
   Stream<List<FilterOptionEntity>> readFilterOption(String uid);
   Future<void> updateFilterOption(FilterOptionEntity filterOptionEntity);
   Future<void> deleteFilterOption(FilterOptionEntity filterOptionEntity);
-  Future<void> updateAllFilterOptionIsSelectedToFalse();
 
   //utilities
   Future<void> signInUser(String email, String password);

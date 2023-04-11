@@ -5,7 +5,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:touchable_opacity/touchable_opacity.dart';
-import 'package:your_choices/on_generate_routes.dart';
+import 'package:your_choices/src/config/app_routes/on_generate_routes.dart';
 import 'package:your_choices/src/domain/entities/vendor/vendor_entity.dart';
 import 'package:your_choices/src/presentation/blocs/auth/auth_cubit.dart';
 import 'package:your_choices/src/presentation/blocs/vendor/vendor_cubit.dart';
@@ -35,9 +35,9 @@ class _VendorMainViewState extends State<VendorMainView> {
   ];
 
   @override
-  void initState() {
+  void didChangeDependencies() {
     BlocProvider.of<VendorCubit>(context).getSingleVendor(uid: widget.uid);
-    super.initState();
+    super.didChangeDependencies();
   }
 
   String? logout;
@@ -359,10 +359,13 @@ class _VendorMainViewState extends State<VendorMainView> {
                   height: 56,
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(10),
-                    child: CachedNetworkImage(
-                      imageUrl: vendorEntity.profileUrl!,
-                      fit: BoxFit.cover,
-                    ),
+                    child: vendorEntity.profileUrl != null ||
+                            vendorEntity.profileUrl != ""
+                        ? CachedNetworkImage(
+                            imageUrl: vendorEntity.profileUrl!,
+                            fit: BoxFit.cover,
+                          )
+                        : Image.asset("assets/images/image_picker.png"),
                   ),
                 )
               ],

@@ -1,22 +1,34 @@
-import 'package:dotted_border/dotted_border.dart';
+// ignore_for_file: public_member_api_docs, sort_constructors_first
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:touchable_opacity/touchable_opacity.dart';
-import 'package:your_choices/on_generate_routes.dart';
-import 'package:your_choices/src/domain/entities/vendor/filter_options/filter_option_entity.dart';
 
-import 'package:your_choices/src/presentation/blocs/vendor/filter_option/filter_option_cubit.dart';
-import 'package:your_choices/src/presentation/blocs/vendor/menu/menu_cubit.dart';
+import 'package:your_choices/injection_container.dart' as di;
+import 'package:your_choices/src/config/app_routes/on_generate_routes.dart';
+import 'package:your_choices/src/domain/entities/vendor/dishes_menu/dishes_entity.dart';
+import 'package:your_choices/src/domain/entities/vendor/filter_options/filter_option_entity.dart';
+import 'package:your_choices/src/domain/usecases/firebase_usecases/customer/get_current_uid_usecase.dart';
+import 'package:your_choices/src/presentation/blocs/add_filter_in_menu/add_filter_in_menu_cubit.dart';
+import 'package:your_choices/src/presentation/blocs/add_filter_option/add_filter_option_cubit.dart';
+import 'package:your_choices/src/presentation/blocs/filter_option/filter_options_cubit.dart';
+import 'package:your_choices/src/presentation/blocs/menu/menu_cubit.dart';
 import 'package:your_choices/src/presentation/widgets/custom_vendor_appbar.dart';
+import 'package:your_choices/utilities/hex_color.dart';
 import 'package:your_choices/utilities/loading_dialog.dart';
 import 'package:your_choices/utilities/text_style.dart';
-import '../../../../blocs/vendor/filter_option/filter_option_state.dart';
+
+import '../../../../blocs/filter_option/filter_options_state.dart';
 
 class ListOfFilterOptionView extends StatefulWidget {
-  final String uid;
+  final String id;
+  final String previousRouteName;
+  final DishesEntity? dishesEntity;
   const ListOfFilterOptionView({
     Key? key,
-    required this.uid,
+    required this.id,
+    required this.previousRouteName,
+    this.dishesEntity,
   }) : super(key: key);
 
   @override
@@ -25,10 +37,10 @@ class ListOfFilterOptionView extends StatefulWidget {
 
 class _ListOfFilterOptionViewState extends State<ListOfFilterOptionView> {
   @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
+  void initState() {
     BlocProvider.of<FilterOptionCubit>(context)
-        .readFilterOption(uid: widget.uid);
+        .readFilterOption(uid: widget.id);
+    super.initState();
   }
 
   @override
@@ -37,13 +49,17 @@ class _ListOfFilterOptionViewState extends State<ListOfFilterOptionView> {
     return Scaffold(
       appBar: CustomAppbar(
         title: "เพิ่มตัวเลือก",
-        onTap: () {
-          Navigator.pushNamedAndRemoveUntil(
-            context,
-            PageConst.addMenuPage,
-            arguments: widget.uid,
-            (route) => route.isFirst,
-          );
+        onTap: () async {
+          if (widget.previousRouteName == PageConst.addMenuPage) {
+            Navigator.pushNamedAndRemoveUntil(
+              context,
+              PageConst.addMenuPage,
+              arguments: await di.sl<GetCurrentUidUseCase>().call(),
+              (route) => route.isFirst,
+            );
+          } else {
+            Navigator.pop(context);
+          }
         },
       ),
       body: Column(
@@ -68,94 +84,15 @@ class _ListOfFilterOptionViewState extends State<ListOfFilterOptionView> {
                     color: Colors.amber.shade900,
                   ),
                 );
-              }
-              if (state is FilterOptionLoadCompleted) {
+              } else if (state is FilterOptionLoadCompleted) {
                 List<FilterOptionEntity> filterOptionList =
                     state.filterOptionEntityList;
                 return filterOptionList.isEmpty
-                    ? _buildNoItemInList(context, size)
-                    : Expanded(
-                        child: SizedBox(
-                          child: Column(
-                            children: [
-                              _buildListOfFilter(filterOptionList, context),
-                              const Spacer(),
-                              TouchableOpacity(
-                                onTap: () {
-                                  Navigator.pushNamed(
-                                    context,
-                                    PageConst.addOptionPage,
-                                  );
-                                },
-                                child: DottedBorder(
-                                  dashPattern: const [7],
-                                  color: Colors.white,
-                                  strokeWidth: 2,
-                                  borderPadding: const EdgeInsets.symmetric(
-                                      horizontal: 15, vertical: 10),
-                                  child: Container(
-                                    width: double.infinity,
-                                    height: 40,
-                                    margin: const EdgeInsets.symmetric(
-                                        horizontal: 15, vertical: 10),
-                                    alignment: Alignment.center,
-                                    decoration: BoxDecoration(
-                                      // color: Colors.amber.shade900,
-                                      borderRadius: BorderRadius.circular(5),
-                                    ),
-                                    child: Text(
-                                      "เพิ่มตัวเลือก",
-                                      style: AppTextStyle.googleFont(
-                                        Colors.white,
-                                        20,
-                                        FontWeight.w500,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              TouchableOpacity(
-                                onTap: () async {
-                                  loadingDialog(context);
-                                  final listOfSelectedFilterOption =
-                                      List<FilterOptionEntity>.from(
-                                    BlocProvider.of<FilterOptionCubit>(context)
-                                        .getFilterOptionList,
-                                  );
-                                  BlocProvider.of<MenuCubit>(context)
-                                      .addFilterOption(
-                                          listOfSelectedFilterOption);
-                                  Future.delayed(const Duration(seconds: 2));
-                                  Navigator.pop(context);
-                                  Navigator.pushNamedAndRemoveUntil(
-                                      context,
-                                      PageConst.addMenuPage,
-                                      arguments: widget.uid,
-                                      (route) => route.isFirst);
-                                },
-                                child: Container(
-                                  width: double.infinity,
-                                  height: 40,
-                                  margin:
-                                      const EdgeInsets.fromLTRB(15, 0, 15, 20),
-                                  alignment: Alignment.center,
-                                  decoration: BoxDecoration(
-                                    color: Colors.amber.shade900,
-                                    borderRadius: BorderRadius.circular(5),
-                                  ),
-                                  child: Text(
-                                    "บันทึก",
-                                    style: AppTextStyle.googleFont(
-                                      Colors.white,
-                                      20,
-                                      FontWeight.w500,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
+                    ? NoFilterOptionList(size: size)
+                    : HaveFilterOptionList(
+                        filterOptionList: filterOptionList,
+                        previousRouteName: widget.previousRouteName,
+                        dishesEntity: widget.dishesEntity,
                       );
               }
               return Container();
@@ -167,209 +104,279 @@ class _ListOfFilterOptionViewState extends State<ListOfFilterOptionView> {
   }
 }
 
-Widget _buildNoItemInList(BuildContext context, Size size) {
-  return Column(
-    mainAxisAlignment: MainAxisAlignment.center,
-    children: [
-      Container(
-        width: size.width,
-        height: size.height / 3.5,
-        margin: const EdgeInsets.symmetric(horizontal: 15),
-        child: const Image(
-          image: AssetImage(
-            "assets/images/no_menu_item.png",
-          ),
-        ),
-      ),
-      const SizedBox(
-        height: 20,
-      ),
-      Container(
-        width: size.width,
-        margin: const EdgeInsets.symmetric(horizontal: 15),
-        child: Text(
-          "ไม่มีตัวเลือกสำหรับเพิ่มในรายการอาหารเลย",
-          textAlign: TextAlign.center,
-          style: AppTextStyle.googleFont(
-            Colors.white,
-            20,
-            FontWeight.w500,
-          ),
-        ),
-      ),
-      const SizedBox(
-        height: 15,
-      ),
-      TouchableOpacity(
-        activeOpacity: 0.5,
-        onTap: () => Navigator.pushNamed(
-          context,
-          PageConst.addOptionPage,
-        ),
-        child: Container(
-          width: size.width,
-          height: size.height * 0.06,
-          margin: const EdgeInsets.symmetric(
-            horizontal: 15,
-          ),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(5),
-            color: Colors.amber[900],
-          ),
-          child: Align(
-            alignment: Alignment.center,
-            child: Text(
-              "+ เพิ่มตัวเลือก",
-              style: AppTextStyle.googleFont(
-                Colors.white,
-                22,
-                FontWeight.w500,
-              ),
-            ),
-          ),
-        ),
-      ),
-    ],
-  );
-}
+class HaveFilterOptionList extends StatelessWidget {
+  const HaveFilterOptionList({
+    Key? key,
+    required this.filterOptionList,
+    this.previousRouteName,
+    this.dishesEntity,
+  }) : super(key: key);
 
-Widget _buildListOfFilter(
-  List<FilterOptionEntity> filterOptionEntityList,
-  BuildContext context,
-) {
-  return ListView.separated(
-    physics: const BouncingScrollPhysics(),
-    shrinkWrap: true,
-    separatorBuilder: (context, index) => const SizedBox(height: 10),
-    itemCount: filterOptionEntityList.length,
-    itemBuilder: (context, index) {
-      FilterOptionEntity filterOptionEntity = filterOptionEntityList[index];
+  final List<FilterOptionEntity> filterOptionList;
+  final String? previousRouteName;
+  final DishesEntity? dishesEntity;
 
-      return Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12.0),
-        child: Container(
-          width: MediaQuery.of(context).size.width,
-          padding: const EdgeInsets.all(7),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(5),
-            color: Colors.white,
-          ),
-          child: Row(
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Column(
             children: [
-              Checkbox(
-                activeColor: Colors.amber.shade900,
-                value: filterOptionEntity.isSelected,
-                onChanged: (value) {
-                  BlocProvider.of<FilterOptionCubit>(context)
-                      .updateFilterOption(
-                    filterOptionEntity:
-                        filterOptionEntity.copyWith(isSelected: value),
-                  );
-
-                  if (!filterOptionEntity.isSelected!) {
-                    BlocProvider.of<FilterOptionCubit>(context)
-                        .addFilterOption(filterOptionEntity);
-                  } else {
-                    BlocProvider.of<FilterOptionCubit>(context)
-                        .removeFilterOption(filterOptionEntity);
-                  }
-                },
-              ),
-              filterOptionEntity.addOns != null
-                  ? Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+              ListView.builder(
+                physics: const BouncingScrollPhysics(),
+                shrinkWrap: true,
+                itemCount: filterOptionList.length,
+                itemBuilder: (context, index) {
+                  FilterOptionEntity filterOptionEntity =
+                      filterOptionList[index];
+                  return Card(
+                    child: Row(
                       children: [
-                        Text(
-                          "${filterOptionEntity.filterName}",
-                          style: AppTextStyle.googleFont(
-                            Colors.black,
-                            16,
-                            FontWeight.w500,
+                        StatefulBuilder(
+                          builder: (context, setState) => Expanded(
+                            child: CheckboxListTile(
+                              activeColor: Colors.amber.shade900,
+                              controlAffinity: ListTileControlAffinity.leading,
+                              contentPadding:
+                                  const EdgeInsets.symmetric(horizontal: 5),
+                              value: filterOptionEntity.isSelected,
+                              onChanged: (value) {
+                                setState(() {
+                                  filterOptionEntity = filterOptionEntity
+                                      .copyWith(isSelected: value);
+                                });
+                                filterOptionEntity.isSelected
+                                    ? context
+                                        .read<AddFilterOptionCubit>()
+                                        .addFilterOption(filterOptionEntity)
+                                    : context
+                                        .read<AddFilterOptionCubit>()
+                                        .removeFilterOption(filterOptionEntity);
+                              },
+                              title: Text(
+                                filterOptionEntity.filterName ?? "no name",
+                                style: AppTextStyle.googleFont(
+                                  Colors.black,
+                                  16,
+                                  FontWeight.w500,
+                                ),
+                              ),
+                              subtitle: filterOptionEntity.addOns != null
+                                  ? filterOptionEntity.addOns!.isNotEmpty
+                                      ? Row(
+                                          children: [
+                                            const Text("("),
+                                            Row(
+                                              children: filterOptionEntity
+                                                  .addOns!
+                                                  .map(
+                                                (e) {
+                                                  return Text(
+                                                    "${e.addonsName}${e == filterOptionEntity.addOns!.last ? "" : ", "}",
+                                                  );
+                                                },
+                                              ).toList(),
+                                            ),
+                                            const Text(")"),
+                                          ],
+                                        )
+                                      : null
+                                  : null,
+                            ),
                           ),
                         ),
-                        Row(
-                          children: [
-                            Text(
-                              "( ",
-                              style: AppTextStyle.googleFont(
-                                Colors.grey,
-                                14,
-                                FontWeight.w500,
-                              ),
-                            ),
-                            Row(
-                              children: filterOptionEntity.addOns!
-                                  .map((addOnsEntity) {
-                                int lastIndex =
-                                    filterOptionEntity.addOns!.length - 1;
-                                bool isLastIndex = filterOptionEntity.addOns!
-                                        .indexOf(addOnsEntity) ==
-                                    lastIndex;
-                                return Row(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    isLastIndex
-                                        ? Text(
-                                            "${addOnsEntity.addonsName}",
-                                            style: AppTextStyle.googleFont(
-                                              Colors.grey,
-                                              14,
-                                              FontWeight.w500,
-                                            ),
-                                          )
-                                        : Text(
-                                            "${addOnsEntity.addonsName}, ",
-                                            style: AppTextStyle.googleFont(
-                                              Colors.grey,
-                                              14,
-                                              FontWeight.w500,
-                                            ),
-                                          )
-                                  ],
-                                );
-                              }).toList(),
-                            ),
-                            Text(
-                              ")",
-                              style: AppTextStyle.googleFont(
-                                Colors.grey,
-                                14,
-                                FontWeight.w500,
-                              ),
-                            ),
-                          ],
+                        IconButton(
+                          onPressed: () {
+                            Navigator.pushNamed(
+                              context,
+                              PageConst.filterOptionDetailPage,
+                              arguments: filterOptionEntity,
+                            );
+                          },
+                          icon: Icon(
+                            Icons.edit,
+                            color: Colors.amber.shade900,
+                          ),
+                        ),
+                        IconButton(
+                          onPressed: () {
+                            loadingDialog(context);
+                            BlocProvider.of<FilterOptionCubit>(context)
+                                .deleteFilterOption(
+                              filterOptionEntity: filterOptionEntity,
+                            );
+                            Future.delayed(const Duration(seconds: 2))
+                                .then((value) {
+                              Navigator.pop(context);
+                            });
+                          },
+                          icon: Icon(
+                            Icons.delete,
+                            color: Colors.amber.shade900,
+                          ),
                         ),
                       ],
-                    )
-                  : Text(
-                      "${filterOptionEntity.filterName}",
-                      style: AppTextStyle.googleFont(
-                        Colors.black,
-                        16,
-                        FontWeight.w500,
-                      ),
                     ),
-              const Spacer(),
-              IconButton(
-                onPressed: () {
-                  loadingDialog(context).then((value) {
-                    Future.delayed(const Duration(seconds: 2));
-                  });
-                  BlocProvider.of<FilterOptionCubit>(context)
-                      .deleteFilterOption(
-                    filterOptionEntity: filterOptionEntity,
                   );
-                  Navigator.pop(context);
                 },
-                icon: Icon(
-                  Icons.delete,
-                  color: Colors.amber.shade900,
+              ),
+            ],
+          ),
+          Column(
+            children: [
+              TouchableOpacity(
+                onTap: () {
+                  Navigator.pushNamed(
+                    context,
+                    PageConst.addOptionPage,
+                  );
+                },
+                child: Container(
+                  width: double.infinity,
+                  height: 40,
+                  margin:
+                      const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: "f7ddcd".toColor(),
+                    borderRadius: BorderRadius.circular(5),
+                  ),
+                  child: Text(
+                    "+ สร้างตัวเลือกใหม่",
+                    style: AppTextStyle.googleFont(
+                      Colors.amber.shade900,
+                      20,
+                      FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ),
+              TouchableOpacity(
+                onTap: () async {
+                  List<FilterOptionEntity> filterOptionList =
+                      context.read<AddFilterOptionCubit>().state;
+                  loadingDialog(context);
+                  if (previousRouteName == PageConst.menuDetailPage) {
+                    BlocProvider.of<MenuCubit>(context).createMenu(
+                      dishesEntity!.copyWith(
+                        filterOption:
+                            List<FilterOptionEntity>.from(filterOptionList),
+                      ),
+                    );
+                  } else {
+                    for (var filterOptionEntity in filterOptionList) {
+                      context.read<AddFilterInMenuCubit>().addFiltersInMenu(
+                            filterOptionEntity: filterOptionEntity,
+                          );
+                    }
+                  }
+                  Future.delayed(const Duration(seconds: 2)).then((value) {
+                    context.read<AddFilterOptionCubit>().resetFilterOption();
+                    Navigator.of(context).pop();
+                    Navigator.of(context).pop();
+                  });
+                },
+                child: Container(
+                  width: double.infinity,
+                  height: 40,
+                  margin: const EdgeInsets.fromLTRB(15, 0, 15, 20),
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: Colors.amber.shade900,
+                    borderRadius: BorderRadius.circular(5),
+                  ),
+                  child: Text(
+                    "บันทึก",
+                    style: AppTextStyle.googleFont(
+                      Colors.white,
+                      20,
+                      FontWeight.w500,
+                    ),
+                  ),
                 ),
               ),
             ],
           ),
+        ],
+      ),
+    );
+  }
+}
+
+class NoFilterOptionList extends StatelessWidget {
+  const NoFilterOptionList({
+    super.key,
+    required this.size,
+  });
+
+  final Size size;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Container(
+          width: size.width,
+          height: size.height / 3.5,
+          margin: const EdgeInsets.symmetric(horizontal: 15),
+          child: const Image(
+            image: AssetImage(
+              "assets/images/no_menu_item.png",
+            ),
+          ),
         ),
-      );
-    },
-  );
+        const SizedBox(
+          height: 20,
+        ),
+        Container(
+          width: size.width,
+          margin: const EdgeInsets.symmetric(horizontal: 15),
+          child: Text(
+            "ไม่มีตัวเลือกสำหรับเพิ่มในรายการอาหารเลย",
+            textAlign: TextAlign.center,
+            style: AppTextStyle.googleFont(
+              Colors.white,
+              20,
+              FontWeight.w500,
+            ),
+          ),
+        ),
+        const SizedBox(
+          height: 15,
+        ),
+        TouchableOpacity(
+          activeOpacity: 0.5,
+          onTap: () => Navigator.pushNamed(
+            context,
+            PageConst.addOptionPage,
+          ),
+          child: Container(
+            width: size.width,
+            height: size.height * 0.06,
+            margin: const EdgeInsets.symmetric(
+              horizontal: 15,
+            ),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(5),
+              color: Colors.amber[900],
+            ),
+            child: Align(
+              alignment: Alignment.center,
+              child: Text(
+                "+ เพิ่มตัวเลือก",
+                style: AppTextStyle.googleFont(
+                  Colors.white,
+                  22,
+                  FontWeight.w500,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
 }

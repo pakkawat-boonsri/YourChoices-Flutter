@@ -9,7 +9,7 @@ class FilterOptionModel extends FilterOptionEntity {
     final String? filterName,
     final bool? isRequired,
     final bool? isMultiple,
-    final bool? isSelected,
+    final bool isSelected = false,
     final int? multipleQuantity,
     final List<AddOnsEntity>? addOns,
   }) : super(
@@ -29,7 +29,6 @@ class FilterOptionModel extends FilterOptionEntity {
       filterName: snapshot['filterName'],
       isRequired: snapshot['isRequired'],
       isMultiple: snapshot['isMultiple'],
-      isSelected: snapshot['isSelected'],
       multipleQuantity: snapshot['multipleQuantity'],
       addOns: const [],
     );
@@ -40,7 +39,6 @@ class FilterOptionModel extends FilterOptionEntity {
         "isRequired": isRequired,
         "isMultiple": isMultiple,
         "filterName": filterName,
-        "isSelected": isSelected,
         "multipleQuantity": multipleQuantity,
       };
 }

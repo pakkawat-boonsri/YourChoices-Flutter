@@ -4,17 +4,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:touchable_opacity/touchable_opacity.dart';
 import 'package:uuid/uuid.dart';
-import 'package:your_choices/on_generate_routes.dart';
 import 'package:your_choices/src/domain/entities/vendor/add_ons/add_ons_entity.dart';
 import 'package:your_choices/src/domain/entities/vendor/filter_options/filter_option_entity.dart';
-import 'package:your_choices/src/domain/usecases/firebase_usecases/customer/get_current_uid_usecase.dart';
-import 'package:your_choices/src/presentation/blocs/vendor/filter_option/filter_option_cubit.dart';
+import 'package:your_choices/src/presentation/blocs/add_add_ons/add_add_ons_cubit.dart';
+import 'package:your_choices/src/presentation/blocs/filter_option/filter_options_cubit.dart';
 import 'package:your_choices/src/presentation/widgets/custom_vendor_appbar.dart';
-import 'package:your_choices/injection_container.dart' as di;
-import 'package:your_choices/utilities/loading_dialog.dart';
 import 'package:your_choices/utilities/show_flutter_toast.dart';
+import '../../../../../../utilities/loading_dialog.dart';
 import '../../../../../../utilities/text_style.dart';
-import '../../../../blocs/vendor/filter_option/filter_option_state.dart';
 
 enum RadioTypes {
   nochange,
@@ -38,14 +35,8 @@ class _AddFilterOptionViewState extends State<AddFilterOptionView> {
   final addOnsName = TextEditingController();
   final addOnsPrice = TextEditingController();
   final _formKey = GlobalKey<FormState>();
-  final _dialogKey = GlobalKey<FormState>();
+  // final _dialogKey = GlobalKey<FormState>();
   int quantity = 2;
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    BlocProvider.of<FilterOptionCubit>(context).resetAddOnsList();
-  }
 
   @override
   void dispose() {
@@ -62,13 +53,8 @@ class _AddFilterOptionViewState extends State<AddFilterOptionView> {
       resizeToAvoidBottomInset: false,
       appBar: CustomAppbar(
         title: "สร้างตัวเลือกใหม่",
-        onTap: () async {
-          Navigator.pushNamedAndRemoveUntil(
-            context,
-            PageConst.listOfFilterOption,
-            arguments: await di.sl<GetCurrentUidUseCase>().call(),
-            (route) => route.isFirst,
-          );
+        onTap: () {
+          Navigator.pop(context);
         },
       ),
       body: SafeArea(
@@ -116,31 +102,26 @@ class _AddFilterOptionViewState extends State<AddFilterOptionView> {
 
   Widget _buildConfirmAndCancelButton(BuildContext context) {
     return TouchableOpacity(
-      onTap: () async {
+      onTap: () {
         if (_formKey.currentState!.validate()) {
           loadingDialog(context);
-          final addOnsLists = context.read<FilterOptionCubit>().getAddOnsList;
-          final addOnsList = List<AddOnsEntity>.from(addOnsLists);
+          List<AddOnsEntity> addOnsList = context.read<AddAddOnsCubit>().state;
 
-          await BlocProvider.of<FilterOptionCubit>(context).createFilterOption(
-              filterOptionEntity: FilterOptionEntity(
-            filterId: const Uuid().v1(),
-            filterName: filterOptionName.text,
-            isMultiple: isMultipleChoice,
-            isRequired: isRequire,
-            isSelected: false,
-            multipleQuantity: isMultipleChoice == false ? null : quantity,
-            addOns: addOnsList,
-          ));
-          if (!mounted) {}
-          Navigator.pop(context);
-          context.read<FilterOptionCubit>().resetAddOnsList();
-          Navigator.pushNamedAndRemoveUntil(
-            context,
-            PageConst.listOfFilterOption,
-            arguments: await di.sl<GetCurrentUidUseCase>().call(),
-            (route) => route.isFirst,
-          );
+          context.read<FilterOptionCubit>().createFilterOption(
+                filterOptionEntity: FilterOptionEntity(
+                  filterId: const Uuid().v1(),
+                  filterName: filterOptionName.text,
+                  isMultiple: isMultipleChoice,
+                  isRequired: isRequire,
+                  multipleQuantity: isMultipleChoice == false ? null : quantity,
+                  addOns: addOnsList,
+                ),
+              );
+          Future.delayed(const Duration(seconds: 2)).then((value) {
+            BlocProvider.of<AddAddOnsCubit>(context).resetAddOns();
+            Navigator.pop(context);
+            Navigator.pop(context);
+          });
         }
       },
       child: Container(
@@ -163,96 +144,94 @@ class _AddFilterOptionViewState extends State<AddFilterOptionView> {
   }
 
   Widget _buildListOfAddOnsBloc() {
-    return BlocBuilder<FilterOptionCubit, FilterOptionState>(
+    return BlocBuilder<AddAddOnsCubit, List<AddOnsEntity>>(
       builder: (context, state) {
-        if (state is FilterOptionAddAddOns) {
-          return ListView.separated(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            separatorBuilder: (context, index) => const SizedBox(
-              height: 10,
-            ),
-            itemCount: state.addOnsEntity.length,
-            itemBuilder: (context, index) {
-              final addOnsEntity = state.addOnsEntity[index];
-              // log("${state.addOnsEntity[index]}");
-              return Container(
-                height: 45,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(5),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 10),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        addOnsEntity.addonsName ?? "No Name",
-                        style: AppTextStyle.googleFont(
-                          Colors.black,
-                          16,
-                          FontWeight.w400,
-                        ),
+        var addOnsList = state;
+        return ListView.separated(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          separatorBuilder: (context, index) => const SizedBox(
+            height: 10,
+          ),
+          itemCount: addOnsList.length,
+          itemBuilder: (context, index) {
+            final addOnsEntity = addOnsList[index];
+            // log("${state.addOnsEntity[index]}");
+            return Container(
+              height: 45,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(5),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 10),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      addOnsEntity.addonsName ?? "No Name",
+                      style: AppTextStyle.googleFont(
+                        Colors.black,
+                        16,
+                        FontWeight.w400,
                       ),
-                      Row(
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.only(right: 8.0),
-                            child: addOnsEntity.price == null
-                                ? Text(
-                                    "0 ฿",
-                                    style: AppTextStyle.googleFont(
-                                      Colors.black,
-                                      16,
-                                      FontWeight.normal,
-                                    ),
-                                  )
-                                : addOnsEntity.priceType ==
-                                        RadioTypes.priceIncrease.toString()
-                                    ? Text(
-                                        "+${addOnsEntity.price ?? ""} ฿",
-                                        style: AppTextStyle.googleFont(
-                                          Colors.black,
-                                          16,
-                                          FontWeight.normal,
-                                        ),
-                                      )
-                                    : Text(
-                                        "-${addOnsEntity.price ?? ""} ฿",
-                                        style: AppTextStyle.googleFont(
-                                          Colors.black,
-                                          16,
-                                          FontWeight.normal,
-                                        ),
+                    ),
+                    Row(
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.only(right: 8.0),
+                          child: addOnsEntity.price == null
+                              ? Text(
+                                  "0 ฿",
+                                  style: AppTextStyle.googleFont(
+                                    Colors.black,
+                                    16,
+                                    FontWeight.normal,
+                                  ),
+                                )
+                              : addOnsEntity.priceType ==
+                                      RadioTypes.priceIncrease.toString()
+                                  ? Text(
+                                      "+${addOnsEntity.price ?? ""} ฿",
+                                      style: AppTextStyle.googleFont(
+                                        Colors.black,
+                                        16,
+                                        FontWeight.normal,
                                       ),
+                                    )
+                                  : Text(
+                                      "-${addOnsEntity.price ?? ""} ฿",
+                                      style: AppTextStyle.googleFont(
+                                        Colors.black,
+                                        16,
+                                        FontWeight.normal,
+                                      ),
+                                    ),
+                        ),
+                        const VerticalDivider(
+                          endIndent: 7,
+                          indent: 7,
+                          color: Colors.grey,
+                          thickness: 1,
+                        ),
+                        IconButton(
+                          onPressed: () {
+                            BlocProvider.of<AddAddOnsCubit>(context)
+                                .removeAddOns(index);
+                          },
+                          icon: Icon(
+                            Icons.delete,
+                            color: Colors.amber.shade900,
                           ),
-                          const VerticalDivider(
-                            endIndent: 7,
-                            indent: 7,
-                            color: Colors.grey,
-                            thickness: 1,
-                          ),
-                          IconButton(
-                            onPressed: () {
-                              BlocProvider.of<FilterOptionCubit>(context)
-                                  .removeAddOns(addOnsEntity);
-                            },
-                            icon: Icon(
-                              Icons.delete,
-                              color: Colors.amber.shade900,
-                            ),
-                          )
-                        ],
-                      ),
-                    ],
-                  ),
+                        )
+                      ],
+                    ),
+                  ],
                 ),
-              );
-            },
-          );
-        }
-        return Container();
+              ),
+            );
+          },
+        );
       },
     );
   }
@@ -327,9 +306,6 @@ class _AddFilterOptionViewState extends State<AddFilterOptionView> {
                     ),
                   ),
                 ),
-              ),
-              const SizedBox(
-                height: 15,
               ),
               Text(
                 "เลือกช้อยส์นี้มีผลต่อราคาของเมนูหรือไม่ ?",
@@ -484,22 +460,22 @@ class _AddFilterOptionViewState extends State<AddFilterOptionView> {
                   ),
                   TouchableOpacity(
                     onTap: () async {
-                      await BlocProvider.of<FilterOptionCubit>(context)
-                          .addAddOns(AddOnsEntity(
-                        addonsId: const Uuid().v1(),
-                        addonsName: addOnsName.text,
-                        priceType: _options.toString(),
-                        price: _options == RadioTypes.nochange
-                            ? null
-                            : int.parse(addOnsPrice.text),
-                      ))
-                          .then((value) {
-                        log("${context.read<FilterOptionCubit>().getAddOnsList}");
-                        addOnsName.clear();
-                        addOnsPrice.clear();
-                        _options = null;
+                      await context.read<AddAddOnsCubit>().addAddOns(
+                            AddOnsEntity(
+                              addonsId: const Uuid().v1(),
+                              addonsName: addOnsName.text,
+                              priceType: _options.toString(),
+                              price: _options == RadioTypes.nochange
+                                  ? null
+                                  : int.parse(addOnsPrice.text),
+                            ),
+                          );
+                      addOnsName.clear();
+                      addOnsPrice.clear();
+                      _options = null;
+                      if (mounted) {
                         Navigator.pop(context);
-                      });
+                      }
                     },
                     child: Container(
                       alignment: Alignment.center,
@@ -554,6 +530,9 @@ class _AddFilterOptionViewState extends State<AddFilterOptionView> {
               onChanged: (value) {
                 setState(() {
                   isRequire = value!;
+                  if (isRequire && isMultipleChoice) {
+                    isMultipleChoice = false;
+                  }
                 });
               },
             ),
@@ -579,6 +558,9 @@ class _AddFilterOptionViewState extends State<AddFilterOptionView> {
               onChanged: (value) {
                 setState(() {
                   isMultipleChoice = value!;
+                  if (isRequire && isMultipleChoice) {
+                    isRequire = false;
+                  }
                 });
               },
             ),

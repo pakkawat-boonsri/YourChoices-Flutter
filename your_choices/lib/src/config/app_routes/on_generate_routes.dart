@@ -8,7 +8,6 @@ import 'package:your_choices/src/presentation/views/register_view/register_view.
 import 'package:your_choices/src/presentation/views/vendor_side/add_menu_view/add_filter_option_view.dart/add_filter_option_view.dart';
 import 'package:your_choices/src/presentation/views/vendor_side/add_menu_view/add_menu_view.dart';
 import 'package:your_choices/src/presentation/views/vendor_side/add_menu_view/list_of_filter_option_view/list_of_filter_option_view.dart';
-import 'package:your_choices/src/presentation/views/vendor_side/menu_view/filter_option_detail_view/filter_option_detail_view.dart';
 import 'package:your_choices/src/presentation/views/vendor_side/menu_view/menu_detail_view/menu_detail_view.dart';
 import 'package:your_choices/src/presentation/views/vendor_side/menu_view/menu_view.dart';
 import 'package:your_choices/src/presentation/views/vendor_side/order_history_view.dart/order_history_view.dart';
@@ -17,7 +16,8 @@ import 'package:your_choices/src/presentation/views/vendor_side/restaurant_infom
 import 'package:your_choices/src/presentation/views/vendor_side/today_order_view/today_order_view.dart';
 import 'package:your_choices/src/presentation/views/vendor_side/vendor_main_view/vendor_main_view.dart';
 
-import 'src/domain/entities/vendor/dishes_menu/dishes_entity.dart';
+import '../../presentation/views/vendor_side/add_menu_view/filter_option_detail_view/filter_option_detail_view.dart';
+import '../../presentation/views/vendor_side/menu_view/filter_option_in_menu_detail_view/filter_option_in_menu_detail_view.dart';
 
 class OnGenerateRoute {
   static Route<dynamic>? route(RouteSettings settings) {
@@ -86,10 +86,25 @@ class OnGenerateRoute {
         }
       case PageConst.menuDetailPage:
         {
-          if (args is DishesEntity) {
+          if (args is Map) {
             return routeBuilder(
               MenuDetailView(
-                dishesEntity: args,
+                uid: args['uid'],
+                dishesEntity: args['dishesEntity'],
+              ),
+            );
+          } else {
+            return routeBuilder(
+              const NoPageFound(),
+            );
+          }
+        }
+      case PageConst.filterOptionInMenuDetailPage:
+        {
+          if (args is FilterOptionEntity) {
+            return routeBuilder(
+              FilterOptionInMenuDetailView(
+                filterOptionEntity: args,
               ),
             );
           } else {
@@ -100,10 +115,12 @@ class OnGenerateRoute {
         }
       case PageConst.listOfFilterOption:
         {
-          if (args is String) {
+          if (args is Map<String, dynamic>) {
             return routeBuilder(
               ListOfFilterOptionView(
-                uid: args,
+                id: args['id'],
+                previousRouteName: args['previousRouteName'],
+                dishesEntity: args['dishesEntity'],
               ),
             );
           } else {
@@ -206,6 +223,8 @@ class PageConst {
   static const String menuPage = "menuPage";
   static const String menuDetailPage = "menuDetailPage";
   static const String addMenuPage = "addMenuPage";
+  static const String filterOptionInMenuDetailPage =
+      "filterOptionInMenuDetailPage";
   static const String restaurantInfoPage = "restaurantInfoPage";
   static const String orderHistoryPage = "orderHistoryPage";
   static const String addOptionPage = "addOptionPage";

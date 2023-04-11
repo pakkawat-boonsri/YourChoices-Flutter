@@ -8,17 +8,18 @@ class FilterOptionEntity extends Equatable {
   final String? filterName;
   final bool? isRequired;
   final bool? isMultiple;
-  final bool? isSelected;
   final int? multipleQuantity;
   final List<AddOnsEntity>? addOns;
 
+  //not store in db
+  final bool isSelected;
   const FilterOptionEntity({
     this.filterId,
     this.filterName,
     this.isRequired,
     this.isMultiple,
     this.multipleQuantity,
-    this.isSelected,
+    this.isSelected = false,
     this.addOns,
   });
 

@@ -1,10 +1,13 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:touchable_opacity/touchable_opacity.dart';
 
 import 'package:your_choices/src/domain/entities/vendor/filter_options/filter_option_entity.dart';
+import 'package:your_choices/src/domain/usecases/firebase_usecases/customer/get_current_uid_usecase.dart';
+import 'package:your_choices/src/presentation/blocs/menu/menu_cubit.dart';
 import 'package:your_choices/src/presentation/widgets/custom_vendor_appbar.dart';
-
+import 'package:your_choices/injection_container.dart' as di;
 import '../../../../../../utilities/text_style.dart';
 
 enum RadioTypes {
@@ -13,20 +16,20 @@ enum RadioTypes {
   priceDecrease,
 }
 
-class FilterOptionDetailView extends StatefulWidget {
+class FilterOptionInMenuDetailView extends StatefulWidget {
   final FilterOptionEntity filterOptionEntity;
-  const FilterOptionDetailView({
+  const FilterOptionInMenuDetailView({
     Key? key,
     required this.filterOptionEntity,
   }) : super(key: key);
 
   @override
-  State<FilterOptionDetailView> createState() => _FilterOptionDetailViewState();
+  State<FilterOptionInMenuDetailView> createState() =>
+      _FilterOptionInMenuDetailViewState();
 }
 
-class _FilterOptionDetailViewState extends State<FilterOptionDetailView> {
-  bool isRequire = false;
-  bool isMultipleChoice = false;
+class _FilterOptionInMenuDetailViewState
+    extends State<FilterOptionInMenuDetailView> {
   late final FilterOptionEntity filterOptionEntity;
   late final TextEditingController filterOptionName;
   RadioTypes? _options;
@@ -39,6 +42,14 @@ class _FilterOptionDetailViewState extends State<FilterOptionDetailView> {
     filterOptionName =
         TextEditingController(text: filterOptionEntity.filterName);
     super.initState();
+  }
+
+  @override
+  void didChangeDependencies() async {
+    BlocProvider.of<MenuCubit>(context).getMenu(
+      uid: await di.sl<GetCurrentUidUseCase>().call(),
+    );
+    super.didChangeDependencies();
   }
 
   @override
@@ -491,58 +502,54 @@ class _FilterOptionDetailViewState extends State<FilterOptionDetailView> {
   }
 
   Widget _buildCheckBoxs() {
-    return StatefulBuilder(
-      builder: (context, setState) => Column(
-        mainAxisSize: MainAxisSize.max,
-        children: [
-          Theme(
-            data: ThemeData.dark().copyWith(
-              unselectedWidgetColor: Colors.white,
-            ),
-            child: CheckboxListTile(
-              dense: true,
-              controlAffinity: ListTileControlAffinity.leading,
-              activeColor: Colors.amber[900],
-              contentPadding: EdgeInsets.zero,
-              title: Text(
-                "ลูกค้าจำเป็นต้องเลือกหรือไม่ ?",
-                style: AppTextStyle.googleFont(
-                  Colors.white,
-                  18,
-                  FontWeight.normal,
-                ),
-              ),
-              value: filterOptionEntity.isRequired,
-              onChanged: (value) {
-                setState(() {});
-              },
-            ),
+    return Column(
+      mainAxisSize: MainAxisSize.max,
+      children: [
+        Theme(
+          data: ThemeData.dark().copyWith(
+            unselectedWidgetColor: Colors.white,
           ),
-          Theme(
-            data: ThemeData.dark().copyWith(
-              unselectedWidgetColor: Colors.white,
-            ),
-            child: CheckboxListTile(
-              dense: true,
-              controlAffinity: ListTileControlAffinity.leading,
-              activeColor: Colors.amber[900],
-              contentPadding: EdgeInsets.zero,
-              title: Text(
-                "ลูกค้าสามารถเลือกได้มากกว่า 1 ช้อยส์ ?",
-                style: AppTextStyle.googleFont(
-                  Colors.white,
-                  18,
-                  FontWeight.normal,
-                ),
+          child: CheckboxListTile(
+            dense: true,
+            controlAffinity: ListTileControlAffinity.leading,
+            activeColor: Colors.amber[900],
+            contentPadding: EdgeInsets.zero,
+            title: Text(
+              "ลูกค้าจำเป็นต้องเลือกหรือไม่ ?",
+              style: AppTextStyle.googleFont(
+                Colors.white,
+                18,
+                FontWeight.normal,
               ),
-              value: filterOptionEntity.isMultiple,
-              onChanged: (value) {
-                setState(() {});
-              },
             ),
+            value: filterOptionEntity.isRequired,
+            onChanged: (value) {
+              // BlocProvider.of<MenuCubit>(context);
+            },
           ),
-        ],
-      ),
+        ),
+        Theme(
+          data: ThemeData.dark().copyWith(
+            unselectedWidgetColor: Colors.white,
+          ),
+          child: CheckboxListTile(
+            dense: true,
+            controlAffinity: ListTileControlAffinity.leading,
+            activeColor: Colors.amber[900],
+            contentPadding: EdgeInsets.zero,
+            title: Text(
+              "ลูกค้าสามารถเลือกได้มากกว่า 1 ช้อยส์ ?",
+              style: AppTextStyle.googleFont(
+                Colors.white,
+                18,
+                FontWeight.normal,
+              ),
+            ),
+            value: filterOptionEntity.isMultiple,
+            onChanged: (value) {},
+          ),
+        ),
+      ],
     );
   }
 

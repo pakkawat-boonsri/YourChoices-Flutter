@@ -4,8 +4,8 @@ import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:your_choices/src/domain/entities/vendor/vendor_entity.dart';
 import 'package:your_choices/src/domain/usecases/firebase_usecases/customer/get_current_uid_usecase.dart';
-import 'package:your_choices/src/domain/usecases/firebase_usecases/sign_in_user_usecase.dart';
 import 'package:your_choices/src/domain/usecases/firebase_usecases/customer/sign_up_customer_usecase.dart';
+import 'package:your_choices/src/domain/usecases/firebase_usecases/utilities/sign_in_user_usecase.dart';
 import 'package:your_choices/src/domain/usecases/firebase_usecases/vendor/sign_up_vendor_usecase.dart';
 
 import '../../../domain/entities/customer/customer_entity.dart';
