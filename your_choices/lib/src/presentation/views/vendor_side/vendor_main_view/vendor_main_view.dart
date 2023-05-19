@@ -7,10 +7,11 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:touchable_opacity/touchable_opacity.dart';
 import 'package:your_choices/src/config/app_routes/on_generate_routes.dart';
 import 'package:your_choices/src/domain/entities/vendor/vendor_entity.dart';
-import 'package:your_choices/src/presentation/blocs/auth/auth_cubit.dart';
-import 'package:your_choices/src/presentation/blocs/vendor/vendor_cubit.dart';
 import 'package:your_choices/utilities/hex_color.dart';
 import 'package:your_choices/utilities/text_style.dart';
+
+import '../../../blocs/utilities_bloc/auth/auth_cubit.dart';
+import '../../../blocs/vendor_bloc/vendor/vendor_cubit.dart';
 
 class VendorMainView extends StatefulWidget {
   final String uid;

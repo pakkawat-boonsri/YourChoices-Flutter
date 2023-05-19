@@ -10,6 +10,8 @@ abstract class FirebaseRemoteDataSource {
   //for Customer
   Future<void> signUpCustomer(CustomerEntity customer);
   Stream<List<CustomerEntity>> getSingleCustomer(String uid);
+  Stream<List<VendorEntity>> getAllRestaurants();
+  Future<void> updateCustomerInfo(CustomerEntity customerEntity);
 
   //for vendor
   Future<void> signUpVendor(VendorEntity vendorEntity);
@@ -22,7 +24,7 @@ abstract class FirebaseRemoteDataSource {
   Stream<List<FilterOptionEntity>> getFilterOptionInMenu(DishesEntity dishesEntity);
   Future<void> updateMenu(DishesEntity dishesEntity);
   Future<void> deleteMenu(DishesEntity dishesEntity);
-  
+
   //menuDetail features
   Future<void> addFilterOptionInMenu(FilterOptionEntity filterOptionEntity);
   Future<void> deleteFilterOptionInMenu(FilterOptionEntity filterOptionEntity);

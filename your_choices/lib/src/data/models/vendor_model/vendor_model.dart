@@ -16,6 +16,7 @@ class VendorModel extends VendorEntity {
     final num? onQueue,
     final String? description,
     final num? totalPriceSell,
+    final String? restaurantType,
     final List<DishesEntity>? dishes,
   }) : super(
           uid: uid,
@@ -30,6 +31,7 @@ class VendorModel extends VendorEntity {
           username: username,
           profileUrl: profileUrl,
           type: type,
+          restaurantType: restaurantType,
         );
 
   factory VendorModel.fromJson(DocumentSnapshot snap) {
@@ -51,6 +53,7 @@ class VendorModel extends VendorEntity {
       email: snapshot['email'],
       uid: snapshot['uid'],
       type: snapshot['type'],
+      restaurantType: snapshot['restaurantType'],
     );
   }
 
@@ -68,6 +71,7 @@ class VendorModel extends VendorEntity {
     data['resProfileUrl'] = resProfileUrl;
     data['totalPriceSell'] = totalPriceSell;
     data['type'] = type;
+    data['restaurantType'] = restaurantType;
     return data;
   }
 }

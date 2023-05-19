@@ -10,11 +10,11 @@ import 'package:touchable_opacity/touchable_opacity.dart';
 import 'package:your_choices/src/config/app_routes/on_generate_routes.dart';
 import 'package:your_choices/src/domain/entities/vendor/vendor_entity.dart';
 import 'package:your_choices/src/domain/usecases/firebase_usecases/utilities/upload_image_to_storage_usecase.dart';
-import 'package:your_choices/src/presentation/blocs/vendor/vendor_cubit.dart';
 import 'package:your_choices/src/presentation/widgets/custom_vendor_appbar.dart';
 import 'package:your_choices/utilities/loading_dialog.dart';
 import 'package:your_choices/injection_container.dart' as di;
 import '../../../../../../utilities/text_style.dart';
+import '../../../../blocs/vendor_bloc/vendor/vendor_cubit.dart';
 
 class EditRestaurantInfoView extends StatefulWidget {
   final VendorEntity vendorEntity;

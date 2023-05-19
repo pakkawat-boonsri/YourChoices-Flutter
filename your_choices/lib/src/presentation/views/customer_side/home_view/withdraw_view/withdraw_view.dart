@@ -1,25 +1,34 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:your_choices/src/presentation/blocs/customer/customer_cubit.dart';
+import 'package:qr_flutter/qr_flutter.dart';
+import 'package:touchable_opacity/touchable_opacity.dart';
 
-import 'package:your_choices/utilities/text_style.dart';
+import 'package:your_choices/src/domain/entities/customer/customer_entity.dart';
+import 'package:your_choices/src/presentation/widgets/custom_vendor_appbar.dart';
 import 'package:your_choices/utilities/hex_color.dart';
+import 'package:your_choices/utilities/text_style.dart';
 
 class WithDrawView extends StatefulWidget {
-  final String uid;
-  const WithDrawView({super.key, required this.uid});
+  final CustomerEntity customerEntity;
+  const WithDrawView({
+    Key? key,
+    required this.customerEntity,
+  }) : super(key: key);
 
   @override
   State<WithDrawView> createState() => _WithDrawViewState();
 }
 
 class _WithDrawViewState extends State<WithDrawView> {
-  late TextEditingController _amount;
+  final _amount = TextEditingController();
   final _formkey = GlobalKey<FormState>();
 
   bool _isValidate = false;
+
+  int? seletedIndex;
 
   didChange() {
     if (_formkey.currentState!.validate()) {
@@ -35,7 +44,6 @@ class _WithDrawViewState extends State<WithDrawView> {
 
   @override
   void initState() {
-    _amount = TextEditingController(text: "0");
     _amount.addListener(didChange);
     super.initState();
   }
@@ -49,57 +57,83 @@ class _WithDrawViewState extends State<WithDrawView> {
   @override
   Widget build(BuildContext context) {
     Size size = MediaQuery.of(context).size;
-    return SafeArea(
-      child: Scaffold(
-        appBar: appBar(),
-        body: SingleChildScrollView(
-          child: Column(
-            children: [
-              headerBalance(size: size),
-              Stack(
+    return Scaffold(
+      appBar: CustomAppbar(
+        title: "ถอนเงินออกบัญชี",
+        onTap: () {
+          Navigator.pop(context);
+        },
+      ),
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            Column(
+              children: [
+                Container(
+                  margin: const EdgeInsets.only(
+                    top: 15,
+                    left: 30,
+                    right: 30,
+                  ),
+                  width: size.width,
+                  child: Text(
+                    "เงินภายในบัญชี : ",
+                    style: AppTextStyle.googleFont(
+                      Colors.white,
+                      24,
+                      FontWeight.w600,
+                    ),
+                  ),
+                ),
+                Container(
+                  width: size.width,
+                  alignment: Alignment.centerRight,
+                  padding: const EdgeInsets.only(right: 30),
+                  child: Text(
+                    "฿ ${widget.customerEntity.balance}",
+                    style: AppTextStyle.googleFont(
+                        Colors.white, 34, FontWeight.w600),
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(
+              height: 350,
+              child: Stack(
                 children: [
                   withDrawBodySelection(size, context),
-                  buttonGenQRCode(size),
+                  Positioned(
+                    top: 300,
+                    child: TouchableOpacity(
+                      onTap: _isValidate
+                          ? () async {
+                              genarateQrCode(context);
+                            }
+                          : null,
+                      child: Container(
+                        margin: const EdgeInsets.symmetric(horizontal: 40),
+                        decoration: BoxDecoration(
+                          color: _isValidate ? "FE7144".toColor() : Colors.grey,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        width: size.width * 0.79,
+                        height: 45,
+                        alignment: Alignment.center,
+                        child: Text(
+                          "Generate QR Code",
+                          style: AppTextStyle.googleFont(
+                            Colors.white,
+                            20,
+                            FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
                 ],
               ),
-              qrCodeText(),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  AppBar appBar() {
-    return AppBar(
-      elevation: 20,
-      centerTitle: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(
-          bottom: Radius.circular(15),
-        ),
-      ),
-      backgroundColor: "FE7144".toColor(),
-      title: const Text("ถอนเงินออกบัญชี"),
-    );
-  }
-
-  Padding buttonGenQRCode(Size size) {
-    return Padding(
-      padding: const EdgeInsets.only(top: 300),
-      child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 42),
-        decoration: BoxDecoration(
-          color: _isValidate ? "FE7144".toColor() : Colors.grey,
-          borderRadius: BorderRadius.circular(10),
-        ),
-        width: size.width * 0.79,
-        child: TextButton(
-          onPressed: _isValidate ? () {} : null,
-          child: Text(
-            "Generate QR Code",
-            style: AppTextStyle.googleFont(Colors.white, 20, FontWeight.bold),
-          ),
+            ),
+          ],
         ),
       ),
     );
@@ -137,22 +171,42 @@ class _WithDrawViewState extends State<WithDrawView> {
               children: List.generate(
                 6,
                 (index) {
-                  return Container(
-                    margin: const EdgeInsets.all(5),
-                    width: 100,
-                    height: 45,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(70),
-                      gradient: const LinearGradient(
-                          colors: [Colors.white, Colors.white]),
-                    ),
-                    child: TextButton(
-                      child: Text(
-                        "${(index + 1) * 100}",
-                        style: AppTextStyle.googleFont(
-                            Colors.black, 16, FontWeight.w700),
+                  return StatefulBuilder(
+                    builder: (context, setState) => TouchableOpacity(
+                      onTap: () async {
+                        _amount.text = ((index + 1) * 100).toString();
+                        setState(() {
+                          seletedIndex = index;
+                        });
+                        didChange();
+                      },
+                      child: Container(
+                        alignment: Alignment.center,
+                        margin: const EdgeInsets.all(5),
+                        width: 100,
+                        height: 45,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(70),
+                          gradient: seletedIndex == index
+                              ? LinearGradient(
+                                  colors: [
+                                    "F93C00".toColor(),
+                                    "FFB097".toColor(),
+                                  ],
+                                )
+                              : const LinearGradient(
+                                  colors: [
+                                    Colors.white,
+                                    Colors.white,
+                                  ],
+                                ),
+                        ),
+                        child: Text(
+                          "${(index + 1) * 100}",
+                          style: AppTextStyle.googleFont(
+                              Colors.black, 16, FontWeight.w700),
+                        ),
                       ),
-                      onPressed: () {},
                     ),
                   );
                 },
@@ -178,7 +232,6 @@ class _WithDrawViewState extends State<WithDrawView> {
                     inputFormatters: <TextInputFormatter>[
                       FilteringTextInputFormatter.digitsOnly
                     ],
-                    onTap: () {},
                     keyboardType: TextInputType.number,
                     onFieldSubmitted: (value) {
                       if (_formkey.currentState!.validate()) {
@@ -188,32 +241,40 @@ class _WithDrawViewState extends State<WithDrawView> {
                       }
                     },
                     validator: (value) {
-                      if (value != null) {
-                        int? newValue = int.tryParse(value);
+                      if (_amount.text != "") {
+                        int? newValue = int.tryParse(_amount.text);
                         if (newValue != null) {
-                          if (newValue % 100 != 0) {
-                            return "จำนวนเงินต้องเป็นจำนวนเต็มร้อย";
-                          } else {
+                          if (newValue > 0) {
                             return null;
+                          } else {
+                            return "จำนวนเงินต้องเป็นจำนวนเต็ม";
                           }
                         } else {
                           return "โปรดกรอกจำนวนเงิน";
                         }
                       } else {
-                        return "โปรดกรอกจำนวนเงิน";
+                        return "";
                       }
                     },
                     enableSuggestions: false,
                     style: AppTextStyle.googleFont(
-                        Colors.black, 18, FontWeight.w600),
+                      Colors.black,
+                      18,
+                      FontWeight.w600,
+                    ),
                     textDirection: TextDirection.rtl,
                     controller: _amount,
                     autocorrect: false,
                     decoration: InputDecoration(
                       contentPadding: const EdgeInsets.symmetric(
-                          vertical: 10.0, horizontal: 10),
+                        vertical: 10.0,
+                        horizontal: 10,
+                      ),
                       errorStyle: AppTextStyle.googleFont(
-                          Colors.red, 16, FontWeight.w500),
+                        Colors.red,
+                        16,
+                        FontWeight.w500,
+                      ),
                       isDense: true,
                       border: OutlineInputBorder(
                         borderSide: BorderSide.none,
@@ -222,7 +283,10 @@ class _WithDrawViewState extends State<WithDrawView> {
                       hintText: "จำนวนเงิน",
                       hintTextDirection: TextDirection.rtl,
                       hintStyle: AppTextStyle.googleFont(
-                          Colors.grey, 18, FontWeight.w500),
+                        Colors.grey,
+                        18,
+                        FontWeight.w500,
+                      ),
                       fillColor: Colors.white,
                       filled: true,
                     ),
@@ -236,119 +300,32 @@ class _WithDrawViewState extends State<WithDrawView> {
     );
   }
 
-  Column qrCodeText() {
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 20),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  genarateQrCode(BuildContext context) async {
+    final customerWithDraw = widget.customerEntity
+        .copyWith(
+          withdrawAmount: _amount.text,
+          depositAmount: null,
+        )
+        .toJson();
+    log(customerWithDraw);
+    return showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text("Qr Code"),
+          content: Wrap(
             children: [
-              Text(
-                "QR CODE",
-                style:
-                    AppTextStyle.googleFont(Colors.white, 24, FontWeight.bold),
-              ),
-              InkWell(
-                onTap: () {},
-                child: Row(
-                  children: [
-                    const Icon(
-                      Icons.save_alt,
-                      size: 30,
-                      color: Colors.white,
-                    ),
-                    const SizedBox(
-                      width: 10,
-                    ),
-                    Text(
-                      "Save to Device",
-                      style: AppTextStyle.googleFont(
-                          Colors.white, 18, FontWeight.w500),
-                    )
-                  ],
+              Container(
+                alignment: Alignment.center,
+                width: MediaQuery.of(context).size.width,
+                child: QrImage(
+                  data: customerWithDraw,
                 ),
-              )
+              ),
             ],
           ),
-        )
-      ],
+        );
+      },
     );
   }
 }
-
-Column headerBalance({required Size size}) => Column(
-      children: [
-        Container(
-          margin: const EdgeInsets.only(top: 15, left: 30, right: 30),
-          width: size.width,
-          child: Text(
-            "เงินภายในบัญชี : ",
-            style: AppTextStyle.googleFont(Colors.white, 24, FontWeight.w600),
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.only(right: 30),
-          child: SizedBox(
-            width: size.width,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                BlocBuilder<CustomerCubit, CustomerState>(
-                  builder: (context, state) {
-                    if (state is CustomerLoading) {
-                      return Column(
-                        children: const [
-                          CircularProgressIndicator(),
-                          SizedBox(
-                            height: 23,
-                          )
-                        ],
-                      );
-                    } else if (state is CustomerLoaded) {
-                      return Text(
-                        "฿ ${state.customerEntity.balance}",
-                        style: AppTextStyle.googleFont(
-                            Colors.white, 34, FontWeight.w600),
-                      );
-                    } else {
-                      return Container();
-                    }
-                  },
-                ),
-              ],
-            ),
-          ),
-        ),
-      ],
-    );
-
-
-// Container(
-//                           margin: const EdgeInsets.all(5),
-//                           width: 100,
-//                           height: 45,
-//                           decoration: BoxDecoration(
-//                             borderRadius: BorderRadius.circular(70),
-//                             gradient: state.index == index
-//                                 ? LinearGradient(
-//                                     colors: [
-//                                       "F93C00".toColor(),
-//                                       "FFB097".toColor(),
-//                                     ],
-//                                   )
-//                                 : const LinearGradient(
-//                                     colors: [Colors.white, Colors.white],
-//                                   ),
-//                           ),
-//                           child: TextButton(
-//                             child: Text(
-//                               "${(index + 1) * 100}",
-//                               style: AppTextStyle.googleFont(
-//                                   Colors.black, 16, FontWeight.w700),
-//                             ),
-//                             onPressed: () {
-                              
-//                             },
-//                           ),
-//                         );

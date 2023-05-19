@@ -4,20 +4,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:touchable_opacity/touchable_opacity.dart';
 import 'package:uuid/uuid.dart';
+import 'package:your_choices/global.dart';
 import 'package:your_choices/src/domain/entities/vendor/add_ons/add_ons_entity.dart';
 import 'package:your_choices/src/domain/entities/vendor/filter_options/filter_option_entity.dart';
-import 'package:your_choices/src/presentation/blocs/add_add_ons/add_add_ons_cubit.dart';
-import 'package:your_choices/src/presentation/blocs/filter_option/filter_options_cubit.dart';
+import 'package:your_choices/src/presentation/blocs/vendor_bloc/add_add_ons/add_add_ons_cubit.dart';
+import 'package:your_choices/src/presentation/blocs/vendor_bloc/filter_option/filter_options_cubit.dart';
 import 'package:your_choices/src/presentation/widgets/custom_vendor_appbar.dart';
 import 'package:your_choices/utilities/show_flutter_toast.dart';
 import '../../../../../../utilities/loading_dialog.dart';
 import '../../../../../../utilities/text_style.dart';
 
-enum RadioTypes {
-  nochange,
-  priceIncrease,
-  priceDecrease,
-}
+
 
 class AddFilterOptionView extends StatefulWidget {
   const AddFilterOptionView({super.key});

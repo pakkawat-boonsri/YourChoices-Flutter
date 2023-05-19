@@ -5,11 +5,13 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:touchable_opacity/touchable_opacity.dart';
 import 'package:your_choices/src/config/app_routes/on_generate_routes.dart';
 import 'package:your_choices/src/domain/entities/vendor/dishes_menu/dishes_entity.dart';
-import 'package:your_choices/src/presentation/blocs/add_filter_in_menu/add_filter_in_menu_cubit.dart';
-import 'package:your_choices/src/presentation/blocs/menu/menu_cubit.dart';
-import 'package:your_choices/src/presentation/blocs/menu/menu_state.dart';
+import 'package:your_choices/src/presentation/blocs/vendor_bloc/add_filter_in_menu/add_filter_in_menu_cubit.dart';
+import 'package:your_choices/src/presentation/blocs/vendor_bloc/menu/menu_cubit.dart';
+import 'package:your_choices/src/presentation/blocs/vendor_bloc/menu/menu_state.dart';
 import 'package:your_choices/src/presentation/widgets/custom_vendor_appbar.dart';
 import 'package:your_choices/utilities/text_style.dart';
+
+import '../../../blocs/vendor_bloc/filter_option_in_menu/filter_option_in_menu_cubit.dart';
 
 class MenuView extends StatefulWidget {
   const MenuView({super.key, required this.uid});
@@ -26,6 +28,8 @@ class _MenuViewState extends State<MenuView> {
     super.initState();
     BlocProvider.of<MenuCubit>(context).getMenu(uid: widget.uid);
     BlocProvider.of<AddFilterInMenuCubit>(context).resetFiltersInMenu();
+    BlocProvider.of<FilterOptionInMenuCubit>(context)
+        .resetDeleteFilterOptionInMenu();
   }
 
   @override

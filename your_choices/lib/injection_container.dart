@@ -7,7 +7,9 @@ import 'package:your_choices/src/data/repositories/firebase_repository_impl.dart
 import 'package:your_choices/src/domain/repositories/firebase_repository.dart';
 import 'package:your_choices/src/domain/usecases/firebase_usecases/customer/get_current_uid_usecase.dart';
 import 'package:your_choices/src/domain/usecases/firebase_usecases/customer/get_single_customer_usecase.dart';
+import 'package:your_choices/src/domain/usecases/firebase_usecases/customer/restaurant/get_all_restaurant_usecase.dart';
 import 'package:your_choices/src/domain/usecases/firebase_usecases/customer/sign_up_customer_usecase.dart';
+import 'package:your_choices/src/domain/usecases/firebase_usecases/customer/update_customer_info_usecase.dart';
 import 'package:your_choices/src/domain/usecases/firebase_usecases/utilities/is_sign_in_usecase.dart';
 import 'package:your_choices/src/domain/usecases/firebase_usecases/utilities/sign_in_role_usercase.dart';
 import 'package:your_choices/src/domain/usecases/firebase_usecases/utilities/sign_in_user_usecase.dart';
@@ -28,19 +30,22 @@ import 'package:your_choices/src/domain/usecases/firebase_usecases/vendor/filter
 import 'package:your_choices/src/domain/usecases/firebase_usecases/vendor/menu/update_menu_usecase.dart';
 import 'package:your_choices/src/domain/usecases/firebase_usecases/vendor/sign_up_vendor_usecase.dart';
 import 'package:your_choices/src/domain/usecases/firebase_usecases/vendor/update_restaurant_info_usecase.dart';
-import 'package:your_choices/src/presentation/blocs/add_add_ons/add_add_ons_cubit.dart';
-import 'package:your_choices/src/presentation/blocs/add_filter_in_menu/add_filter_in_menu_cubit.dart';
-import 'package:your_choices/src/presentation/blocs/add_filter_option/add_filter_option_cubit.dart';
-import 'package:your_choices/src/presentation/blocs/auth/auth_cubit.dart';
-import 'package:your_choices/src/presentation/blocs/credential/credential_cubit.dart';
-import 'package:your_choices/src/presentation/blocs/customer/customer_cubit.dart';
-import 'package:your_choices/src/presentation/blocs/filter_option/filter_options_cubit.dart';
-import 'package:your_choices/src/presentation/blocs/filter_option_in_menu/filter_option_in_menu_cubit.dart';
-import 'package:your_choices/src/presentation/blocs/menu/menu_cubit.dart';
-import 'package:your_choices/src/presentation/blocs/vendor/vendor_cubit.dart';
+import 'package:your_choices/src/presentation/blocs/customer_bloc/cart/cart_cubit.dart';
+import 'package:your_choices/src/presentation/blocs/customer_bloc/favorite/favorite_cubit.dart';
+import 'package:your_choices/src/presentation/blocs/customer_bloc/restaurant/restaurant_cubit.dart';
+import 'package:your_choices/src/presentation/blocs/vendor_bloc/add_add_ons/add_add_ons_cubit.dart';
+import 'package:your_choices/src/presentation/blocs/vendor_bloc/add_filter_in_menu/add_filter_in_menu_cubit.dart';
+import 'package:your_choices/src/presentation/blocs/vendor_bloc/add_filter_option/add_filter_option_cubit.dart';
+import 'package:your_choices/src/presentation/blocs/vendor_bloc/filter_option/filter_options_cubit.dart';
+import 'package:your_choices/src/presentation/blocs/vendor_bloc/menu/menu_cubit.dart';
 
 import 'src/data/data_sources/remote_data_source_impl/remote_data_source_impl.dart';
 import 'src/domain/usecases/firebase_usecases/vendor/filer_option/delete_filter_option_usecase.dart';
+import 'src/presentation/blocs/customer_bloc/customer/customer_cubit.dart';
+import 'src/presentation/blocs/utilities_bloc/auth/auth_cubit.dart';
+import 'src/presentation/blocs/utilities_bloc/credential/credential_cubit.dart';
+import 'src/presentation/blocs/vendor_bloc/filter_option_in_menu/filter_option_in_menu_cubit.dart';
+import 'src/presentation/blocs/vendor_bloc/vendor/vendor_cubit.dart';
 
 final sl = GetIt.instance;
 
@@ -58,6 +63,20 @@ Future<void> init() async {
   sl.registerFactory(
     () => CustomerCubit(
       getSingleCustomerUseCase: sl.call(),
+      updateCustomerInfoUseCase: sl.call(),
+    ),
+  );
+  sl.registerFactory(
+    () => FavoriteCubit(
+    ),
+  );
+  sl.registerFactory(
+    () => CartCubit(
+    ),
+  );
+  sl.registerFactory(
+    () => RestaurantCubit(
+      getAllRestaurantUseCase: sl.call(),
     ),
   );
 
@@ -121,6 +140,12 @@ Future<void> init() async {
 
   sl.registerLazySingleton(
     () => SignUpCustomerUseCase(repository: sl.call()),
+  );
+  sl.registerLazySingleton(
+    () => GetAllRestaurantUseCase(repository: sl.call()),
+  );
+  sl.registerLazySingleton(
+    () => UpdateCustomerInfoUseCase(repository: sl.call()),
   );
 
   //use-case vendor

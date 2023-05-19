@@ -10,6 +10,8 @@ abstract class FirebaseRepository {
   //for Customer
   Future<void> signUpCustomer(CustomerEntity customer);
   Stream<List<CustomerEntity>> getSingleCustomer(String uid);
+  Stream<List<VendorEntity>> getAllRestaurants();
+  Future<void> updateCustomerInfo(CustomerEntity customerEntity);
 
   //for vendor
   Future<void> signUpVendor(VendorEntity vendorEntity);
@@ -20,7 +22,8 @@ abstract class FirebaseRepository {
   //menu features
   Future<void> createMenu(DishesEntity dishesEntity);
   Stream<List<DishesEntity>> getMenu(String uid);
-  Stream<List<FilterOptionEntity>> getFilterOptionInMenu(DishesEntity dishesEntity);
+  Stream<List<FilterOptionEntity>> getFilterOptionInMenu(
+      DishesEntity dishesEntity);
 
   Future<void> updateMenu(DishesEntity dishesEntity);
   Future<void> deleteMenu(DishesEntity dishesEntity);

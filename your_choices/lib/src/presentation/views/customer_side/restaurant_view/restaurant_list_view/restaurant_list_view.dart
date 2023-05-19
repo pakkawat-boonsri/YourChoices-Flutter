@@ -1,268 +1,161 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:touchable_opacity/touchable_opacity.dart';
+import 'package:your_choices/src/config/app_routes/on_generate_routes.dart';
 
 import 'package:your_choices/src/domain/entities/customer/customer_entity.dart';
-import 'package:your_choices/src/restaurant_screen/view_model/bloc/restaurant_bloc.dart';
+import 'package:your_choices/src/presentation/blocs/customer_bloc/cart/cart_cubit.dart';
+import 'package:your_choices/src/presentation/views/customer_side/restaurant_view/restaurant_list_view/widgets/list_of_restaurants.dart';
+import 'package:your_choices/src/presentation/views/customer_side/search_box_view/bloc/search_box_bloc.dart';
+import 'package:your_choices/src/presentation/views/customer_side/search_box_view/seach_box_view.dart';
+import 'package:your_choices/src/presentation/widgets/custom_text.dart';
 import 'package:your_choices/utilities/hex_color.dart';
 import 'package:your_choices/utilities/text_style.dart';
 
-class RestaurantView extends StatefulWidget {
+import 'package:badges/badges.dart' as badges;
+
+class RestaurantListView extends StatefulWidget {
   final CustomerEntity customerEntity;
-  const RestaurantView({
+  const RestaurantListView({
     Key? key,
     required this.customerEntity,
   }) : super(key: key);
 
   @override
-  State<RestaurantView> createState() => _RestaurantViewState();
+  State<RestaurantListView> createState() => _RestaurantListViewState();
 }
 
-class _RestaurantViewState extends State<RestaurantView> {
+class _RestaurantListViewState extends State<RestaurantListView> with SingleTickerProviderStateMixin {
   final searchText = TextEditingController();
+  late TabController tabController;
+  List<String> restaurantTypes = ["ร้านอาหารตามสั่ง", "ร้านข้าวแกง", "ร้านก๋วยเตี๋ยว", "ร้านเครื่องดื่ม"];
+  late String selectedType;
 
   @override
   void initState() {
-    BlocProvider.of<RestaurantBloc>(context).add(
-      OnFetchingDataEvent(),
-    );
+    tabController = TabController(vsync: this, length: restaurantTypes.length, initialIndex: 0);
+    selectedType = restaurantTypes[0];
     super.initState();
+  }
+
+  @override
+  void dispose() {
+    tabController.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     Size size = MediaQuery.of(context).size;
     return Scaffold(
-      appBar: _buildAppBarContent(size, context, widget.customerEntity),
-      body: SizedBox(
-        width: size.width,
-        height: size.height,
-        child: Column(
-          children: [
-            _buildTextSelection(),
-            Expanded(
-              child: _buildListofRestaurant(context, size),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildTextSelection() {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 15, vertical: 20),
-      child: Center(
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              "List of Restaurants",
-              style: AppTextStyle.googleFont(Colors.white, 24, FontWeight.bold),
-            ),
-            Text(
-              "See all",
-              style: AppTextStyle.googleFont(Colors.white, 16, FontWeight.bold),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildListofRestaurant(BuildContext context, Size size) {
-    return BlocBuilder<RestaurantBloc, RestaurantState>(
-      builder: (context, state) {
-        if (state is RestaurantInitial) {
-          return Column(
-            children: const [
-              CircularProgressIndicator(
-                color: Colors.orangeAccent,
-              ),
-            ],
-          );
-        }
-        if (state is OnFetchedRestaurantData) {
-          final viewModel = state.model;
-
-          return ListView.separated(
-            primary: false,
-            separatorBuilder: (context, index) => const SizedBox(
-              height: 10,
-            ),
-            itemCount: viewModel.length,
-            itemBuilder: (context, index) {
-              // log("viewModel.length.toString() ${viewModel.length.toString()}");
-              // log("${viewModel[index].resImg}");
-              return TouchableOpacity(
-                onTap: () {
-                  // Navigator.pushAndRemoveUntil(
-                  //     context,
-                  //     MaterialPageRoute(
-                  //       builder: (context) => RestaurantDetailView(
-                  //           model: viewModel[index], uid: widget.uid),
-                  //     ),
-                  //     (route) => false);
-                },
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 15),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Row(
-                        children: [
-                          CachedNetworkImage(
-                            imageUrl: "${viewModel[index].resImg}",
-                            imageBuilder: (context, imageProvider) {
-                              return Container(
-                                width: size.width * 0.35,
-                                height: 120,
-                                decoration: BoxDecoration(
-                                  image: DecorationImage(
-                                    image: imageProvider,
-                                    fit: BoxFit.cover,
-                                  ),
-                                  borderRadius: const BorderRadius.only(
-                                    topLeft: Radius.circular(10),
-                                    bottomLeft: Radius.circular(10),
-                                  ),
-                                ),
-                              );
-                            },
-                            placeholder: (context, url) => Container(
-                              width: size.width * 0.35,
-                              height: 120,
-                              alignment: Alignment.center,
-                              child: const CircularProgressIndicator(
-                                color: Colors.amber,
-                              ),
-                            ),
-                            errorWidget: (context, url, error) => Image.asset(
-                              "assets/images/image_picker.png",
-                              fit: BoxFit.cover,
-                              width: 60,
-                              height: 60,
-                            ),
-                          ),
-                          // SizedBox(
-                          //   width: size.width * 0.35,
-                          //   height: 120,
-                          //   child: ClipRRect(
-                          //     borderRadius: const BorderRadius.only(
-                          //       topLeft: Radius.circular(10),
-                          //       bottomLeft: Radius.circular(10),
-                          //     ),
-                          //     child: Image.network(
-                          //       "${viewModel[index].resImg}",
-                          //       fit: BoxFit.cover,
-                          //     ),
-                          //   ),
-                          // ),
-                          Expanded(
-                            child: Container(
-                              padding: const EdgeInsets.only(
-                                left: 10,
-                              ),
-                              height: 120,
-                              decoration: const BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.only(
-                                  topRight: Radius.circular(10),
-                                  bottomRight: Radius.circular(10),
-                                ),
-                              ),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceEvenly,
-                                children: [
-                                  Container(
-                                    margin: const EdgeInsets.only(right: 10),
-                                    child: Text(
-                                      viewModel[index].resName ?? "",
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: AppTextStyle.googleFont(
-                                        Colors.black,
-                                        18,
-                                        FontWeight.w600,
-                                      ),
-                                    ),
-                                  ),
-                                  Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Expanded(
-                                        child: Container(
-                                          margin:
-                                              const EdgeInsets.only(right: 10),
-                                          child: Text(
-                                            "${viewModel[index].description}",
-                                            style: AppTextStyle.googleFont(
-                                              Colors.grey,
-                                              14,
-                                              FontWeight.normal,
-                                            ),
-                                            maxLines: 2,
-                                            overflow: TextOverflow.ellipsis,
-                                          ),
-                                        ),
-                                      ),
-                                      const Padding(
-                                        padding: EdgeInsets.only(right: 10.0),
-                                        child: Icon(Icons.arrow_forward),
-                                      )
-                                    ],
-                                  ),
-                                  Text.rich(
-                                    TextSpan(
-                                      text: "มี ",
-                                      style: AppTextStyle.googleFont(
-                                          Colors.black, 14, FontWeight.normal),
-                                      children: [
-                                        TextSpan(
-                                          text: "${viewModel[index].onQueue}",
-                                          style: AppTextStyle.googleFont(
-                                              "FF602E".toColor(),
-                                              16,
-                                              FontWeight.normal),
-                                        ),
-                                        TextSpan(
-                                          text: " คิว ณ ขณะนี้",
-                                          style: AppTextStyle.googleFont(
-                                              Colors.black,
-                                              14,
-                                              FontWeight.normal),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              );
+      floatingActionButton: BlocBuilder<CartCubit, CartState>(
+        builder: (context, state) {
+          return FloatingActionButton(
+            backgroundColor: "B44121".toColor(),
+            onPressed: () {
+              Navigator.pushNamed(context, PageConst.cartPage);
             },
+            child: badges.Badge(
+              // badgeAnimation: const badges.BadgeAnimation.size(),
+              position: badges.BadgePosition.topEnd(top: -16, end: -12),
+              badgeContent: Text(
+                "${state.cartItems.length}",
+                style: AppTextStyle.googleFont(
+                  Colors.white,
+                  15,
+                  FontWeight.normal,
+                ),
+              ),
+              badgeStyle: const badges.BadgeStyle(
+                padding: EdgeInsets.all(6),
+              ),
+              showBadge: state.cartItems.isNotEmpty,
+              child: const Icon(
+                CupertinoIcons.shopping_cart,
+                size: 32,
+              ),
+            ),
           );
-        } else {
-          return const Text("NO DATA");
-        }
-      },
+        },
+      ),
+      appBar: _buildAppBarContent(size, context, widget.customerEntity),
+      body: Column(
+        children: [
+          Container(
+            alignment: Alignment.centerLeft,
+            margin: const EdgeInsets.symmetric(horizontal: 15, vertical: 20),
+            child: Text(
+              "รายการร้านอาหาร",
+              style: AppTextStyle.googleFont(
+                Colors.white,
+                24,
+                FontWeight.bold,
+              ),
+            ),
+          ),
+          TabBar(
+            isScrollable: true,
+            controller: tabController,
+            indicatorColor: Colors.amber.shade900,
+            unselectedLabelColor: Colors.grey,
+            onTap: (value) {
+              setState(() {
+                selectedType = restaurantTypes[value];
+              });
+            },
+            tabs: restaurantTypes
+                .map(
+                  (type) => Tab(
+                    child: Text(
+                      type,
+                      style: GoogleFonts.ibmPlexSansThai(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                )
+                .toList(),
+          ),
+          const SizedBox(
+            height: 20,
+          ),
+          Flexible(
+            child: TabBarView(
+              controller: tabController,
+              physics: const NeverScrollableScrollPhysics(),
+              children: [
+                ListofRestaurants(
+                  restaurantType: selectedType,
+                ),
+                ListofRestaurants(
+                  restaurantType: selectedType,
+                ),
+                ListofRestaurants(
+                  restaurantType: selectedType,
+                ),
+                ListofRestaurants(
+                  restaurantType: selectedType,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
 
 AppBar _buildAppBarContent(
-    Size size, BuildContext context, CustomerEntity customerEntity) {
+  Size size,
+  BuildContext context,
+  CustomerEntity customerEntity,
+) {
   return AppBar(
     toolbarHeight: size.height * 0.2,
     shape: const RoundedRectangleBorder(
@@ -271,103 +164,179 @@ AppBar _buildAppBarContent(
       ),
     ),
     backgroundColor: Colors.white,
-    flexibleSpace: Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: 17,
-            vertical: 15,
-          ),
-          child: Row(
-            children: [
-              CachedNetworkImage(
-                imageUrl: customerEntity.profileUrl!,
-                imageBuilder: (context, imageProvider) => Container(
-                  width: 60,
-                  height: 60,
-                  decoration: BoxDecoration(
-                    image: DecorationImage(
-                      image: imageProvider,
-                      fit: BoxFit.cover,
-                    ),
-                    borderRadius: const BorderRadius.all(
-                      Radius.circular(
-                        100,
+    flexibleSpace: Padding(
+      padding: const EdgeInsets.only(top: 28),
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 17,
+              vertical: 15,
+            ),
+            child: Row(
+              children: [
+                CachedNetworkImage(
+                  imageUrl: customerEntity.profileUrl!,
+                  imageBuilder: (context, imageProvider) => Container(
+                    width: 60,
+                    height: 60,
+                    decoration: BoxDecoration(
+                      image: DecorationImage(
+                        image: imageProvider,
+                        fit: BoxFit.cover,
+                      ),
+                      borderRadius: const BorderRadius.all(
+                        Radius.circular(
+                          100,
+                        ),
                       ),
                     ),
                   ),
+                  placeholder: (context, url) => Image.asset(
+                    "assets/images/image_picker.png",
+                    fit: BoxFit.cover,
+                    width: 60,
+                    height: 60,
+                  ),
+                  errorWidget: (context, url, error) => Image.asset(
+                    "assets/images/image_picker.png",
+                    fit: BoxFit.cover,
+                    width: 60,
+                    height: 60,
+                  ),
                 ),
-                placeholder: (context, url) => Image.asset(
-                  "assets/images/image_picker.png",
-                  fit: BoxFit.cover,
-                  width: 60,
-                  height: 60,
+                const SizedBox(
+                  width: 20,
                 ),
-                errorWidget: (context, url, error) => Image.asset(
-                  "assets/images/image_picker.png",
-                  fit: BoxFit.cover,
-                  width: 60,
-                  height: 60,
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "เลือกร้านที่ชอบได้เลย",
+                      style: AppTextStyle.googleFont(
+                        Colors.grey,
+                        13,
+                        FontWeight.bold,
+                      ),
+                    ),
+                    Text(
+                      "${customerEntity.username}",
+                      style: AppTextStyle.googleFont(
+                        Colors.black,
+                        14,
+                        FontWeight.bold,
+                      ),
+                    ),
+                  ],
                 ),
-              ),
-              const SizedBox(
-                width: 20,
-              ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    "เลือกร้านที่ชอบได้เลย",
-                    style: AppTextStyle.googleFont(
-                      Colors.grey,
-                      13,
-                      FontWeight.bold,
+                const Spacer(),
+                TouchableOpacity(
+                  onTap: () {
+                    Navigator.pushNamed(context, PageConst.favoritePage);
+                  },
+                  child: Container(
+                    width: 45,
+                    height: 45,
+                    decoration: BoxDecoration(
+                      color: "B44121".toColor(),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.favorite_border,
+                      size: 28,
+                      color: Colors.white,
                     ),
                   ),
-                  Text(
-                    "${customerEntity.username}",
-                    style: AppTextStyle.googleFont(
-                      Colors.black,
-                      14,
-                      FontWeight.bold,
+                ),
+              ],
+            ),
+          ),
+          GestureDetector(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => BlocProvider(
+                    create: (context) => SearchBoxBloc(),
+                    child: const SeachBoxView(
+                      isNodeFocus: true,
+                    ),
+                  ),
+                ),
+              );
+            },
+            child: Container(
+              margin: const EdgeInsets.only(left: 20, right: 20),
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: "D9D9D9".toColor(),
+                borderRadius: BorderRadius.circular(50),
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  const Padding(
+                    padding: EdgeInsets.only(left: 10),
+                    child: Icon(
+                      CupertinoIcons.search,
+                      color: Colors.black,
+                      size: 30,
+                    ),
+                  ),
+                  const SizedBox(
+                    width: 10,
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 3),
+                    child: CustomText(
+                      text: "ค้นหาร้านที่ต้องการ",
+                      color: "685A5A".toColor(),
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                 ],
-              )
-            ],
-          ),
-        ),
-        Container(
-          margin: const EdgeInsets.only(left: 20, right: 20),
-          child: TextField(
-            style: AppTextStyle.googleFont(Colors.black, 16, FontWeight.w400),
-            decoration: InputDecoration(
-              filled: true,
-              fillColor: "D9D9D9".toColor(),
-              prefixIcon: const Padding(
-                padding: EdgeInsets.only(left: 20, right: 8),
-                child: Icon(
-                  Icons.search,
-                  color: Colors.black,
-                  size: 30,
-                ),
-              ),
-              prefixIconColor: Colors.black,
-              hintText: "ค้นหาร้านที่ต้องการ",
-              hintStyle: AppTextStyle.googleFont(
-                "685A5A".toColor(),
-                14,
-                FontWeight.w600,
-              ),
-              contentPadding: const EdgeInsets.symmetric(vertical: 10.0),
-              border: OutlineInputBorder(
-                borderSide: BorderSide.none,
-                borderRadius: BorderRadius.circular(50),
               ),
             ),
           ),
-        ),
-      ],
+        ],
+      ),
     ),
   );
 }
+
+
+// TextField(
+//               style: AppTextStyle.googleFont(
+//                 Colors.black,
+//                 16,
+//                 FontWeight.w400,
+//               ),
+//               onTap: () {
+//                 Navigator.pushNamed(context, PageConst.searchboxPage);
+//               },
+//               decoration: InputDecoration(
+//                 filled: true,
+//                 fillColor: "D9D9D9".toColor(),
+//                 prefixIcon: const Padding(
+//                   padding: EdgeInsets.only(left: 20, right: 8),
+                  // child: Icon(
+                  //   CupertinoIcons.search,
+                  //   color: Colors.black,
+                  //   size: 30,
+                  // ),
+//                 ),
+//                 prefixIconColor: Colors.black,
+//                 hintText: "ค้นหาร้านที่ต้องการ",
+//                 hintStyle: AppTextStyle.googleFont(
+//                   "685A5A".toColor(),
+//                   14,
+//                   FontWeight.w600,
+//                 ),
+//                 contentPadding: const EdgeInsets.symmetric(vertical: 10.0),
+//                 border: OutlineInputBorder(
+//                   borderSide: BorderSide.none,
+//                   borderRadius: BorderRadius.circular(50),
+//                 ),
+//               ),
+//             ),

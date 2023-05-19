@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:your_choices/src/presentation/blocs/customer/customer_cubit.dart';
-import 'package:your_choices/src/presentation/views/customer_side/favorite_view/favorite_view.dart';
-import 'package:your_choices/src/presentation/views/customer_side/notification_view/notification_view.dart';
+import 'package:your_choices/src/presentation/blocs/customer_bloc/customer/customer_cubit.dart';
+import 'package:your_choices/src/presentation/views/customer_side/customer_order_view/customer_order_view.dart';
 import 'package:your_choices/src/presentation/views/customer_side/profile_view/profile_view.dart';
 import 'package:your_choices/src/presentation/views/customer_side/restaurant_view/restaurant_list_view/restaurant_list_view.dart';
-import 'package:your_choices/utilities/text_style.dart';
-
+import 'package:google_nav_bar/google_nav_bar.dart';
 import '../home_view/transaction_view/transaction_view.dart';
 
 class CustomerMainView extends StatefulWidget {
@@ -50,56 +48,54 @@ class _CustomerMainViewState extends State<CustomerMainView> {
       builder: (context, state) {
         if (state is CustomerLoaded) {
           final currentCustomer = state.customerEntity;
-          return SafeArea(
-            child: Scaffold(
+          return Scaffold(
               body: PageView(
                 controller: pageController,
                 onPageChanged: onPageChanged,
                 children: [
                   TransactionView(customerEntity: currentCustomer),
-                  RestaurantView(customerEntity: currentCustomer),
-                  const FavoriteView(),
-                  const NotificationView(),
-                  const ProfileView(),
+                  RestaurantListView(customerEntity: currentCustomer),
+                  const CustomerOrderView(),
+                  ProfileView(customerEntity: currentCustomer),
                 ],
               ),
-              bottomNavigationBar: BottomNavigationBar(
-                type: BottomNavigationBarType.shifting,
-                currentIndex: currentIndex,
-                selectedItemColor: const Color(0xFFFF9C29),
-                selectedIconTheme: IconTheme.of(context)
-                    .copyWith(color: const Color(0xFFFF9C29)),
-                selectedLabelStyle: AppTextStyle.googleFont(
-                    Colors.black, 16, FontWeight.normal),
-                unselectedItemColor: Colors.grey,
-                unselectedIconTheme:
-                    IconTheme.of(context).copyWith(color: Colors.grey),
-                onTap: navigationTapped,
-                items: const [
-                  BottomNavigationBarItem(
-                    icon: Icon(Icons.home_sharp),
-                    label: "Home",
+              bottomNavigationBar: Container(
+                color: Colors.white,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 15,
+                    vertical: 10,
                   ),
-                  BottomNavigationBarItem(
-                    icon: Icon(Icons.restaurant_menu_sharp),
-                    label: "Restaurant",
+                  child: GNav(
+                    selectedIndex: currentIndex,
+                    gap: 8,
+                    color: Colors.grey,
+                    activeColor: Colors.white,
+                    tabBackgroundColor: const Color(0xffb44121),
+                    backgroundColor: Colors.white,
+                    padding: const EdgeInsets.all(14),
+                    onTabChange: navigationTapped,
+                    tabs: const [
+                      GButton(
+                        icon: Icons.home_sharp,
+                        text: "Home",
+                      ),
+                      GButton(
+                        icon: Icons.restaurant_menu_sharp,
+                        text: "Restaurant",
+                      ),
+                      GButton(
+                        icon: Icons.history,
+                        text: "Order",
+                      ),
+                      GButton(
+                        icon: Icons.person_sharp,
+                        text: "Profile",
+                      ),
+                    ],
                   ),
-                  BottomNavigationBarItem(
-                    icon: Icon(Icons.favorite_sharp),
-                    label: "Favorite",
-                  ),
-                  BottomNavigationBarItem(
-                    icon: Icon(Icons.notifications_sharp),
-                    label: "Notification",
-                  ),
-                  BottomNavigationBarItem(
-                    icon: Icon(Icons.person_sharp),
-                    label: "Profile",
-                  ),
-                ],
-              ),
-            ),
-          );
+                ),
+              ));
         } else {
           return const Center(
             child: CircularProgressIndicator(
@@ -110,14 +106,4 @@ class _CustomerMainViewState extends State<CustomerMainView> {
       },
     );
   }
-  // else {
-  //   return Center(
-  //     child: ElevatedButton(
-  //       onPressed: () {
-  //         context.read<AuthCubit>().loggingOut();
-  //       },
-  //       child: const Text("Sign Out"),
-  //     ),
-  //   );
-  // }
 }

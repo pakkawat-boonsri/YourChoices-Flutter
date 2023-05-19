@@ -2,19 +2,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:touchable_opacity/touchable_opacity.dart';
+import 'package:your_choices/global.dart';
 
 import 'package:your_choices/src/domain/entities/vendor/filter_options/filter_option_entity.dart';
 import 'package:your_choices/src/domain/usecases/firebase_usecases/customer/get_current_uid_usecase.dart';
-import 'package:your_choices/src/presentation/blocs/menu/menu_cubit.dart';
+import 'package:your_choices/src/presentation/blocs/vendor_bloc/menu/menu_cubit.dart';
 import 'package:your_choices/src/presentation/widgets/custom_vendor_appbar.dart';
 import 'package:your_choices/injection_container.dart' as di;
 import '../../../../../../utilities/text_style.dart';
 
-enum RadioTypes {
-  nochange,
-  priceIncrease,
-  priceDecrease,
-}
+
 
 class FilterOptionInMenuDetailView extends StatefulWidget {
   final FilterOptionEntity filterOptionEntity;

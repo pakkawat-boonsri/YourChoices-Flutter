@@ -9,16 +9,16 @@ import 'package:your_choices/src/config/app_routes/on_generate_routes.dart';
 import 'package:your_choices/src/domain/entities/vendor/dishes_menu/dishes_entity.dart';
 import 'package:your_choices/src/domain/entities/vendor/filter_options/filter_option_entity.dart';
 import 'package:your_choices/src/domain/usecases/firebase_usecases/customer/get_current_uid_usecase.dart';
-import 'package:your_choices/src/presentation/blocs/add_filter_in_menu/add_filter_in_menu_cubit.dart';
-import 'package:your_choices/src/presentation/blocs/add_filter_option/add_filter_option_cubit.dart';
-import 'package:your_choices/src/presentation/blocs/filter_option/filter_options_cubit.dart';
-import 'package:your_choices/src/presentation/blocs/menu/menu_cubit.dart';
+import 'package:your_choices/src/presentation/blocs/vendor_bloc/add_filter_in_menu/add_filter_in_menu_cubit.dart';
+import 'package:your_choices/src/presentation/blocs/vendor_bloc/add_filter_option/add_filter_option_cubit.dart';
+import 'package:your_choices/src/presentation/blocs/vendor_bloc/filter_option/filter_options_cubit.dart';
 import 'package:your_choices/src/presentation/widgets/custom_vendor_appbar.dart';
 import 'package:your_choices/utilities/hex_color.dart';
 import 'package:your_choices/utilities/loading_dialog.dart';
 import 'package:your_choices/utilities/text_style.dart';
 
-import '../../../../blocs/filter_option/filter_options_state.dart';
+import '../../../../blocs/vendor_bloc/filter_option/filter_options_state.dart';
+import '../../../../blocs/vendor_bloc/filter_option_in_menu/filter_option_in_menu_cubit.dart';
 
 class ListOfFilterOptionView extends StatefulWidget {
   final String id;
@@ -259,12 +259,11 @@ class HaveFilterOptionList extends StatelessWidget {
                       context.read<AddFilterOptionCubit>().state;
                   loadingDialog(context);
                   if (previousRouteName == PageConst.menuDetailPage) {
-                    BlocProvider.of<MenuCubit>(context).createMenu(
-                      dishesEntity!.copyWith(
-                        filterOption:
-                            List<FilterOptionEntity>.from(filterOptionList),
-                      ),
-                    );
+                    context
+                        .read<FilterOptionInMenuCubit>()
+                        .addFilterOptionInMenu(
+                          filterOptionList,
+                        );
                   } else {
                     for (var filterOptionEntity in filterOptionList) {
                       context.read<AddFilterInMenuCubit>().addFiltersInMenu(
@@ -272,7 +271,7 @@ class HaveFilterOptionList extends StatelessWidget {
                           );
                     }
                   }
-                  Future.delayed(const Duration(seconds: 2)).then((value) {
+                  Future.delayed(const Duration(seconds: 1)).then((value) {
                     context.read<AddFilterOptionCubit>().resetFilterOption();
                     Navigator.of(context).pop();
                     Navigator.of(context).pop();

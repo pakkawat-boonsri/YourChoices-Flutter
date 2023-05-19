@@ -3,14 +3,14 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:touchable_opacity/touchable_opacity.dart';
 import 'package:your_choices/src/config/app_routes/on_generate_routes.dart';
-import 'package:your_choices/src/presentation/blocs/auth/auth_cubit.dart';
-import 'package:your_choices/src/presentation/blocs/credential/credential_cubit.dart';
 import 'package:your_choices/src/presentation/views/customer_side/customer_main_view/customer_main_view.dart';
 import 'package:your_choices/utilities/hex_color.dart';
 import 'package:your_choices/utilities/show_flutter_toast.dart';
 import 'package:your_choices/utilities/text_style.dart';
 
 import '../../../../utilities/loading_dialog.dart';
+import '../../blocs/utilities_bloc/auth/auth_cubit.dart';
+import '../../blocs/utilities_bloc/credential/credential_cubit.dart';
 import '../vendor_side/vendor_main_view/vendor_main_view.dart';
 
 class LoginView extends StatefulWidget {

@@ -12,16 +12,17 @@ import 'package:touchable_opacity/touchable_opacity.dart';
 
 import 'package:your_choices/injection_container.dart' as di;
 import 'package:your_choices/src/domain/entities/vendor/dishes_menu/dishes_entity.dart';
+import 'package:your_choices/src/domain/entities/vendor/filter_options/filter_option_entity.dart';
 import 'package:your_choices/src/domain/usecases/firebase_usecases/customer/get_current_uid_usecase.dart';
 import 'package:your_choices/src/domain/usecases/firebase_usecases/utilities/upload_image_to_storage_usecase.dart';
-import 'package:your_choices/src/presentation/blocs/filter_option_in_menu/filter_option_in_menu_cubit.dart';
-import 'package:your_choices/src/presentation/blocs/menu/menu_cubit.dart';
-import 'package:your_choices/src/presentation/blocs/menu/menu_state.dart';
+import 'package:your_choices/src/presentation/blocs/vendor_bloc/menu/menu_cubit.dart';
+import 'package:your_choices/src/presentation/blocs/vendor_bloc/menu/menu_state.dart';
 import 'package:your_choices/src/presentation/widgets/custom_vendor_appbar.dart';
 import 'package:your_choices/utilities/loading_dialog.dart';
 
 import '../../../../../../utilities/text_style.dart';
 import '../../../../../config/app_routes/on_generate_routes.dart';
+import '../../../../blocs/vendor_bloc/filter_option_in_menu/filter_option_in_menu_cubit.dart';
 
 class MenuDetailView extends StatefulWidget {
   final DishesEntity dishesEntity;
@@ -43,7 +44,7 @@ class _MenuDetailViewState extends State<MenuDetailView> {
   late final TextEditingController menuPrice;
   final _formKey = GlobalKey<FormState>();
   late final bool isActive;
-
+  bool isModified = false;
   @override
   void initState() {
     super.initState();
@@ -55,13 +56,6 @@ class _MenuDetailViewState extends State<MenuDetailView> {
         TextEditingController(text: widget.dishesEntity.menuPrice.toString());
     BlocProvider.of<FilterOptionInMenuCubit>(context)
         .getFilterOptionInMenu(widget.dishesEntity);
-  }
-
-  @override
-  void didChangeDependencies() {
-    BlocProvider.of<FilterOptionInMenuCubit>(context)
-        .getFilterOptionInMenu(widget.dishesEntity);
-    super.didChangeDependencies();
   }
 
   @override
@@ -301,6 +295,26 @@ class _MenuDetailViewState extends State<MenuDetailView> {
           activeOpacity: 0.5,
           onTap: () async {
             if (_formKey.currentState!.validate()) {
+              List<FilterOptionEntity> newFilterList =
+                  List<FilterOptionEntity>.from(
+                context.read<FilterOptionInMenuCubit>().state,
+              );
+
+              List<FilterOptionEntity> deletedList =
+                  List<FilterOptionEntity>.from(
+                context
+                    .read<FilterOptionInMenuCubit>()
+                    .getDeleteFilterOptionList,
+              );
+
+              if (deletedList.isNotEmpty) {
+                for (var deleteFilter in deletedList) {
+                  context
+                      .read<FilterOptionInMenuCubit>()
+                      .deletingFilterOptionInMenu(deleteFilter);
+                }
+              }
+
               loadingDialog(context);
               context.read<MenuCubit>().createMenu(
                     widget.dishesEntity.copyWith(
@@ -313,9 +327,15 @@ class _MenuDetailViewState extends State<MenuDetailView> {
                               imageFile!,
                               "menuImages_${widget.dishesEntity.dishesId}"),
                       menuPrice: int.parse(menuPrice.text),
+                      filterOption: newFilterList,
                     ),
                   );
-              Future.delayed(const Duration(seconds: 2)).then((value) {
+              Future.delayed(const Duration(seconds: 1)).then((value) {
+                context.read<FilterOptionInMenuCubit>().state.clear();
+                context
+                    .read<FilterOptionInMenuCubit>()
+                    .resetDeleteFilterOptionInMenu();
+
                 Navigator.pop(context);
                 Navigator.pop(context);
               });
@@ -348,7 +368,7 @@ class _MenuDetailViewState extends State<MenuDetailView> {
               ],
             ),
           ),
-        ),
+        )
       ],
     );
   }
@@ -361,234 +381,233 @@ class _MenuDetailViewState extends State<MenuDetailView> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 25),
-          child: Text(
-            "ตัวเลือก",
-            style: AppTextStyle.googleFont(
-              Colors.white,
-              22,
-              FontWeight.w500,
-            ),
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                "ตัวเลือก",
+                style: AppTextStyle.googleFont(
+                  Colors.white,
+                  22,
+                  FontWeight.w500,
+                ),
+              ),
+              TouchableOpacity(
+                onTap: () {
+                  isModified = !isModified;
+                  setState(() {});
+                },
+                child: Text(
+                  "แก้ไข",
+                  style: AppTextStyle.googleFont(
+                    Colors.white,
+                    22,
+                    FontWeight.w500,
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
         const SizedBox(
           height: 10,
         ),
-        BlocListener<MenuCubit, MenuState>(
-          listener: (context, state) {
-            if (state is MenuLoadCompleted) {}
-          },
-          child: BlocBuilder<FilterOptionInMenuCubit, FilterOptionInMenuState>(
-            builder: (context, state) {
-              if (state is FilterOptionInMenuLoading) {
-                return const Center(
-                  child: CircularProgressIndicator(
-                    color: Colors.amber,
-                  ),
-                );
-              }
-              if (state is FilterOptionInMenuLoaded) {
-                return ListView.separated(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  separatorBuilder: (context, index) => const SizedBox(
-                    height: 10,
-                  ),
-                  itemCount: state.filterOptionList.length,
-                  itemBuilder: (context, index) {
-                    final filterOptionEntity = state.filterOptionList[index];
+        BlocBuilder<FilterOptionInMenuCubit, List<FilterOptionEntity>>(
+          builder: (context, state) {
+            return ListView.separated(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              separatorBuilder: (context, index) => const SizedBox(
+                height: 10,
+              ),
+              itemCount: state.length,
+              itemBuilder: (context, index) {
+                final filterOptionEntity = state[index];
 
-                    return TouchableOpacity(
-                      onTap: () {
-                        setState(() {
+                return TouchableOpacity(
+                  onTap: isModified
+                      ? () {
                           Navigator.pushNamed(
                             context,
                             PageConst.filterOptionInMenuDetailPage,
                             arguments: filterOptionEntity,
                           );
-                        });
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.only(bottom: 5, top: 5),
-                        margin: const EdgeInsets.symmetric(
-                          horizontal: 20,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(5),
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 10),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                        }
+                      : null,
+                  child: Container(
+                    padding: const EdgeInsets.only(bottom: 5, top: 5),
+                    margin: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(5),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 10),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
                             children: [
-                              Row(
+                              Text(
+                                filterOptionEntity.filterName ?? "no name",
+                                style: AppTextStyle.googleFont(
+                                  Colors.black,
+                                  20,
+                                  FontWeight.w500,
+                                ),
+                              ),
+                              const SizedBox(
+                                width: 5,
+                              ),
+                              if (filterOptionEntity.isRequired == true &&
+                                  filterOptionEntity.isMultiple == false) ...[
+                                Text(
+                                  " (ต้องเลือก) ",
+                                  style: AppTextStyle.googleFont(
+                                    Colors.grey.shade800,
+                                    14,
+                                    FontWeight.normal,
+                                  ),
+                                ),
+                              ] else if (filterOptionEntity.isRequired ==
+                                      false &&
+                                  filterOptionEntity.isMultiple == true) ...[
+                                Text(
+                                  " (เลือกได้เป็นจำนวน ${filterOptionEntity.multipleQuantity})",
+                                  style: AppTextStyle.googleFont(
+                                    Colors.grey.shade800,
+                                    14,
+                                    FontWeight.normal,
+                                  ),
+                                ),
+                              ],
+                              const SizedBox(
+                                width: 10,
+                              ),
+                              isModified
+                                  ? Icon(
+                                      Icons.edit,
+                                      color: Colors.amber.shade900,
+                                    )
+                                  : Container(),
+                              const Spacer(),
+                              isModified
+                                  ? TouchableOpacity(
+                                      onTap: () {
+                                        context
+                                            .read<FilterOptionInMenuCubit>()
+                                            .deleteFilterOptionInMenu(
+                                                filterOptionEntity);
+                                      },
+                                      child: const Icon(
+                                        Icons.close,
+                                        color: Colors.red,
+                                      ),
+                                    )
+                                  : Container(),
+                            ],
+                          ),
+                          ListView.builder(
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            itemCount: filterOptionEntity.addOns?.length ?? 0,
+                            itemBuilder: (context, index) {
+                              final addOnsEntity =
+                                  filterOptionEntity.addOns?[index];
+                              return Row(
                                 children: [
-                                  Text(
-                                    filterOptionEntity.filterName ?? "no name",
-                                    style: AppTextStyle.googleFont(
-                                      Colors.black,
-                                      20,
-                                      FontWeight.w500,
-                                    ),
-                                  ),
-                                  const SizedBox(
-                                    width: 5,
-                                  ),
                                   if (filterOptionEntity.isRequired == true &&
                                       filterOptionEntity.isMultiple ==
                                           false) ...[
-                                    Text(
-                                      " (ต้องเลือก) ",
-                                      style: AppTextStyle.googleFont(
-                                        Colors.grey.shade800,
-                                        14,
-                                        FontWeight.normal,
-                                      ),
+                                    Icon(
+                                      Icons.circle_outlined,
+                                      color: Colors.grey.shade800,
+                                      size: 14,
                                     ),
                                   ] else if (filterOptionEntity.isRequired ==
                                           false &&
                                       filterOptionEntity.isMultiple ==
                                           true) ...[
-                                    Text(
-                                      " (เลือกได้เป็นจำนวน ${filterOptionEntity.multipleQuantity})",
-                                      style: AppTextStyle.googleFont(
-                                        Colors.grey.shade800,
-                                        14,
-                                        FontWeight.normal,
-                                      ),
+                                    Icon(
+                                      Icons.rectangle_outlined,
+                                      color: Colors.grey.shade800,
+                                      size: 14,
                                     ),
                                   ],
                                   const SizedBox(
-                                    width: 10,
+                                    width: 5,
                                   ),
-                                  Icon(
-                                    Icons.edit,
-                                    color: Colors.amber.shade900,
-                                  ),
-                                  const Spacer(),
-                                  TouchableOpacity(
-                                    onTap: () {
-                                      BlocProvider.of<FilterOptionInMenuCubit>(
-                                              context)
-                                          .deleteFilterOptionInMenu(
-                                        filterOptionEntity,
-                                      );
-                                    },
-                                    child: const Icon(
-                                      Icons.close,
-                                      color: Colors.red,
+                                  Text(
+                                    addOnsEntity?.addonsName ?? "no addons",
+                                    style: AppTextStyle.googleFont(
+                                      Colors.grey.shade800,
+                                      14,
+                                      FontWeight.normal,
                                     ),
                                   ),
-                                ],
-                              ),
-                              ListView.builder(
-                                shrinkWrap: true,
-                                physics: const NeverScrollableScrollPhysics(),
-                                itemCount: filterOptionEntity.addOns!.length,
-                                itemBuilder: (context, index) {
-                                  final addOnsEntity =
-                                      filterOptionEntity.addOns?[index];
-                                  return Row(
-                                    children: [
-                                      if (filterOptionEntity.isRequired ==
-                                              true &&
-                                          filterOptionEntity.isMultiple ==
-                                              false) ...[
-                                        Icon(
-                                          Icons.circle_outlined,
-                                          color: Colors.grey.shade800,
-                                          size: 14,
-                                        ),
-                                      ] else if (filterOptionEntity
-                                                  .isRequired ==
-                                              false &&
-                                          filterOptionEntity.isMultiple ==
-                                              true) ...[
-                                        Icon(
-                                          Icons.rectangle_outlined,
-                                          color: Colors.grey.shade800,
-                                          size: 14,
-                                        ),
-                                      ],
-                                      const SizedBox(
-                                        width: 5,
-                                      ),
-                                      Text(
-                                        addOnsEntity?.addonsName ?? "no addons",
-                                        style: AppTextStyle.googleFont(
-                                          Colors.grey.shade800,
-                                          14,
-                                          FontWeight.normal,
-                                        ),
-                                      ),
-                                      const Spacer(),
-                                      addOnsEntity?.price == null
+                                  const Spacer(),
+                                  addOnsEntity?.price == null
+                                      ? Text(
+                                          "0 ฿",
+                                          style: AppTextStyle.googleFont(
+                                            Colors.grey.shade800,
+                                            14,
+                                            FontWeight.normal,
+                                          ),
+                                        )
+                                      : addOnsEntity?.priceType ==
+                                              "RadioTypes.priceIncrease"
                                           ? Text(
-                                              "0 ฿",
+                                              "+",
                                               style: AppTextStyle.googleFont(
                                                 Colors.grey.shade800,
                                                 14,
                                                 FontWeight.normal,
                                               ),
                                             )
-                                          : addOnsEntity?.priceType ==
-                                                  "RadioTypes.priceIncrease"
-                                              ? Text(
-                                                  "+",
-                                                  style:
-                                                      AppTextStyle.googleFont(
-                                                    Colors.grey.shade800,
-                                                    14,
-                                                    FontWeight.normal,
-                                                  ),
-                                                )
-                                              : Text(
-                                                  "-",
-                                                  style:
-                                                      AppTextStyle.googleFont(
-                                                    Colors.grey.shade800,
-                                                    14,
-                                                    FontWeight.normal,
-                                                  ),
-                                                ),
-                                      addOnsEntity?.price == null
-                                          ? const Text("")
-                                          : addOnsEntity?.priceType ==
-                                                  "RadioTypes.priceIncrease"
-                                              ? Text(
-                                                  "${addOnsEntity?.price ?? ""} ฿",
-                                                  style:
-                                                      AppTextStyle.googleFont(
-                                                    Colors.grey.shade800,
-                                                    14,
-                                                    FontWeight.normal,
-                                                  ),
-                                                )
-                                              : Text(
-                                                  "${addOnsEntity?.price ?? ""} ฿",
-                                                  style:
-                                                      AppTextStyle.googleFont(
-                                                    Colors.grey.shade800,
-                                                    14,
-                                                    FontWeight.normal,
-                                                  ),
-                                                ),
-                                    ],
-                                  );
-                                },
-                              ),
-                            ],
+                                          : Text(
+                                              "-",
+                                              style: AppTextStyle.googleFont(
+                                                Colors.grey.shade800,
+                                                14,
+                                                FontWeight.normal,
+                                              ),
+                                            ),
+                                  addOnsEntity?.price == null
+                                      ? const Text("")
+                                      : addOnsEntity?.priceType ==
+                                              "RadioTypes.priceIncrease"
+                                          ? Text(
+                                              "${addOnsEntity?.price ?? ""} ฿",
+                                              style: AppTextStyle.googleFont(
+                                                Colors.grey.shade800,
+                                                14,
+                                                FontWeight.normal,
+                                              ),
+                                            )
+                                          : Text(
+                                              "${addOnsEntity?.price ?? ""} ฿",
+                                              style: AppTextStyle.googleFont(
+                                                Colors.grey.shade800,
+                                                14,
+                                                FontWeight.normal,
+                                              ),
+                                            ),
+                                ],
+                              );
+                            },
                           ),
-                        ),
+                        ],
                       ),
-                    );
-                  },
+                    ),
+                  ),
                 );
-              }
-              return Container();
-            },
-          ),
+              },
+            );
+          },
         ),
         const SizedBox(
           height: 15,

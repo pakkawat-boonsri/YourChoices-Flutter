@@ -1,5 +1,4 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:your_choices/src/data/models/customer_model/transaction_model/transaction_model.dart';
 import 'package:your_choices/src/domain/entities/customer/customer_entity.dart';
 import 'package:your_choices/src/domain/entities/customer/transaction/transaction_entity.dart';
 
@@ -27,23 +26,18 @@ class CustomerModel extends CustomerEntity {
     return CustomerModel(
       username: snapshot['username'],
       type: snapshot['type'],
-      transaction: List.from(
-        snapshot['transaction'].map(
-          (x) => TransactionModel.fromJson(x),
-        ),
-      ),
       profileUrl: snapshot['profileUrl'],
       email: snapshot['email'],
       balance: snapshot['balance'],
       uid: snapshot['uid'],
+      transaction: const <TransactionEntity>[],
     );
   }
 
-  Map<String, dynamic> toJson() {
+  Map<String, dynamic> modeltoJson() {
     final Map<String, dynamic> data = <String, dynamic>{};
     data['username'] = username;
     data['type'] = type;
-    data['transaction'] = transaction;
     data['profileUrl'] = profileUrl;
     data['email'] = email;
     data['balance'] = balance;

@@ -1,11 +1,22 @@
+// ignore_for_file: public_member_api_docs, sort_constructors_first
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:qr_flutter/qr_flutter.dart';
+import 'package:touchable_opacity/touchable_opacity.dart';
+
+import 'package:your_choices/src/domain/entities/customer/customer_entity.dart';
+import 'package:your_choices/src/presentation/widgets/custom_vendor_appbar.dart';
+import 'package:your_choices/utilities/hex_color.dart';
 import 'package:your_choices/utilities/text_style.dart';
 
-import 'package:your_choices/utilities/hex_color.dart';
-
 class DepositView extends StatefulWidget {
-  const DepositView({super.key});
+  final CustomerEntity customerEntity;
+  const DepositView({
+    Key? key,
+    required this.customerEntity,
+  }) : super(key: key);
 
   @override
   State<DepositView> createState() => _DepositViewState();
@@ -15,11 +26,12 @@ class _DepositViewState extends State<DepositView> {
   final _amount = TextEditingController();
   final _formkey = GlobalKey<FormState>();
   bool isValidate = false;
-
+  int? seletedIndex;
+  bool showQrCode = false;
   @override
   void initState() {
-    super.initState();
     _amount.addListener(checkIsValidate);
+    super.initState();
   }
 
   @override
@@ -42,239 +54,240 @@ class _DepositViewState extends State<DepositView> {
   Widget build(BuildContext context) {
     Size size = MediaQuery.of(context).size;
 
-    return SafeArea(
-      child: Scaffold(
-        appBar: AppBar(
-          elevation: 20,
-          centerTitle: true,
-          backgroundColor: "FE7144".toColor(),
-          title: const Text("เติมเงินเข้าบัญชี"),
-        ),
-        body: SingleChildScrollView(
-          child: Column(
-            children: [
-              Stack(
-                children: [
-                  Container(
-                    margin: const EdgeInsets.all(18),
-                    width: size.width,
-                    height: size.height * 0.41,
-                    decoration: BoxDecoration(
-                      color: "46413E".toColor(),
-                      borderRadius: BorderRadius.circular(15),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.only(top: 12.0, left: 25),
-                          child: Text(
-                            "จำนวนเงิน",
-                            style: AppTextStyle.googleFont(
-                                Colors.white, 22, FontWeight.bold),
-                          ),
+    return Scaffold(
+      appBar: CustomAppbar(
+        title: "เติมเงินเข้าบัญชี",
+        onTap: () {
+          Navigator.pop(context);
+        },
+      ),
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            Stack(
+              children: [
+                Container(
+                  margin: const EdgeInsets.all(18),
+                  width: size.width,
+                  height: size.height * 0.41,
+                  decoration: BoxDecoration(
+                    color: "46413E".toColor(),
+                    borderRadius: BorderRadius.circular(15),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.only(top: 12.0, left: 25),
+                        child: Text(
+                          "จำนวนเงิน",
+                          style: AppTextStyle.googleFont(
+                              Colors.white, 22, FontWeight.bold),
                         ),
-                        const Divider(
-                          color: Colors.white,
-                          thickness: 1,
-                          indent: 20,
-                          endIndent: 20,
-                        ),
-                        SizedBox(
-                          width: size.width,
-                          child: Wrap(
-                            alignment: WrapAlignment.center,
-                            children: List.generate(
-                              6,
-                              (index) {
-                                return Container(
-                                  margin: const EdgeInsets.all(5),
-                                  width: 100,
-                                  height: 45,
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(70),
-                                    gradient: const LinearGradient(
-                                        colors: [Colors.white, Colors.white]),
-                                  ),
-                                  child: TextButton(
-                                    child: Text(
-                                      "${(index + 1) * 100}",
-                                      style: AppTextStyle.googleFont(
-                                          Colors.black, 16, FontWeight.w700),
+                      ),
+                      const Divider(
+                        color: Colors.white,
+                        thickness: 1,
+                        indent: 20,
+                        endIndent: 20,
+                      ),
+                      SizedBox(
+                        width: size.width,
+                        child: Wrap(
+                          alignment: WrapAlignment.center,
+                          children: List.generate(
+                            6,
+                            (index) {
+                              return StatefulBuilder(
+                                builder: (context, setState) =>
+                                    TouchableOpacity(
+                                  onTap: () async {
+                                    _amount.text =
+                                        ((index + 1) * 100).toString();
+                                    setState(() {
+                                      seletedIndex = index;
+                                    });
+                                    checkIsValidate;
+                                  },
+                                  child: Container(
+                                    margin: const EdgeInsets.all(5),
+                                    width: 100,
+                                    height: 45,
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(70),
+                                      gradient: seletedIndex == index
+                                          ? LinearGradient(
+                                              colors: [
+                                                "F93C00".toColor(),
+                                                "FFB097".toColor(),
+                                              ],
+                                            )
+                                          : const LinearGradient(
+                                              colors: [
+                                                Colors.white,
+                                                Colors.white
+                                              ],
+                                            ),
                                     ),
-                                    onPressed: () async {
-                                      _amount.text =
-                                          ((index + 1) * 100).toString();
-                                      checkIsValidate;
-                                    },
+                                    child: Container(
+                                      alignment: Alignment.center,
+                                      child: Text(
+                                        "${(index + 1) * 100}",
+                                        style: AppTextStyle.googleFont(
+                                          seletedIndex == index
+                                              ? Colors.white
+                                              : Colors.black,
+                                          16,
+                                          FontWeight.w700,
+                                        ),
+                                      ),
+                                    ),
                                   ),
-                                );
-                              },
-                            ),
+                                ),
+                              );
+                            },
                           ),
                         ),
-                        const Divider(
-                          color: Colors.white,
-                          thickness: 1,
-                          indent: 20,
-                          endIndent: 20,
-                        ),
-                        const SizedBox(
-                          height: 10,
-                        ),
-                        Form(
-                          key: _formkey,
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 20),
-                            child: TextFormField(
-                              inputFormatters: <TextInputFormatter>[
-                                FilteringTextInputFormatter.allow(
-                                  RegExp(r'^[1-9][0-9]*'),
-                                ),
-                              ],
-                              keyboardType: TextInputType.number,
-                              onFieldSubmitted: (value) => checkIsValidate(),
-                              validator: (value) {
-                                if (_amount.text != "") {
-                                  int? newValue = int.tryParse(_amount.text);
-                                  if (newValue != null) {
-                                    if (newValue > 0) {
-                                      return null;
-                                    } else {
-                                      return "จำนวนเงินต้องเป็นจำนวนเต็ม";
-                                    }
+                      ),
+                      const Divider(
+                        color: Colors.white,
+                        thickness: 1,
+                        indent: 20,
+                        endIndent: 20,
+                      ),
+                      const SizedBox(
+                        height: 10,
+                      ),
+                      Form(
+                        key: _formkey,
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 20),
+                          child: TextFormField(
+                            inputFormatters: <TextInputFormatter>[
+                              FilteringTextInputFormatter.allow(
+                                RegExp(r'^[1-9][0-9]*'),
+                              ),
+                            ],
+                            keyboardType: TextInputType.number,
+                            onFieldSubmitted: (value) => checkIsValidate(),
+                            validator: (value) {
+                              if (_amount.text != "") {
+                                int? newValue = int.tryParse(_amount.text);
+                                if (newValue != null) {
+                                  if (newValue > 0) {
+                                    return null;
                                   } else {
-                                    return "โปรดกรอกจำนวนเงิน";
+                                    return "จำนวนเงินต้องเป็นจำนวนเต็ม";
                                   }
                                 } else {
-                                  return "";
+                                  return "โปรดกรอกจำนวนเงิน";
                                 }
-                              },
-                              enableSuggestions: false,
-                              style: AppTextStyle.googleFont(
-                                  Colors.black, 18, FontWeight.w600),
-                              textDirection: TextDirection.rtl,
-                              controller: _amount,
-                              autocorrect: false,
-                              decoration: InputDecoration(
-                                contentPadding: const EdgeInsets.symmetric(
-                                    vertical: 10.0, horizontal: 10),
-                                errorStyle: AppTextStyle.googleFont(
-                                    Colors.red, 16, FontWeight.w500),
-                                isDense: true,
-                                border: OutlineInputBorder(
-                                  borderSide: BorderSide.none,
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                hintText: "จำนวนเงิน",
-                                hintTextDirection: TextDirection.rtl,
-                                hintStyle: AppTextStyle.googleFont(
-                                    Colors.grey, 18, FontWeight.w500),
-                                fillColor: Colors.white,
-                                filled: true,
+                              } else {
+                                return "";
+                              }
+                            },
+                            enableSuggestions: false,
+                            style: AppTextStyle.googleFont(
+                              Colors.black,
+                              18,
+                              FontWeight.w600,
+                            ),
+                            textDirection: TextDirection.rtl,
+                            controller: _amount,
+                            autocorrect: false,
+                            decoration: InputDecoration(
+                              contentPadding: const EdgeInsets.symmetric(
+                                vertical: 10.0,
+                                horizontal: 10,
                               ),
+                              errorStyle: AppTextStyle.googleFont(
+                                Colors.red,
+                                16,
+                                FontWeight.w500,
+                              ),
+                              isDense: true,
+                              border: OutlineInputBorder(
+                                borderSide: BorderSide.none,
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              hintText: "จำนวนเงิน",
+                              hintTextDirection: TextDirection.rtl,
+                              hintStyle: AppTextStyle.googleFont(
+                                Colors.grey,
+                                18,
+                                FontWeight.w500,
+                              ),
+                              fillColor: Colors.white,
+                              filled: true,
                             ),
                           ),
                         ),
-                      ],
-                    ),
-                  ),
-                  Positioned(
-                    bottom: 0,
-                    // left: size.width * 0.32,
-                    child: Padding(
-                      padding: const EdgeInsets.only(left: 42),
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: isValidate ? "FE7144".toColor() : Colors.grey,
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        width: size.width * 0.79,
-                        child: TextButton(
-                          onPressed: isValidate ? () {} : null,
-                          child: Text(
-                            "Generate QR Code",
-                            style: AppTextStyle.googleFont(
-                                Colors.white, 20, FontWeight.bold),
-                          ),
-                        ),
                       ),
-                    ),
+                    ],
                   ),
-                ],
-              ),
-              Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 18, vertical: 20),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      "QR CODE",
-                      style: AppTextStyle.googleFont(
-                          Colors.white, 24, FontWeight.bold),
-                    ),
-                    InkWell(
-                      onTap: () {},
-                      child: Row(
-                        children: [
-                          const Icon(
-                            Icons.save_alt,
-                            size: 30,
-                            color: Colors.white,
-                          ),
-                          const SizedBox(
-                            width: 10,
-                          ),
-                          Text(
-                            "Save to Device",
-                            style: AppTextStyle.googleFont(
-                                Colors.white, 18, FontWeight.w500),
-                          )
-                        ],
-                      ),
-                    )
-                  ],
                 ),
-              ),
-            ],
-          ),
+                Positioned(
+                  bottom: 0,
+                  // left: size.width * 0.32,
+                  child: Padding(
+                    padding: const EdgeInsets.only(left: 42),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: isValidate ? "FE7144".toColor() : Colors.grey,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      width: size.width * 0.79,
+                      child: TextButton(
+                        onPressed: isValidate
+                            ? () async {
+                                if (_formkey.currentState!.validate()) {
+                                  genarateQrCode(context);
+                                }
+                              }
+                            : null,
+                        child: Text(
+                          "Generate QR Code",
+                          style: AppTextStyle.googleFont(
+                              Colors.white, 20, FontWeight.bold),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
         ),
       ),
     );
   }
+
+  genarateQrCode(BuildContext context) async {
+    final customerDeposit = widget.customerEntity
+        .copyWith(
+          depositAmount: _amount.text,
+          withdrawAmount: null,
+        )
+        .toJson();
+    log(customerDeposit);
+    return showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text("Qr Code"),
+          content: Wrap(
+            children: [
+              Container(
+                alignment: Alignment.center,
+                width: MediaQuery.of(context).size.width,
+                child: QrImage(
+                  data: customerDeposit,
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
 }
-
-
-// Container(
-//                                         margin: const EdgeInsets.all(5),
-//                                         width: 100,
-//                                         height: 45,
-//                                         decoration: BoxDecoration(
-//                                           borderRadius:
-//                                               BorderRadius.circular(70),
-//                                           gradient: state.selectedIndex == index
-//                                               ? LinearGradient(colors: [
-//                                                   "F93C00".toColor(),
-//                                                   "FFB097".toColor(),
-//                                                 ])
-//                                               : const LinearGradient(colors: [
-//                                                   Colors.white,
-//                                                   Colors.white
-//                                                 ]),
-//                                         ),
-//                                         child: TextButton(
-//                                           child: Text(
-//                                             "${(index + 1) * 100}",
-//                                             style: AppTextStyle.googleFont(
-//                                                 state.selectedIndex == index
-//                                                     ? Colors.white
-//                                                     : Colors.black,
-//                                                 16,
-//                                                 FontWeight.w700),
-//                                           ),
-//                                           onPressed: () {
-                                            
-//                                           },
-//                                         ),
-//                                       );

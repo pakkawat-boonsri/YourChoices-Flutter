@@ -68,8 +68,7 @@ class FirebaseRepositoryImpl implements FirebaseRepository {
   }
 
   @override
-  Future<void> signInUser(String email, String password) async =>
-      remoteDataSource.signInUser(email, password);
+  Future<void> signInUser(String email, String password) async => remoteDataSource.signInUser(email, password);
 
   @override
   Future<void> createMenu(DishesEntity dishesEntity) async {
@@ -104,36 +103,38 @@ class FirebaseRepositoryImpl implements FirebaseRepository {
       await remoteDataSource.updateRestaurantInfo(vendorEntity);
 
   @override
-  Future<void> createFilterOption(
-          FilterOptionEntity filterOptionEntity) async =>
+  Future<void> createFilterOption(FilterOptionEntity filterOptionEntity) async =>
       await remoteDataSource.createFilterOption(filterOptionEntity);
 
   @override
-  Future<void> deleteFilterOption(
-          FilterOptionEntity filterOptionEntity) async =>
+  Future<void> deleteFilterOption(FilterOptionEntity filterOptionEntity) async =>
       await remoteDataSource.deleteFilterOption(filterOptionEntity);
 
   @override
-  Stream<List<FilterOptionEntity>> readFilterOption(String uid) =>
-      remoteDataSource.readFilterOption(uid);
+  Stream<List<FilterOptionEntity>> readFilterOption(String uid) => remoteDataSource.readFilterOption(uid);
 
   @override
-  Future<void> updateFilterOption(
-          FilterOptionEntity filterOptionEntity) async =>
+  Future<void> updateFilterOption(FilterOptionEntity filterOptionEntity) async =>
       await remoteDataSource.updateFilterOption(filterOptionEntity);
 
   @override
-  Future<void> addFilterOptionInMenu(
-          FilterOptionEntity filterOptionEntity) async =>
+  Future<void> addFilterOptionInMenu(FilterOptionEntity filterOptionEntity) async =>
       remoteDataSource.addFilterOptionInMenu(filterOptionEntity);
 
   @override
-  Future<void> deleteFilterOptionInMenu(
-          FilterOptionEntity filterOptionEntity) async =>
+  Future<void> deleteFilterOptionInMenu(FilterOptionEntity filterOptionEntity) async =>
       remoteDataSource.deleteFilterOptionInMenu(filterOptionEntity);
 
   @override
-  Future<void> updateFilterOptionInMenu(
-          FilterOptionEntity filterOptionEntity) async =>
+  Future<void> updateFilterOptionInMenu(FilterOptionEntity filterOptionEntity) async =>
       remoteDataSource.updateFilterOptionInMenu(filterOptionEntity);
+
+  @override
+  Stream<List<VendorEntity>> getAllRestaurants() => remoteDataSource.getAllRestaurants();
+
+  @override
+  Future<void> updateCustomerInfo(CustomerEntity customerEntity) async =>
+      remoteDataSource.updateCustomerInfo(customerEntity);
+
+  
 }

@@ -3,6 +3,7 @@ import 'package:your_choices/src/domain/entities/customer/transaction/transactio
 
 class TransactionModel extends TransactionEntity {
   const TransactionModel({
+    final String? id,
     final Timestamp? date,
     final String? menuName,
     final num? totalPrice,
@@ -12,6 +13,7 @@ class TransactionModel extends TransactionEntity {
     final num? deposit,
     final num? withdraw,
   }) : super(
+          id: id,
           date: date,
           deposit: deposit,
           menuName: menuName,
@@ -24,6 +26,7 @@ class TransactionModel extends TransactionEntity {
 
   factory TransactionModel.fromJson(Map<String, dynamic> json) {
     return TransactionModel(
+      id: json['id'],
       type: json['type'],
       withdraw: json['withdraw'],
       totalPrice: json['totalPrice'],
@@ -37,6 +40,7 @@ class TransactionModel extends TransactionEntity {
 
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = <String, dynamic>{};
+    data['id'] = id;
     data['date'] = date;
     data['menuName'] = menuName;
     data['totalPrice'] = totalPrice;

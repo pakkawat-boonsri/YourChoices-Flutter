@@ -17,6 +17,7 @@ class VendorEntity extends Equatable {
   final num? onQueue;
   final String? description;
   final num? totalPriceSell;
+  final String? restaurantType;
   final List<DishesEntity>? dishes;
 
   //Not collect in db
@@ -26,18 +27,19 @@ class VendorEntity extends Equatable {
   final String? otherUid;
 
   const VendorEntity({
-    this.type,
     this.uid,
+    this.email,
+    this.username,
+    this.profileUrl,
+    this.type,
     this.resName,
     this.resProfileUrl,
     this.isActive,
     this.onQueue,
     this.description,
     this.totalPriceSell,
+    this.restaurantType,
     this.dishes,
-    this.email,
-    this.username,
-    this.profileUrl,
     this.imageFile,
     this.resImageFile,
     this.password,
@@ -47,6 +49,9 @@ class VendorEntity extends Equatable {
   @override
   List<Object?> get props => [
         uid,
+        email,
+        username,
+        profileUrl,
         type,
         resName,
         resProfileUrl,
@@ -54,10 +59,8 @@ class VendorEntity extends Equatable {
         onQueue,
         description,
         totalPriceSell,
+        restaurantType,
         dishes,
-        email,
-        username,
-        profileUrl,
         imageFile,
         resImageFile,
         password,
@@ -76,6 +79,7 @@ class VendorEntity extends Equatable {
     num? onQueue,
     String? description,
     num? totalPriceSell,
+    String? restaurantType,
     List<DishesEntity>? dishes,
     File? imageFile,
     File? resImageFile,
@@ -94,6 +98,7 @@ class VendorEntity extends Equatable {
       onQueue: onQueue ?? this.onQueue,
       description: description ?? this.description,
       totalPriceSell: totalPriceSell ?? this.totalPriceSell,
+      restaurantType: restaurantType ?? this.restaurantType,
       dishes: dishes ?? this.dishes,
       imageFile: imageFile ?? this.imageFile,
       resImageFile: resImageFile ?? this.resImageFile,

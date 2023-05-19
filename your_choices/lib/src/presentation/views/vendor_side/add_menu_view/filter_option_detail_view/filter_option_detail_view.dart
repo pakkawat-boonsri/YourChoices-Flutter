@@ -2,17 +2,14 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'package:flutter/material.dart';
 import 'package:touchable_opacity/touchable_opacity.dart';
+import 'package:your_choices/global.dart';
 
 import 'package:your_choices/src/domain/entities/vendor/filter_options/filter_option_entity.dart';
 import 'package:your_choices/src/presentation/widgets/custom_vendor_appbar.dart';
 
 import '../../../../../../utilities/text_style.dart';
 
-enum RadioTypes {
-  nochange,
-  priceIncrease,
-  priceDecrease,
-}
+
 
 class FilterOptionDetailView extends StatefulWidget {
   final FilterOptionEntity filterOptionEntity;

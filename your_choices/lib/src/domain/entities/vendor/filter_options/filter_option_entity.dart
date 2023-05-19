@@ -12,15 +12,19 @@ class FilterOptionEntity extends Equatable {
   final List<AddOnsEntity>? addOns;
 
   //not store in db
-  final bool isSelected;
+  final AddOnsEntity? selectedAddOns;
+  final bool isSelected; //use for vendor to selected to add to menu
+  final bool isExpanded; //use for expansionpanel
   const FilterOptionEntity({
     this.filterId,
     this.filterName,
     this.isRequired,
     this.isMultiple,
     this.multipleQuantity,
-    this.isSelected = false,
     this.addOns,
+    this.selectedAddOns,
+    this.isSelected = false,
+    this.isExpanded = true,
   });
 
   @override
@@ -32,6 +36,8 @@ class FilterOptionEntity extends Equatable {
         isSelected,
         addOns,
         multipleQuantity,
+        isExpanded,
+        selectedAddOns,
       ];
 
   FilterOptionEntity copyWith({
@@ -39,18 +45,22 @@ class FilterOptionEntity extends Equatable {
     String? filterName,
     bool? isRequired,
     bool? isMultiple,
-    bool? isSelected,
     int? multipleQuantity,
     List<AddOnsEntity>? addOns,
+    AddOnsEntity? selectedAddOns,
+    bool? isSelected,
+    bool? isExpanded,
   }) {
     return FilterOptionEntity(
       filterId: filterId ?? this.filterId,
       filterName: filterName ?? this.filterName,
       isRequired: isRequired ?? this.isRequired,
       isMultiple: isMultiple ?? this.isMultiple,
-      isSelected: isSelected ?? this.isSelected,
       multipleQuantity: multipleQuantity ?? this.multipleQuantity,
       addOns: addOns ?? this.addOns,
+      selectedAddOns: selectedAddOns ?? this.selectedAddOns,
+      isSelected: isSelected ?? this.isSelected,
+      isExpanded: isExpanded ?? this.isExpanded,
     );
   }
 }

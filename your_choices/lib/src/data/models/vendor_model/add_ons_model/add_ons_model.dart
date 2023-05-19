@@ -33,17 +33,4 @@ class AddOnsModel extends AddOnsEntity {
     return data;
   }
 
-  AddOnsModel copyWith({
-    final String? addonsId,
-    final String? addonsName,
-    final String? priceType,
-    final num? price,
-  }) {
-    return AddOnsModel(
-      addonsId: addonsId ?? this.addonsId,
-      addonsName: addonsName ?? this.addonsName,
-      price: price ?? this.price,
-      priceType: priceType ?? this.priceType,
-    );
-  }
 }

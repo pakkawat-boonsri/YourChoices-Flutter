@@ -16,8 +16,9 @@ import 'package:your_choices/utilities/text_style.dart';
 import '../../../config/app_routes/on_generate_routes.dart';
 import '../../../../utilities/show_flutter_toast.dart';
 import '../../../domain/entities/customer/customer_entity.dart';
-import '../../blocs/auth/auth_cubit.dart';
-import '../../blocs/credential/credential_cubit.dart';
+
+import '../../blocs/utilities_bloc/auth/auth_cubit.dart';
+import '../../blocs/utilities_bloc/credential/credential_cubit.dart';
 import '../vendor_side/vendor_main_view/vendor_main_view.dart';
 
 class RegisterView extends StatefulWidget {
@@ -43,114 +44,14 @@ class _RegisterViewState extends State<RegisterView> {
   File? imageFile;
   File? resImageFile;
 
-  Future pickImageFromGallery() async {
-    try {
-      final file = await ImagePicker().pickImage(source: ImageSource.gallery);
-      if (file == null) {
-        return null;
-      } else {
-        return File(file.path);
-      }
-    } on PlatformException catch (e) {
-      log('Failed to pick image: $e');
-    }
-  }
+  List<String> restaurantTypes = [
+    "ร้านอาหารตามสั่ง",
+    "ร้านข้าวแกง",
+    "ร้านก๋วยเตี๋ยว",
+    "ร้านเครื่องดื่ม"
+  ];
 
-  Future pickImageFromCamera() async {
-    try {
-      final file = await ImagePicker().pickImage(source: ImageSource.camera);
-      if (file == null) {
-        return null;
-      } else {
-        return File(file.path);
-      }
-    } on PlatformException catch (e) {
-      log('Failed to pick image: $e');
-    }
-  }
-
-  Future optionToTakeImage() {
-    return showModalBottomSheet<dynamic>(
-      isScrollControlled: true,
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(5),
-          topRight: Radius.circular(5),
-        ),
-      ),
-      builder: (context) {
-        return Wrap(
-          alignment: WrapAlignment.center,
-          children: <Widget>[
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                ListTile(
-                  title: Text(
-                    "คลังรูปภาพ",
-                    style: AppTextStyle.googleFont(
-                      Colors.black,
-                      18,
-                      FontWeight.normal,
-                    ),
-                  ),
-                  onTap: () async {
-                    final File imageFromGallery = await pickImageFromGallery();
-
-                    if (isBottomSheetShow) {
-                      resImageFile = imageFromGallery;
-                    } else {
-                      imageFile = imageFromGallery;
-                    }
-                    if (mounted) {
-                      Navigator.of(context).pop();
-                    }
-                  },
-                  leading: const Icon(
-                    Icons.photo_library,
-                    color: Colors.black,
-                  ),
-                ),
-                const Divider(
-                  indent: 10,
-                  endIndent: 10,
-                  height: 1,
-                  color: Colors.black,
-                ),
-                ListTile(
-                  title: Text(
-                    "กล้อง",
-                    style: AppTextStyle.googleFont(
-                      Colors.black,
-                      18,
-                      FontWeight.normal,
-                    ),
-                  ),
-                  onTap: () async {
-                    final File imageFromCamera = await pickImageFromCamera();
-
-                    if (isBottomSheetShow) {
-                      resImageFile = imageFromCamera;
-                    } else {
-                      imageFile = imageFromCamera;
-                    }
-                    if (mounted) {
-                      Navigator.of(context).pop();
-                    }
-                  },
-                  leading: const Icon(
-                    Icons.camera_alt,
-                    color: Colors.black,
-                  ),
-                ),
-              ],
-            )
-          ],
-        );
-      },
-    );
-  }
+  String restaurantType = "ร้านก๋วยเตี๋ยว";
 
   @override
   void dispose() {
@@ -249,7 +150,6 @@ class _RegisterViewState extends State<RegisterView> {
                                         email: email.text,
                                         password: password.text,
                                         username: username.text,
-                                        transaction: const [],
                                         type: selectingType,
                                         balance: 0,
                                         imageFile: imageFile,
@@ -289,7 +189,6 @@ class _RegisterViewState extends State<RegisterView> {
                                       _regisKey.currentState!.validate();
                                   if (result) {
                                     isBottomSheetShow = true;
-                                    log("in ต่อไป ${isBottomSheetShow.toString()}");
                                     await vendorModelSheet(context);
                                   } else {
                                     return;
@@ -689,6 +588,7 @@ class _RegisterViewState extends State<RegisterView> {
             children: [
               Column(
                 mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Padding(
                     padding: const EdgeInsets.symmetric(
@@ -877,63 +777,102 @@ class _RegisterViewState extends State<RegisterView> {
                       ),
                     ),
                   ),
-                  ElevatedButton(
-                    onPressed: () async {
-                      if (_btmFormKey.currentState!.validate()) {
-                        showDialog(
-                          context: context,
-                          builder: (context) {
-                            return const Center(
-                              child: CircularProgressIndicator(
-                                color: Colors.amber,
-                              ),
-                            );
-                          },
-                        );
-                        await BlocProvider.of<CredentialCubit>(context)
-                            .signUpVendor(
-                          vendorEntity: VendorEntity(
-                            username: username.text,
-                            email: email.text,
-                            password: password.text,
-                            description: resDescription.text,
-                            dishes: const [],
-                            imageFile: imageFile,
-                            resImageFile: resImageFile,
-                            isActive: false,
-                            onQueue: 0,
-                            resName: resName.text,
-                            totalPriceSell: 0,
-                            type: selectingType,
+                  StatefulBuilder(
+                    builder: (context, setState) => Padding(
+                      padding: const EdgeInsets.only(left: 20, bottom: 15),
+                      child: Container(
+                        padding: const EdgeInsets.only(left: 10),
+                        decoration: BoxDecoration(
+                          border: Border.all(
+                            color: Colors.amber.shade900,
                           ),
-                        );
-                        if (mounted) {
-                          Navigator.of(context).pop();
-                        }
-                      }
-                    },
-                    style: ButtonStyle(
-                      backgroundColor: MaterialStateProperty.all<Color>(
-                        Colors.amber.shade900,
-                      ),
-                      padding: MaterialStateProperty.all<EdgeInsets>(
-                        const EdgeInsets.symmetric(
-                          horizontal: 100.0,
                         ),
-                      ),
-                      shape: MaterialStateProperty.all<RoundedRectangleBorder>(
-                        RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(
-                            10.0,
+                        child: DropdownButton(
+                          style: AppTextStyle.googleFont(
+                            Colors.black,
+                            16,
+                            FontWeight.w500,
                           ),
+                          iconSize: 32,
+                          iconEnabledColor: Colors.black,
+                          underline: Container(),
+                          value: restaurantType,
+                          items: restaurantTypes
+                              .map((e) => DropdownMenuItem(
+                                    value: e,
+                                    child: Text(e),
+                                  ))
+                              .toList(),
+                          onChanged: (value) {
+                            setState(() {
+                              restaurantType = value ?? "";
+                            });
+                          },
                         ),
                       ),
                     ),
-                    child: Text(
-                      "ยืนยันการลงทะเบียนร้านค้า",
-                      style: GoogleFonts.ibmPlexSansThai(
-                        fontSize: 16,
-                        fontWeight: FontWeight.normal,
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(left: 10.0, bottom: 10),
+                    child: ElevatedButton(
+                      onPressed: () async {
+                        if (_btmFormKey.currentState!.validate()) {
+                          showDialog(
+                            context: context,
+                            builder: (context) {
+                              return const Center(
+                                child: CircularProgressIndicator(
+                                  color: Colors.amber,
+                                ),
+                              );
+                            },
+                          );
+                          await BlocProvider.of<CredentialCubit>(context)
+                              .signUpVendor(
+                            vendorEntity: VendorEntity(
+                              username: username.text,
+                              email: email.text,
+                              password: password.text,
+                              description: resDescription.text,
+                              imageFile: imageFile,
+                              resImageFile: resImageFile,
+                              isActive: false,
+                              onQueue: 0,
+                              resName: resName.text,
+                              totalPriceSell: 0,
+                              type: selectingType,
+                              restaurantType: restaurantType,
+                            ),
+                          );
+                          if (mounted) {
+                            Navigator.of(context).pop();
+                          }
+                        }
+                      },
+                      style: ButtonStyle(
+                        backgroundColor: MaterialStateProperty.all<Color>(
+                          Colors.amber.shade900,
+                        ),
+                        padding: MaterialStateProperty.all<EdgeInsets>(
+                          const EdgeInsets.symmetric(
+                            horizontal: 100.0,
+                          ),
+                        ),
+                        shape:
+                            MaterialStateProperty.all<RoundedRectangleBorder>(
+                          RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(
+                              5.0,
+                            ),
+                          ),
+                        ),
+                      ),
+                      child: Text(
+                        "ยืนยันการลงทะเบียนร้านค้า",
+                        style: GoogleFonts.ibmPlexSansThai(
+                          fontSize: 16,
+                          fontWeight: FontWeight.normal,
+                        ),
                       ),
                     ),
                   ),
@@ -1040,6 +979,115 @@ class _RegisterViewState extends State<RegisterView> {
           ],
         ),
       ),
+    );
+  }
+
+  Future pickImageFromGallery() async {
+    try {
+      final file = await ImagePicker().pickImage(source: ImageSource.gallery);
+      if (file == null) {
+        return null;
+      } else {
+        return File(file.path);
+      }
+    } on PlatformException catch (e) {
+      log('Failed to pick image: $e');
+    }
+  }
+
+  Future pickImageFromCamera() async {
+    try {
+      final file = await ImagePicker().pickImage(source: ImageSource.camera);
+      if (file == null) {
+        return null;
+      } else {
+        return File(file.path);
+      }
+    } on PlatformException catch (e) {
+      log('Failed to pick image: $e');
+    }
+  }
+
+  Future optionToTakeImage() {
+    return showModalBottomSheet<dynamic>(
+      isScrollControlled: true,
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(5),
+          topRight: Radius.circular(5),
+        ),
+      ),
+      builder: (context) {
+        return Wrap(
+          alignment: WrapAlignment.center,
+          children: <Widget>[
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                ListTile(
+                  title: Text(
+                    "คลังรูปภาพ",
+                    style: AppTextStyle.googleFont(
+                      Colors.black,
+                      18,
+                      FontWeight.normal,
+                    ),
+                  ),
+                  onTap: () async {
+                    final File imageFromGallery = await pickImageFromGallery();
+
+                    if (isBottomSheetShow) {
+                      resImageFile = imageFromGallery;
+                    } else {
+                      imageFile = imageFromGallery;
+                    }
+                    if (mounted) {
+                      Navigator.of(context).pop();
+                    }
+                  },
+                  leading: const Icon(
+                    Icons.photo_library,
+                    color: Colors.black,
+                  ),
+                ),
+                const Divider(
+                  indent: 10,
+                  endIndent: 10,
+                  height: 1,
+                  color: Colors.black,
+                ),
+                ListTile(
+                  title: Text(
+                    "กล้อง",
+                    style: AppTextStyle.googleFont(
+                      Colors.black,
+                      18,
+                      FontWeight.normal,
+                    ),
+                  ),
+                  onTap: () async {
+                    final File imageFromCamera = await pickImageFromCamera();
+
+                    if (isBottomSheetShow) {
+                      resImageFile = imageFromCamera;
+                    } else {
+                      imageFile = imageFromCamera;
+                    }
+                    if (mounted) {
+                      Navigator.of(context).pop();
+                    }
+                  },
+                  leading: const Icon(
+                    Icons.camera_alt,
+                    color: Colors.black,
+                  ),
+                ),
+              ],
+            )
+          ],
+        );
+      },
     );
   }
 }

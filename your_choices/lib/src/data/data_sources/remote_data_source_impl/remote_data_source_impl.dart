@@ -7,6 +7,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:your_choices/src/data/data_sources/remote_data_source/remote_data_source.dart';
 import 'package:your_choices/src/data/models/customer_model/customer_model.dart';
+import 'package:your_choices/src/data/models/customer_model/transaction_model/transaction_model.dart';
 import 'package:your_choices/src/data/models/vendor_model/add_ons_model/add_ons_model.dart';
 import 'package:your_choices/src/data/models/vendor_model/dishes_model/dishes_model.dart';
 import 'package:your_choices/src/data/models/vendor_model/filter_option_model/filter_option_model.dart';
@@ -32,8 +33,7 @@ class FirebaseRemoteDataSourceImpl implements FirebaseRemoteDataSource {
     CustomerEntity customer,
     String profileUrl,
   ) async {
-    final customerCollection =
-        firebaseFireStore.collection(FirebaseConst.customer);
+    final customerCollection = firebaseFireStore.collection(FirebaseConst.customer);
 
     final uid = await getCurrentUid();
 
@@ -45,7 +45,7 @@ class FirebaseRemoteDataSourceImpl implements FirebaseRemoteDataSource {
         profileUrl: profileUrl,
         type: customer.type,
         username: customer.username,
-      ).toJson();
+      ).modeltoJson();
       if (!value.exists) {
         customerCollection.doc(uid).set(newCustomer);
       } else {
@@ -63,18 +63,38 @@ class FirebaseRemoteDataSourceImpl implements FirebaseRemoteDataSource {
 
   @override
   Stream<List<CustomerEntity>> getSingleCustomer(String uid) {
-    final userCollection = firebaseFireStore
-        .collection(FirebaseConst.customer)
-        .where("uid", isEqualTo: uid)
-        .limit(1);
+    final userCollection = firebaseFireStore.collection(FirebaseConst.customer).where("uid", isEqualTo: uid).limit(1);
 
-    return userCollection.snapshots().map(
-          (data) => data.docs
-              .map(
-                (e) => CustomerModel.fromJson(e),
-              )
-              .toList(),
+    return userCollection.snapshots().asyncMap((querySnapshot) async {
+      final customerModels = await Future.wait(querySnapshot.docs.map((queryDocumentSnapshot) async {
+        final transactionSnapshot = await queryDocumentSnapshot.reference.collection(FirebaseConst.transaction).get();
+        final List<TransactionModel> transactionModels = transactionSnapshot.docs.map((transactionDoc) {
+          final transactionModel = TransactionModel(
+            id: transactionDoc['id'],
+            date: transactionDoc['date'],
+            deposit: transactionDoc['deposit'],
+            menuName: transactionDoc['menuName'],
+            name: transactionDoc['name'],
+            resName: transactionDoc['resName'],
+            totalPrice: transactionDoc['totalPrice'],
+            type: transactionDoc['type'],
+            withdraw: transactionDoc['withdraw'],
+          );
+          return transactionModel;
+        }).toList();
+        final customerModel = CustomerModel(
+          uid: queryDocumentSnapshot['uid'],
+          balance: queryDocumentSnapshot['balance'],
+          email: queryDocumentSnapshot['email'],
+          profileUrl: queryDocumentSnapshot['profileUrl'],
+          transaction: transactionModels,
+          type: queryDocumentSnapshot['type'],
+          username: queryDocumentSnapshot['username'],
         );
+        return customerModel;
+      }).toList());
+      return customerModels;
+    });
   }
 
   @override
@@ -98,8 +118,7 @@ class FirebaseRemoteDataSourceImpl implements FirebaseRemoteDataSource {
           .then((value) async {
         if (value.user?.uid != null) {
           if (customer.imageFile != null) {
-            uploadImageToStorage(customer.imageFile, "profileImage")
-                .then((profileUrl) {
+            uploadImageToStorage(customer.imageFile, "profileImage").then((profileUrl) {
               createCustomerWithImage(customer, profileUrl);
             });
           } else {
@@ -126,10 +145,9 @@ class FirebaseRemoteDataSourceImpl implements FirebaseRemoteDataSource {
   ) async {
     final uid = await getCurrentUid();
 
-    final String imgUrl =
-        await firebaseStorage.ref(uid).child(childName).putFile(file!).then(
-              (p0) => p0.ref.getDownloadURL(),
-            );
+    final String imgUrl = await firebaseStorage.ref(uid).child(childName).putFile(file!).then(
+          (p0) => p0.ref.getDownloadURL(),
+        );
 
     return imgUrl;
   }
@@ -144,14 +162,10 @@ class FirebaseRemoteDataSourceImpl implements FirebaseRemoteDataSource {
       )
           .then((value) async {
         if (value.user?.uid != null) {
-          if (vendorEntity.imageFile != null &&
-              vendorEntity.resImageFile != null) {
-            String profileUrl = await uploadImageToStorage(
-                vendorEntity.imageFile, "profileImage");
-            String resProfileUrl = await uploadImageToStorage(
-                vendorEntity.resImageFile, "resProfileImage");
-            await createVendorWithImage(
-                vendorEntity, profileUrl, resProfileUrl);
+          if (vendorEntity.imageFile != null && vendorEntity.resImageFile != null) {
+            String profileUrl = await uploadImageToStorage(vendorEntity.imageFile, "profileImage");
+            String resProfileUrl = await uploadImageToStorage(vendorEntity.resImageFile, "resProfileImage");
+            await createVendorWithImage(vendorEntity, profileUrl, resProfileUrl);
           } else {
             createVendorWithImage(vendorEntity, "", "");
           }
@@ -174,8 +188,7 @@ class FirebaseRemoteDataSourceImpl implements FirebaseRemoteDataSource {
     String profileUrl,
     String resProfileUrl,
   ) async {
-    final restaurantCollection =
-        firebaseFireStore.collection(FirebaseConst.restaurant);
+    final restaurantCollection = firebaseFireStore.collection(FirebaseConst.restaurant);
 
     final uid = await getCurrentUid();
 
@@ -192,6 +205,7 @@ class FirebaseRemoteDataSourceImpl implements FirebaseRemoteDataSource {
         profileUrl: profileUrl,
         username: vendorEntity.username,
         type: vendorEntity.type,
+        restaurantType: vendorEntity.restaurantType,
       ).toJson();
       if (!value.exists) {
         restaurantCollection.doc(uid).set(newVendor);
@@ -231,10 +245,8 @@ class FirebaseRemoteDataSourceImpl implements FirebaseRemoteDataSource {
 
   @override
   Stream<List<VendorEntity>> getSingleVendor(String uid) {
-    final vendorCollection = firebaseFireStore
-        .collection(FirebaseConst.restaurant)
-        .where("uid", isEqualTo: uid)
-        .limit(1);
+    final vendorCollection =
+        firebaseFireStore.collection(FirebaseConst.restaurant).where("uid", isEqualTo: uid).limit(1);
 
     return vendorCollection.snapshots().map(
           (event) => event.docs
@@ -264,10 +276,8 @@ class FirebaseRemoteDataSourceImpl implements FirebaseRemoteDataSource {
   @override
   Future<void> createMenu(DishesEntity dishesEntity) async {
     final uid = await getCurrentUid();
-    final menuSubCollection = firebaseFireStore
-        .collection(FirebaseConst.restaurant)
-        .doc(uid)
-        .collection(FirebaseConst.menu);
+    final menuSubCollection =
+        firebaseFireStore.collection(FirebaseConst.restaurant).doc(uid).collection(FirebaseConst.menu);
 
     menuSubCollection.doc(dishesEntity.dishesId).get().then((menuDoc) async {
       final newMenu = DishesModel(
@@ -294,9 +304,8 @@ class FirebaseRemoteDataSourceImpl implements FirebaseRemoteDataSource {
       }
 
       if (dishesEntity.filterOption != null) {
-        final filterOptionSubCollection = menuSubCollection
-            .doc(dishesEntity.dishesId)
-            .collection(FirebaseConst.filterOption);
+        final filterOptionSubCollection =
+            menuSubCollection.doc(dishesEntity.dishesId).collection(FirebaseConst.filterOption);
         for (var filterOption in dishesEntity.filterOption!) {
           final newFilterOption = FilterOptionModel(
             filterId: filterOption.filterId,
@@ -306,25 +315,17 @@ class FirebaseRemoteDataSourceImpl implements FirebaseRemoteDataSource {
             multipleQuantity: filterOption.multipleQuantity,
           ).toJson();
 
-          filterOptionSubCollection
-              .doc(filterOption.filterId)
-              .get()
-              .then((filterOptionDoc) {
+          filterOptionSubCollection.doc(filterOption.filterId).get().then((filterOptionDoc) {
             if (filterOptionDoc.exists) {
-              filterOptionSubCollection
-                  .doc(filterOption.filterId)
-                  .update(newFilterOption);
+              filterOptionSubCollection.doc(filterOption.filterId).update(newFilterOption);
             } else {
-              filterOptionSubCollection
-                  .doc(filterOption.filterId)
-                  .set(newFilterOption);
+              filterOptionSubCollection.doc(filterOption.filterId).set(newFilterOption);
             }
           });
 
           if (filterOption.addOns != null) {
-            final addOnsSubCollection = filterOptionSubCollection
-                .doc(filterOption.filterId)
-                .collection(FirebaseConst.addons);
+            final addOnsSubCollection =
+                filterOptionSubCollection.doc(filterOption.filterId).collection(FirebaseConst.addons);
 
             for (var addOns in filterOption.addOns!) {
               final newAddOns = AddOnsModel(
@@ -350,10 +351,8 @@ class FirebaseRemoteDataSourceImpl implements FirebaseRemoteDataSource {
 
   @override
   Stream<List<DishesEntity>> getMenu(String uid) {
-    final menuSubCollection = firebaseFireStore
-        .collection(FirebaseConst.restaurant)
-        .doc(uid)
-        .collection(FirebaseConst.menu);
+    final menuSubCollection =
+        firebaseFireStore.collection(FirebaseConst.restaurant).doc(uid).collection(FirebaseConst.menu);
 
     return menuSubCollection.snapshots().asyncMap((querySnapshot) async {
       final dishesList = <DishesEntity>[];
@@ -361,16 +360,12 @@ class FirebaseRemoteDataSourceImpl implements FirebaseRemoteDataSource {
       for (var menuDoc in querySnapshot.docs) {
         final filterOptionsModel = <FilterOptionEntity>[];
 
-        final filterOptionSnapshot = await menuDoc.reference
-            .collection(FirebaseConst.filterOption)
-            .get();
+        final filterOptionSnapshot = await menuDoc.reference.collection(FirebaseConst.filterOption).get();
 
         for (var filterOptionDoc in filterOptionSnapshot.docs) {
           final addOnsModel = <AddOnsEntity>[];
 
-          final addOnSnapshot = await filterOptionDoc.reference
-              .collection(FirebaseConst.addons)
-              .get();
+          final addOnSnapshot = await filterOptionDoc.reference.collection(FirebaseConst.addons).get();
 
           for (var addOnDoc in addOnSnapshot.docs) {
             final addOnsEntity = AddOnsEntity(
@@ -413,21 +408,17 @@ class FirebaseRemoteDataSourceImpl implements FirebaseRemoteDataSource {
   @override
   Future<void> deleteMenu(DishesEntity dishesEntity) async {
     final uid = await getCurrentUid();
-    final menuSubCollection = firebaseFireStore
-        .collection(FirebaseConst.restaurant)
-        .doc(uid)
-        .collection(FirebaseConst.menu);
+    final menuSubCollection =
+        firebaseFireStore.collection(FirebaseConst.restaurant).doc(uid).collection(FirebaseConst.menu);
     try {
       final dishesColRef = menuSubCollection.doc(dishesEntity.dishesId);
 
-      final filterOptionColRef =
-          dishesColRef.collection(FirebaseConst.filterOption);
+      final filterOptionColRef = dishesColRef.collection(FirebaseConst.filterOption);
 
       final filterQuerySnapShot = await filterOptionColRef.get();
 
       for (final filterDoc in filterQuerySnapShot.docs) {
-        final addOnsColRef =
-            filterDoc.reference.collection(FirebaseConst.addons);
+        final addOnsColRef = filterDoc.reference.collection(FirebaseConst.addons);
         final addOnsQuerySnapShot = await addOnsColRef.get();
 
         for (final addOnsDoc in addOnsQuerySnapShot.docs) {
@@ -444,10 +435,8 @@ class FirebaseRemoteDataSourceImpl implements FirebaseRemoteDataSource {
   @override
   Future<void> updateMenu(DishesEntity dishesEntity) async {
     final uid = await getCurrentUid();
-    final menuSubCollection = firebaseFireStore
-        .collection(FirebaseConst.restaurant)
-        .doc(uid)
-        .collection(FirebaseConst.menu);
+    final menuSubCollection =
+        firebaseFireStore.collection(FirebaseConst.restaurant).doc(uid).collection(FirebaseConst.menu);
     final menuDoc = await menuSubCollection.doc(dishesEntity.dishesId).get();
 
     final Map<String, dynamic> menuInfomation = {};
@@ -455,8 +444,7 @@ class FirebaseRemoteDataSourceImpl implements FirebaseRemoteDataSource {
     if (dishesEntity.menuName != "" && dishesEntity.menuName != null) {
       menuInfomation['menuName'] = dishesEntity.menuName;
     }
-    if (dishesEntity.menuDescription != "" &&
-        dishesEntity.menuDescription != null) {
+    if (dishesEntity.menuDescription != "" && dishesEntity.menuDescription != null) {
       menuInfomation['menuDescription'] = dishesEntity.menuDescription;
     }
     if (dishesEntity.menuPrice != null) {
@@ -471,9 +459,7 @@ class FirebaseRemoteDataSourceImpl implements FirebaseRemoteDataSource {
 
     if (menuDoc.exists) {
       try {
-        await menuSubCollection
-            .doc(dishesEntity.dishesId)
-            .update(menuInfomation);
+        await menuSubCollection.doc(dishesEntity.dishesId).update(menuInfomation);
       } catch (_) {
         showFlutterToast(_.toString());
       }
@@ -484,14 +470,11 @@ class FirebaseRemoteDataSourceImpl implements FirebaseRemoteDataSource {
 
   @override
   Future<void> openAndCloseRestaurant(VendorEntity vendorEntity) async {
-    final vendorCollection =
-        firebaseFireStore.collection(FirebaseConst.restaurant);
+    final vendorCollection = firebaseFireStore.collection(FirebaseConst.restaurant);
     final vendorDoc = await vendorCollection.doc(vendorEntity.uid).get();
     if (vendorDoc.exists) {
       try {
-        vendorCollection
-            .doc(vendorEntity.uid)
-            .update({"isActive": vendorEntity.isActive});
+        vendorCollection.doc(vendorEntity.uid).update({"isActive": vendorEntity.isActive});
       } catch (_) {
         showFlutterToast(_.toString());
       }
@@ -502,8 +485,7 @@ class FirebaseRemoteDataSourceImpl implements FirebaseRemoteDataSource {
 
   @override
   Future<void> updateRestaurantInfo(VendorEntity vendorEntity) async {
-    final vendorCollection =
-        firebaseFireStore.collection(FirebaseConst.restaurant);
+    final vendorCollection = firebaseFireStore.collection(FirebaseConst.restaurant);
     final vendorDoc = await vendorCollection.doc(vendorEntity.uid).get();
 
     final Map<String, dynamic> restaurantInfomation = {};
@@ -517,8 +499,7 @@ class FirebaseRemoteDataSourceImpl implements FirebaseRemoteDataSource {
     if (vendorEntity.resName != "" && vendorEntity.resName != null) {
       restaurantInfomation['resName'] = vendorEntity.resName;
     }
-    if (vendorEntity.resProfileUrl != "" &&
-        vendorEntity.resProfileUrl != null) {
+    if (vendorEntity.resProfileUrl != "" && vendorEntity.resProfileUrl != null) {
       restaurantInfomation['resProfileUrl'] = vendorEntity.resProfileUrl;
     }
     if (vendorEntity.description != "" && vendorEntity.description != null) {
@@ -527,9 +508,7 @@ class FirebaseRemoteDataSourceImpl implements FirebaseRemoteDataSource {
 
     if (vendorDoc.exists) {
       try {
-        await vendorCollection
-            .doc(vendorEntity.uid)
-            .update(restaurantInfomation);
+        await vendorCollection.doc(vendorEntity.uid).update(restaurantInfomation);
       } catch (_) {
         showFlutterToast(_.toString());
       }
@@ -541,10 +520,8 @@ class FirebaseRemoteDataSourceImpl implements FirebaseRemoteDataSource {
   @override
   Future<void> createFilterOption(FilterOptionEntity filterOptionEntity) async {
     final uid = await getCurrentUid();
-    final filterOptionSubCollection = firebaseFireStore
-        .collection(FirebaseConst.restaurant)
-        .doc(uid)
-        .collection(FirebaseConst.filterOption);
+    final filterOptionSubCollection =
+        firebaseFireStore.collection(FirebaseConst.restaurant).doc(uid).collection(FirebaseConst.filterOption);
 
     final newFilterOptionModel = FilterOptionModel(
       filterId: filterOptionEntity.filterId,
@@ -554,24 +531,16 @@ class FirebaseRemoteDataSourceImpl implements FirebaseRemoteDataSource {
       multipleQuantity: filterOptionEntity.multipleQuantity,
     ).toJson();
 
-    filterOptionSubCollection
-        .doc(filterOptionEntity.filterId)
-        .get()
-        .then((filterOptionDoc) async {
+    filterOptionSubCollection.doc(filterOptionEntity.filterId).get().then((filterOptionDoc) async {
       if (filterOptionDoc.exists) {
-        await filterOptionSubCollection
-            .doc(filterOptionEntity.filterId)
-            .update(newFilterOptionModel);
+        await filterOptionSubCollection.doc(filterOptionEntity.filterId).update(newFilterOptionModel);
       } else {
-        await filterOptionSubCollection
-            .doc(filterOptionEntity.filterId)
-            .set(newFilterOptionModel);
+        await filterOptionSubCollection.doc(filterOptionEntity.filterId).set(newFilterOptionModel);
       }
 
       if (filterOptionEntity.addOns != null) {
-        final addOnsSubCollection = filterOptionSubCollection
-            .doc(filterOptionEntity.filterId)
-            .collection(FirebaseConst.addons);
+        final addOnsSubCollection =
+            filterOptionSubCollection.doc(filterOptionEntity.filterId).collection(FirebaseConst.addons);
 
         for (var addOnsEntity in filterOptionEntity.addOns!) {
           final newAddOnsModel = AddOnsModel(
@@ -581,18 +550,11 @@ class FirebaseRemoteDataSourceImpl implements FirebaseRemoteDataSource {
             price: addOnsEntity.price,
           ).toJson();
 
-          addOnsSubCollection
-              .doc(addOnsEntity.addonsId)
-              .get()
-              .then((addOnsDoc) async {
+          addOnsSubCollection.doc(addOnsEntity.addonsId).get().then((addOnsDoc) async {
             if (addOnsDoc.exists) {
-              await addOnsSubCollection
-                  .doc(addOnsEntity.addonsId)
-                  .update(newAddOnsModel);
+              await addOnsSubCollection.doc(addOnsEntity.addonsId).update(newAddOnsModel);
             } else {
-              await addOnsSubCollection
-                  .doc(addOnsEntity.addonsId)
-                  .set(newAddOnsModel);
+              await addOnsSubCollection.doc(addOnsEntity.addonsId).set(newAddOnsModel);
             }
           });
         }
@@ -602,18 +564,11 @@ class FirebaseRemoteDataSourceImpl implements FirebaseRemoteDataSource {
 
   @override
   Stream<List<FilterOptionEntity>> readFilterOption(String uid) {
-    final filterOptionSubCollection = firebaseFireStore
-        .collection(FirebaseConst.restaurant)
-        .doc(uid)
-        .collection(FirebaseConst.filterOption);
-    return filterOptionSubCollection
-        .snapshots()
-        .asyncMap((querySnapshot) async {
-      final filterOptionModels =
-          await Future.wait(querySnapshot.docs.map((filterOptionDoc) async {
-        final addOnsSnapshot = await filterOptionDoc.reference
-            .collection(FirebaseConst.addons)
-            .get();
+    final filterOptionSubCollection =
+        firebaseFireStore.collection(FirebaseConst.restaurant).doc(uid).collection(FirebaseConst.filterOption);
+    return filterOptionSubCollection.snapshots().asyncMap((querySnapshot) async {
+      final filterOptionModels = await Future.wait(querySnapshot.docs.map((filterOptionDoc) async {
+        final addOnsSnapshot = await filterOptionDoc.reference.collection(FirebaseConst.addons).get();
         final addOnsModel = addOnsSnapshot.docs.map((addOnsDoc) {
           return AddOnsModel(
             addonsId: addOnsDoc['addonsId'],
@@ -642,13 +597,10 @@ class FirebaseRemoteDataSourceImpl implements FirebaseRemoteDataSource {
     FilterOptionEntity filterOptionEntity,
   ) async {
     final uid = await getCurrentUid();
-    final filterOptionSubCollection = firebaseFireStore
-        .collection(FirebaseConst.restaurant)
-        .doc(uid)
-        .collection(FirebaseConst.filterOption);
+    final filterOptionSubCollection =
+        firebaseFireStore.collection(FirebaseConst.restaurant).doc(uid).collection(FirebaseConst.filterOption);
     try {
-      final filterDocRef =
-          filterOptionSubCollection.doc(filterOptionEntity.filterId);
+      final filterDocRef = filterOptionSubCollection.doc(filterOptionEntity.filterId);
       final addOnsColRef = filterDocRef.collection(FirebaseConst.addons);
       final addOnsQuerySnapShot = await addOnsColRef.get();
 
@@ -666,17 +618,13 @@ class FirebaseRemoteDataSourceImpl implements FirebaseRemoteDataSource {
     FilterOptionEntity filterOptionEntity,
   ) async {
     final uid = await getCurrentUid();
-    final filterSubCollection = firebaseFireStore
-        .collection(FirebaseConst.restaurant)
-        .doc(uid)
-        .collection(FirebaseConst.filterOption);
-    final filterOptionDoc =
-        await filterSubCollection.doc(filterOptionEntity.filterId).get();
+    final filterSubCollection =
+        firebaseFireStore.collection(FirebaseConst.restaurant).doc(uid).collection(FirebaseConst.filterOption);
+    final filterOptionDoc = await filterSubCollection.doc(filterOptionEntity.filterId).get();
 
     final Map<String, dynamic> filterOptionInfo = {};
 
-    if (filterOptionEntity.filterName != "" &&
-        filterOptionEntity.filterName != null) {
+    if (filterOptionEntity.filterName != "" && filterOptionEntity.filterName != null) {
       filterOptionInfo['filterName'] = filterOptionEntity.filterName;
     }
     if (filterOptionEntity.isRequired != null) {
@@ -686,15 +634,12 @@ class FirebaseRemoteDataSourceImpl implements FirebaseRemoteDataSource {
       filterOptionInfo['isMultiple'] = filterOptionEntity.isMultiple;
     }
     if (filterOptionEntity.multipleQuantity != null) {
-      filterOptionInfo['multipleQuantity'] =
-          filterOptionEntity.multipleQuantity;
+      filterOptionInfo['multipleQuantity'] = filterOptionEntity.multipleQuantity;
     }
 
     if (filterOptionDoc.exists) {
       try {
-        await filterSubCollection
-            .doc(filterOptionEntity.filterId)
-            .update(filterOptionInfo);
+        await filterSubCollection.doc(filterOptionEntity.filterId).update(filterOptionInfo);
       } catch (_) {
         showFlutterToast(_.toString());
       }
@@ -709,29 +654,20 @@ class FirebaseRemoteDataSourceImpl implements FirebaseRemoteDataSource {
   ) async {
     final uid = await getCurrentUid();
 
-    final menuCollection = firebaseFireStore
-        .collection(FirebaseConst.restaurant)
-        .doc(uid)
-        .collection(FirebaseConst.menu);
+    final menuCollection =
+        firebaseFireStore.collection(FirebaseConst.restaurant).doc(uid).collection(FirebaseConst.menu);
 
     final menuQuerySnapshot = await menuCollection.get();
 
     final menuDocId = menuQuerySnapshot.docs.firstWhere((element) =>
-        element.reference
-            .collection(FirebaseConst.filterOption)
-            .doc(filterOptionEntity.filterId)
-            .id ==
+        element.reference.collection(FirebaseConst.filterOption).doc(filterOptionEntity.filterId).id ==
         filterOptionEntity.filterId);
 
     final menuDoc = await menuCollection.doc(menuDocId.id).get();
 
-    final filterOptionCollectionRef =
-        menuDoc.reference.collection(FirebaseConst.filterOption);
+    final filterOptionCollectionRef = menuDoc.reference.collection(FirebaseConst.filterOption);
 
-    filterOptionCollectionRef
-        .doc(filterOptionEntity.filterId)
-        .get()
-        .then((filterOptionDoc) async {
+    filterOptionCollectionRef.doc(filterOptionEntity.filterId).get().then((filterOptionDoc) async {
       final newFilterOptionModel = FilterOptionModel(
         filterId: filterOptionEntity.filterId,
         filterName: filterOptionEntity.filterName,
@@ -742,19 +678,14 @@ class FirebaseRemoteDataSourceImpl implements FirebaseRemoteDataSource {
       ).toJson();
 
       if (filterOptionDoc.exists) {
-        await filterOptionCollectionRef
-            .doc(filterOptionEntity.filterId)
-            .update(newFilterOptionModel);
+        await filterOptionCollectionRef.doc(filterOptionEntity.filterId).update(newFilterOptionModel);
       } else {
-        await filterOptionCollectionRef
-            .doc(filterOptionEntity.filterId)
-            .set(newFilterOptionModel);
+        await filterOptionCollectionRef.doc(filterOptionEntity.filterId).set(newFilterOptionModel);
       }
 
       if (filterOptionEntity.addOns != null) {
-        final addOnsSubCollection = filterOptionCollectionRef
-            .doc(filterOptionEntity.filterId)
-            .collection(FirebaseConst.addons);
+        final addOnsSubCollection =
+            filterOptionCollectionRef.doc(filterOptionEntity.filterId).collection(FirebaseConst.addons);
 
         for (var addOnsEntity in filterOptionEntity.addOns!) {
           final newAddOnsModel = AddOnsModel(
@@ -764,18 +695,11 @@ class FirebaseRemoteDataSourceImpl implements FirebaseRemoteDataSource {
             price: addOnsEntity.price,
           ).toJson();
 
-          addOnsSubCollection
-              .doc(addOnsEntity.addonsId)
-              .get()
-              .then((addOnsDoc) async {
+          addOnsSubCollection.doc(addOnsEntity.addonsId).get().then((addOnsDoc) async {
             if (addOnsDoc.exists) {
-              await addOnsSubCollection
-                  .doc(addOnsEntity.addonsId)
-                  .update(newAddOnsModel);
+              await addOnsSubCollection.doc(addOnsEntity.addonsId).update(newAddOnsModel);
             } else {
-              await addOnsSubCollection
-                  .doc(addOnsEntity.addonsId)
-                  .set(newAddOnsModel);
+              await addOnsSubCollection.doc(addOnsEntity.addonsId).set(newAddOnsModel);
             }
           });
         }
@@ -789,25 +713,19 @@ class FirebaseRemoteDataSourceImpl implements FirebaseRemoteDataSource {
   ) async {
     final uid = await getCurrentUid();
 
-    final menuCollection = firebaseFireStore
-        .collection(FirebaseConst.restaurant)
-        .doc(uid)
-        .collection(FirebaseConst.menu);
+    final menuCollection =
+        firebaseFireStore.collection(FirebaseConst.restaurant).doc(uid).collection(FirebaseConst.menu);
 
     final menuQuerySnapshot = await menuCollection.get();
 
     final menuDocId = menuQuerySnapshot.docs.firstWhere((element) =>
-        element.reference
-            .collection(FirebaseConst.filterOption)
-            .doc(filterOptionEntity.filterId)
-            .id ==
+        element.reference.collection(FirebaseConst.filterOption).doc(filterOptionEntity.filterId).id ==
         filterOptionEntity.filterId);
 
     final menuDoc = await menuCollection.doc(menuDocId.id).get();
 
-    final filterOptionDocRef = menuDoc.reference
-        .collection(FirebaseConst.filterOption)
-        .doc(filterOptionEntity.filterId);
+    final filterOptionDocRef =
+        menuDoc.reference.collection(FirebaseConst.filterOption).doc(filterOptionEntity.filterId);
 
     final addOnsColRef = filterOptionDocRef.collection(FirebaseConst.addons);
     final addOnsAllDoc = await addOnsColRef.get();
@@ -833,16 +751,15 @@ class FirebaseRemoteDataSourceImpl implements FirebaseRemoteDataSource {
         .collection(FirebaseConst.menu)
         .doc(dishesEntity.dishesId);
 
-    final filterOptionSnapshot =
-        menuDocRef.collection(FirebaseConst.filterOption).snapshots();
+    final filterOptionSnapshot = menuDocRef.collection(FirebaseConst.filterOption).snapshots();
 
-    yield* filterOptionSnapshot.asyncMap((querySnapshot) async {
-      final filterOptionModels =
-          await Future.wait(querySnapshot.docs.map((filterOptionDoc) async {
-        final addOnsSnapshot = await filterOptionDoc.reference
-            .collection(FirebaseConst.addons)
-            .get();
-        final addOnsModel = addOnsSnapshot.docs.map((addOnsDoc) {
+    await for (var querySnapshot in filterOptionSnapshot) {
+      final List<FilterOptionModel> filterOptionModels = [];
+
+      for (var filterOptionDoc in querySnapshot.docs) {
+        final addOnsSnapshot = await filterOptionDoc.reference.collection(FirebaseConst.addons).get();
+
+        final addOnsModels = addOnsSnapshot.docs.map((addOnsDoc) {
           return AddOnsModel(
             addonsId: addOnsDoc['addonsId'],
             addonsName: addOnsDoc['addonsName'],
@@ -851,18 +768,119 @@ class FirebaseRemoteDataSourceImpl implements FirebaseRemoteDataSource {
           );
         }).toList();
 
-        return FilterOptionModel(
+        filterOptionModels.add(FilterOptionModel(
           filterId: filterOptionDoc['filterId'],
           filterName: filterOptionDoc['filterName'],
           isMultiple: filterOptionDoc['isMultiple'],
           isRequired: filterOptionDoc['isRequired'],
           multipleQuantity: filterOptionDoc['multipleQuantity'],
-          addOns: addOnsModel,
-        );
-      }).toList());
-      return filterOptionModels;
+          addOns: addOnsModels,
+        ));
+      }
+
+      yield filterOptionModels;
+    }
+  }
+
+  @override
+  Stream<List<VendorEntity>> getAllRestaurants() {
+    final restaurantCollection = firebaseFireStore.collection(FirebaseConst.restaurant);
+    final restaurantStream = restaurantCollection.snapshots();
+
+    return restaurantStream.asyncMap((restaurantDocs) async {
+      final restaurantModels = await Future.wait(
+        restaurantDocs.docs.map((restaurantDoc) async {
+          final menuColRef = restaurantDoc.reference.collection(FirebaseConst.menu);
+          final menuDocs = await menuColRef.get();
+          final menuModels = await Future.wait(
+            menuDocs.docs.map((menuDoc) async {
+              final filteroptionColRef = menuDoc.reference.collection(FirebaseConst.filterOption);
+              final filterOptionDocs = await filteroptionColRef.get();
+              final filterOptionModels = await Future.wait(
+                filterOptionDocs.docs.map((filterOptionDoc) async {
+                  final addOnsColRef = filterOptionDoc.reference.collection(FirebaseConst.addons);
+                  final addOnsDocs = await addOnsColRef.get();
+                  final addOnsModels = addOnsDocs.docs.map((addOnsDoc) {
+                    return AddOnsModel(
+                      addonsId: addOnsDoc['addonsId'],
+                      addonsName: addOnsDoc['addonsName'],
+                      price: addOnsDoc['price'],
+                      priceType: addOnsDoc['priceType'],
+                    );
+                  }).toList();
+                  return FilterOptionModel(
+                    filterId: filterOptionDoc['filterId'],
+                    filterName: filterOptionDoc['filterName'],
+                    isMultiple: filterOptionDoc['isMultiple'],
+                    isRequired: filterOptionDoc['isRequired'],
+                    multipleQuantity: filterOptionDoc['multipleQuantity'],
+                    addOns: addOnsModels,
+                  );
+                }),
+              );
+              return DishesModel(
+                dishesId: menuDoc['dishesId'],
+                createdAt: menuDoc['createdAt'],
+                isActive: menuDoc['isActive'],
+                menuImg: menuDoc['menuImg'],
+                menuName: menuDoc['menuName'],
+                menuDescription: menuDoc['menuDescription'],
+                menuPrice: menuDoc['menuPrice'],
+                filterOption: filterOptionModels,
+              );
+            }).toList(),
+          );
+          return VendorEntity(
+            uid: restaurantDoc['uid'],
+            description: restaurantDoc['description'],
+            email: restaurantDoc['email'],
+            isActive: restaurantDoc['isActive'],
+            onQueue: restaurantDoc['onQueue'],
+            profileUrl: restaurantDoc['profileUrl'],
+            resName: restaurantDoc['resName'],
+            resProfileUrl: restaurantDoc['resProfileUrl'],
+            restaurantType: restaurantDoc['restaurantType'],
+            totalPriceSell: restaurantDoc['totalPriceSell'],
+            type: restaurantDoc['type'],
+            username: restaurantDoc['username'],
+            dishes: menuModels,
+          );
+        }).toList(),
+      );
+      return restaurantModels;
     });
   }
+
+  @override
+  Future<void> updateCustomerInfo(CustomerEntity customerEntity) async {
+    final uid = await getCurrentUid();
+    final customerCollection = firebaseFireStore.collection(FirebaseConst.customer).doc(uid);
+
+    final menuDoc = await customerCollection.get();
+
+    final Map<String, dynamic> customerInfomation = {};
+
+    if (customerEntity.balance != null) {
+      customerInfomation['balance'] = customerEntity.balance;
+    }
+    if (customerEntity.username != "" && customerEntity.username != null) {
+      customerInfomation['username'] = customerEntity.username;
+    }
+    if (customerEntity.profileUrl != "" && customerEntity.profileUrl != null) {
+      customerInfomation['profileUrl'] = customerEntity.profileUrl;
+    }
+
+    if (menuDoc.exists) {
+      try {
+        await customerCollection.update(customerInfomation);
+      } catch (_) {
+        showFlutterToast(_.toString());
+      }
+    } else {
+      showFlutterToast("Can't Update Restaurant Infomation right now");
+    }
+  }
+
 }
 
 class FirebaseConst {
@@ -871,4 +889,5 @@ class FirebaseConst {
   static const String restaurant = "restuarant";
   static const String addons = "addons";
   static const String filterOption = "filterOption";
+  static const String transaction = "transaction";
 }
