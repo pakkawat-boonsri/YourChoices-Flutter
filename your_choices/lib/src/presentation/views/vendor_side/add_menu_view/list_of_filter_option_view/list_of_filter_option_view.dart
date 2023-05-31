@@ -3,7 +3,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:touchable_opacity/touchable_opacity.dart';
-
 import 'package:your_choices/injection_container.dart' as di;
 import 'package:your_choices/src/config/app_routes/on_generate_routes.dart';
 import 'package:your_choices/src/domain/entities/vendor/dishes_menu/dishes_entity.dart';
@@ -38,8 +37,7 @@ class ListOfFilterOptionView extends StatefulWidget {
 class _ListOfFilterOptionViewState extends State<ListOfFilterOptionView> {
   @override
   void initState() {
-    BlocProvider.of<FilterOptionCubit>(context)
-        .readFilterOption(uid: widget.id);
+    BlocProvider.of<FilterOptionCubit>(context).readFilterOption(uid: widget.id);
     super.initState();
   }
 
@@ -64,6 +62,7 @@ class _ListOfFilterOptionViewState extends State<ListOfFilterOptionView> {
       ),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
           Container(
             padding: const EdgeInsets.all(12),
@@ -85,8 +84,7 @@ class _ListOfFilterOptionViewState extends State<ListOfFilterOptionView> {
                   ),
                 );
               } else if (state is FilterOptionLoadCompleted) {
-                List<FilterOptionEntity> filterOptionList =
-                    state.filterOptionEntityList;
+                List<FilterOptionEntity> filterOptionList = List<FilterOptionEntity>.from(state.filterOptionEntityList);
                 return filterOptionList.isEmpty
                     ? NoFilterOptionList(size: size)
                     : HaveFilterOptionList(
@@ -129,8 +127,7 @@ class HaveFilterOptionList extends StatelessWidget {
                 shrinkWrap: true,
                 itemCount: filterOptionList.length,
                 itemBuilder: (context, index) {
-                  FilterOptionEntity filterOptionEntity =
-                      filterOptionList[index];
+                  FilterOptionEntity filterOptionEntity = filterOptionList[index];
                   return Card(
                     child: Row(
                       children: [
@@ -139,21 +136,15 @@ class HaveFilterOptionList extends StatelessWidget {
                             child: CheckboxListTile(
                               activeColor: Colors.amber.shade900,
                               controlAffinity: ListTileControlAffinity.leading,
-                              contentPadding:
-                                  const EdgeInsets.symmetric(horizontal: 5),
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 5),
                               value: filterOptionEntity.isSelected,
                               onChanged: (value) {
                                 setState(() {
-                                  filterOptionEntity = filterOptionEntity
-                                      .copyWith(isSelected: value);
+                                  filterOptionEntity = filterOptionEntity.copyWith(isSelected: value);
                                 });
                                 filterOptionEntity.isSelected
-                                    ? context
-                                        .read<AddFilterOptionCubit>()
-                                        .addFilterOption(filterOptionEntity)
-                                    : context
-                                        .read<AddFilterOptionCubit>()
-                                        .removeFilterOption(filterOptionEntity);
+                                    ? context.read<AddFilterOptionCubit>().addFilterOption(filterOptionEntity)
+                                    : context.read<AddFilterOptionCubit>().removeFilterOption(filterOptionEntity);
                               },
                               title: Text(
                                 filterOptionEntity.filterName ?? "no name",
@@ -165,22 +156,14 @@ class HaveFilterOptionList extends StatelessWidget {
                               ),
                               subtitle: filterOptionEntity.addOns != null
                                   ? filterOptionEntity.addOns!.isNotEmpty
-                                      ? Row(
-                                          children: [
-                                            const Text("("),
-                                            Row(
-                                              children: filterOptionEntity
-                                                  .addOns!
-                                                  .map(
-                                                (e) {
-                                                  return Text(
-                                                    "${e.addonsName}${e == filterOptionEntity.addOns!.last ? "" : ", "}",
-                                                  );
-                                                },
-                                              ).toList(),
-                                            ),
-                                            const Text(")"),
-                                          ],
+                                      ? Wrap(
+                                          children: filterOptionEntity.addOns!.map(
+                                            (e) {
+                                              return Text(
+                                                "${e.addonsName}${e == filterOptionEntity.addOns!.last ? "" : ", "}",
+                                              );
+                                            },
+                                          ).toList(),
                                         )
                                       : null
                                   : null,
@@ -203,12 +186,10 @@ class HaveFilterOptionList extends StatelessWidget {
                         IconButton(
                           onPressed: () {
                             loadingDialog(context);
-                            BlocProvider.of<FilterOptionCubit>(context)
-                                .deleteFilterOption(
+                            BlocProvider.of<FilterOptionCubit>(context).deleteFilterOption(
                               filterOptionEntity: filterOptionEntity,
                             );
-                            Future.delayed(const Duration(seconds: 2))
-                                .then((value) {
+                            Future.delayed(const Duration(seconds: 1)).then((value) {
                               Navigator.pop(context);
                             });
                           },
@@ -236,8 +217,7 @@ class HaveFilterOptionList extends StatelessWidget {
                 child: Container(
                   width: double.infinity,
                   height: 40,
-                  margin:
-                      const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
+                  margin: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
                   alignment: Alignment.center,
                   decoration: BoxDecoration(
                     color: "f7ddcd".toColor(),
@@ -256,12 +236,10 @@ class HaveFilterOptionList extends StatelessWidget {
               TouchableOpacity(
                 onTap: () async {
                   List<FilterOptionEntity> filterOptionList =
-                      context.read<AddFilterOptionCubit>().state;
+                      List<FilterOptionEntity>.from(context.read<AddFilterOptionCubit>().state);
                   loadingDialog(context);
                   if (previousRouteName == PageConst.menuDetailPage) {
-                    context
-                        .read<FilterOptionInMenuCubit>()
-                        .addFilterOptionInMenu(
+                    context.read<FilterOptionInMenuCubit>().addFilterOptionInMenu(
                           filterOptionList,
                         );
                   } else {

@@ -1,14 +1,21 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
-import 'dart:developer';
 
+import 'dart:developer';
+import 'dart:ui';
+
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
+import 'package:image_gallery_saver/image_gallery_saver.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:touchable_opacity/touchable_opacity.dart';
-
 import 'package:your_choices/src/domain/entities/customer/customer_entity.dart';
+import 'package:your_choices/src/presentation/widgets/custom_text.dart';
 import 'package:your_choices/src/presentation/widgets/custom_vendor_appbar.dart';
 import 'package:your_choices/utilities/hex_color.dart';
+import 'package:your_choices/utilities/show_flutter_toast.dart';
 import 'package:your_choices/utilities/text_style.dart';
 
 class DepositView extends StatefulWidget {
@@ -25,9 +32,9 @@ class DepositView extends StatefulWidget {
 class _DepositViewState extends State<DepositView> {
   final _amount = TextEditingController();
   final _formkey = GlobalKey<FormState>();
+  final GlobalKey globalKey = GlobalKey();
   bool isValidate = false;
   int? seletedIndex;
-  bool showQrCode = false;
   @override
   void initState() {
     _amount.addListener(checkIsValidate);
@@ -38,6 +45,31 @@ class _DepositViewState extends State<DepositView> {
   void dispose() {
     _amount.dispose();
     super.dispose();
+  }
+
+  Future<void> _saveQRCode() async {
+    if (await Permission.storage.request().isGranted) {
+      try {
+        if (context.mounted) {
+          RenderRepaintBoundary boundary = globalKey.currentContext!.findRenderObject() as RenderRepaintBoundary;
+          var image = await boundary.toImage();
+          ByteData? byteData = await image.toByteData(format: ImageByteFormat.png);
+          Uint8List pngBytes = byteData!.buffer.asUint8List();
+
+          final result = await ImageGallerySaver.saveImage(pngBytes);
+
+          if (result['isSuccess']) {
+            showFlutterToast('Image saved to gallery');
+          } else {
+            showFlutterToast('Failed to save image');
+          }
+        }
+      } catch (e) {
+        log('asd $e');
+      }
+    } else {
+      log('Permission denied');
+    }
   }
 
   checkIsValidate() {
@@ -81,8 +113,7 @@ class _DepositViewState extends State<DepositView> {
                         padding: const EdgeInsets.only(top: 12.0, left: 25),
                         child: Text(
                           "จำนวนเงิน",
-                          style: AppTextStyle.googleFont(
-                              Colors.white, 22, FontWeight.bold),
+                          style: AppTextStyle.googleFont(Colors.white, 22, FontWeight.bold),
                         ),
                       ),
                       const Divider(
@@ -99,11 +130,9 @@ class _DepositViewState extends State<DepositView> {
                             6,
                             (index) {
                               return StatefulBuilder(
-                                builder: (context, setState) =>
-                                    TouchableOpacity(
+                                builder: (context, setState) => TouchableOpacity(
                                   onTap: () async {
-                                    _amount.text =
-                                        ((index + 1) * 100).toString();
+                                    _amount.text = ((index + 1) * 100).toString();
                                     setState(() {
                                       seletedIndex = index;
                                     });
@@ -123,10 +152,7 @@ class _DepositViewState extends State<DepositView> {
                                               ],
                                             )
                                           : const LinearGradient(
-                                              colors: [
-                                                Colors.white,
-                                                Colors.white
-                                              ],
+                                              colors: [Colors.white, Colors.white],
                                             ),
                                     ),
                                     child: Container(
@@ -134,9 +160,7 @@ class _DepositViewState extends State<DepositView> {
                                       child: Text(
                                         "${(index + 1) * 100}",
                                         style: AppTextStyle.googleFont(
-                                          seletedIndex == index
-                                              ? Colors.white
-                                              : Colors.black,
+                                          seletedIndex == index ? Colors.white : Colors.black,
                                           16,
                                           FontWeight.w700,
                                         ),
@@ -241,14 +265,73 @@ class _DepositViewState extends State<DepositView> {
                         onPressed: isValidate
                             ? () async {
                                 if (_formkey.currentState!.validate()) {
-                                  genarateQrCode(context);
+                                  final customerDeposit = widget.customerEntity
+                                      .copyWith(depositAmount: _amount.text, withdrawAmount: null)
+                                      .toJson();
+                                  await showDialog(
+                                    context: context,
+                                    builder: (context) {
+                                      return RepaintBoundary(
+                                        key: globalKey,
+                                        child: AlertDialog(
+                                          title: Row(
+                                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              const CustomText(
+                                                text: "QRCode",
+                                                color: Colors.black,
+                                                fontSize: 20,
+                                                fontWeight: FontWeight.w500,
+                                              ),
+                                              TouchableOpacity(
+                                                onTap: () async {
+                                                  await _saveQRCode();
+                                                },
+                                                child: Container(
+                                                  padding: const EdgeInsets.all(8),
+                                                  decoration: BoxDecoration(
+                                                    color: Colors.amber.shade900,
+                                                    borderRadius: BorderRadius.circular(50),
+                                                  ),
+                                                  child: const Row(
+                                                    children: [
+                                                      Icon(
+                                                        CupertinoIcons.device_phone_portrait,
+                                                        color: Colors.white,
+                                                      ),
+                                                      CustomText(
+                                                        text: "Save To Device",
+                                                        color: Colors.white,
+                                                        fontSize: 16,
+                                                        fontWeight: FontWeight.w500,
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          content: Wrap(
+                                            children: [
+                                              Container(
+                                                alignment: Alignment.center,
+                                                width: MediaQuery.of(context).size.width,
+                                                child: QrImageView(
+                                                  data: customerDeposit,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                  );
                                 }
                               }
                             : null,
                         child: Text(
                           "Generate QR Code",
-                          style: AppTextStyle.googleFont(
-                              Colors.white, 20, FontWeight.bold),
+                          style: AppTextStyle.googleFont(Colors.white, 20, FontWeight.bold),
                         ),
                       ),
                     ),
@@ -259,35 +342,6 @@ class _DepositViewState extends State<DepositView> {
           ],
         ),
       ),
-    );
-  }
-
-  genarateQrCode(BuildContext context) async {
-    final customerDeposit = widget.customerEntity
-        .copyWith(
-          depositAmount: _amount.text,
-          withdrawAmount: null,
-        )
-        .toJson();
-    log(customerDeposit);
-    return showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text("Qr Code"),
-          content: Wrap(
-            children: [
-              Container(
-                alignment: Alignment.center,
-                width: MediaQuery.of(context).size.width,
-                child: QrImage(
-                  data: customerDeposit,
-                ),
-              ),
-            ],
-          ),
-        );
-      },
     );
   }
 }

@@ -1,7 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:your_choices/src/domain/entities/vendor/add_ons/add_ons_entity.dart';
 import 'package:your_choices/src/domain/entities/vendor/filter_options/filter_option_entity.dart';
-
-import '../../../../domain/entities/vendor/add_ons/add_ons_entity.dart';
 
 class FilterOptionModel extends FilterOptionEntity {
   const FilterOptionModel({

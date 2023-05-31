@@ -6,16 +6,17 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:your_choices/src/config/app_routes/on_generate_routes.dart';
 import 'package:your_choices/src/presentation/blocs/customer_bloc/cart/cart_cubit.dart';
+import 'package:your_choices/src/presentation/blocs/customer_bloc/customer_order/customer_order_cubit.dart';
 import 'package:your_choices/src/presentation/blocs/customer_bloc/favorite/favorite_cubit.dart';
 import 'package:your_choices/src/presentation/blocs/customer_bloc/restaurant/restaurant_cubit.dart';
 import 'package:your_choices/src/presentation/blocs/vendor_bloc/add_add_ons/add_add_ons_cubit.dart';
 import 'package:your_choices/src/presentation/blocs/vendor_bloc/add_filter_in_menu/add_filter_in_menu_cubit.dart';
 import 'package:your_choices/src/presentation/blocs/vendor_bloc/add_filter_option/add_filter_option_cubit.dart';
-
 import 'package:your_choices/src/presentation/blocs/vendor_bloc/filter_option/filter_options_cubit.dart';
 import 'package:your_choices/src/presentation/blocs/vendor_bloc/menu/menu_cubit.dart';
 import 'package:your_choices/src/presentation/views/customer_side/customer_main_view/customer_main_view.dart';
 import 'package:your_choices/src/presentation/views/login_view/login_view.dart';
+import 'package:your_choices/src/presentation/views/vendor_side/today_order_view/cubit/today_order_cubit.dart';
 import 'package:your_choices/src/presentation/views/vendor_side/vendor_main_view/vendor_main_view.dart';
 import 'package:your_choices/utilities/loading_dialog.dart';
 
@@ -63,6 +64,8 @@ class _YourChoicesState extends State<YourChoices> {
         BlocProvider(create: (_) => di.sl<FilterOptionInMenuCubit>()),
         BlocProvider(create: (_) => di.sl<FavoriteCubit>()),
         BlocProvider(create: (_) => di.sl<CartCubit>()),
+        BlocProvider(create: (_) => di.sl<TodayOrderCubit>()),
+        BlocProvider(create: (_) => di.sl<CustomerOrderCubit>()),
       ],
       child: MaterialApp(
         onGenerateRoute: OnGenerateRoute.route,

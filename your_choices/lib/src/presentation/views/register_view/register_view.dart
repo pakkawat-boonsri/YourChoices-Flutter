@@ -9,14 +9,13 @@ import 'package:image_picker/image_picker.dart';
 import 'package:touchable_opacity/touchable_opacity.dart';
 import 'package:your_choices/src/domain/entities/vendor/vendor_entity.dart';
 import 'package:your_choices/src/presentation/views/customer_side/customer_main_view/customer_main_view.dart';
-import 'package:your_choices/utilities/hex_color.dart';
 import 'package:your_choices/utilities/box_shadow.dart';
+import 'package:your_choices/utilities/hex_color.dart';
 import 'package:your_choices/utilities/text_style.dart';
 
-import '../../../config/app_routes/on_generate_routes.dart';
 import '../../../../utilities/show_flutter_toast.dart';
+import '../../../config/app_routes/on_generate_routes.dart';
 import '../../../domain/entities/customer/customer_entity.dart';
-
 import '../../blocs/utilities_bloc/auth/auth_cubit.dart';
 import '../../blocs/utilities_bloc/credential/credential_cubit.dart';
 import '../vendor_side/vendor_main_view/vendor_main_view.dart';
@@ -44,12 +43,7 @@ class _RegisterViewState extends State<RegisterView> {
   File? imageFile;
   File? resImageFile;
 
-  List<String> restaurantTypes = [
-    "ร้านอาหารตามสั่ง",
-    "ร้านข้าวแกง",
-    "ร้านก๋วยเตี๋ยว",
-    "ร้านเครื่องดื่ม"
-  ];
+  List<String> restaurantTypes = ["ร้านอาหารตามสั่ง", "ร้านข้าวแกง", "ร้านก๋วยเตี๋ยว", "ร้านเครื่องดื่ม"];
 
   String restaurantType = "ร้านก๋วยเตี๋ยว";
 
@@ -130,8 +124,7 @@ class _RegisterViewState extends State<RegisterView> {
                         selectingType == "customer"
                             ? ElevatedButton(
                                 onPressed: () async {
-                                  final result =
-                                      _regisKey.currentState!.validate();
+                                  final result = _regisKey.currentState!.validate();
                                   showDialog(
                                     context: context,
                                     builder: (context) {
@@ -143,9 +136,7 @@ class _RegisterViewState extends State<RegisterView> {
                                     },
                                   );
                                   if (result) {
-                                    await BlocProvider.of<CredentialCubit>(
-                                            context)
-                                        .signUpCustomer(
+                                    await BlocProvider.of<CredentialCubit>(context).signUpCustomer(
                                       customerEntity: CustomerEntity(
                                         email: email.text,
                                         password: password.text,
@@ -161,16 +152,11 @@ class _RegisterViewState extends State<RegisterView> {
                                   }
                                 },
                                 style: ButtonStyle(
-                                  backgroundColor:
-                                      MaterialStateProperty.all<Color>(
-                                          Colors.amber.shade900),
-                                  padding:
-                                      MaterialStateProperty.all<EdgeInsets>(
-                                    const EdgeInsets.symmetric(
-                                        horizontal: 100.0),
+                                  backgroundColor: MaterialStateProperty.all<Color>(Colors.amber.shade900),
+                                  padding: MaterialStateProperty.all<EdgeInsets>(
+                                    const EdgeInsets.symmetric(horizontal: 100.0),
                                   ),
-                                  shape: MaterialStateProperty.all<
-                                      RoundedRectangleBorder>(
+                                  shape: MaterialStateProperty.all<RoundedRectangleBorder>(
                                     RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(10.0),
                                     ),
@@ -178,15 +164,12 @@ class _RegisterViewState extends State<RegisterView> {
                                 ),
                                 child: Text(
                                   "ลงทะเบียน",
-                                  style: GoogleFonts.ibmPlexSansThai(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.normal),
+                                  style: GoogleFonts.ibmPlexSansThai(fontSize: 16, fontWeight: FontWeight.normal),
                                 ),
                               )
                             : ElevatedButton(
                                 onPressed: () async {
-                                  final result =
-                                      _regisKey.currentState!.validate();
+                                  final result = _regisKey.currentState!.validate();
                                   if (result) {
                                     isBottomSheetShow = true;
                                     await vendorModelSheet(context);
@@ -195,18 +178,15 @@ class _RegisterViewState extends State<RegisterView> {
                                   }
                                 },
                                 style: ButtonStyle(
-                                  backgroundColor:
-                                      MaterialStateProperty.all<Color>(
+                                  backgroundColor: MaterialStateProperty.all<Color>(
                                     Colors.amber.shade900,
                                   ),
-                                  padding:
-                                      MaterialStateProperty.all<EdgeInsets>(
+                                  padding: MaterialStateProperty.all<EdgeInsets>(
                                     const EdgeInsets.symmetric(
                                       horizontal: 100.0,
                                     ),
                                   ),
-                                  shape: MaterialStateProperty.all<
-                                      RoundedRectangleBorder>(
+                                  shape: MaterialStateProperty.all<RoundedRectangleBorder>(
                                     RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(10.0),
                                     ),
@@ -214,9 +194,7 @@ class _RegisterViewState extends State<RegisterView> {
                                 ),
                                 child: Text(
                                   "ต่อไป",
-                                  style: GoogleFonts.ibmPlexSansThai(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.normal),
+                                  style: GoogleFonts.ibmPlexSansThai(fontSize: 16, fontWeight: FontWeight.normal),
                                 ),
                               ),
                         const SizedBox(
@@ -395,9 +373,7 @@ class _RegisterViewState extends State<RegisterView> {
                               onPressed: () => setState(() {
                                 isObscurePassword = !isObscurePassword;
                               }),
-                              icon: isObscurePassword
-                                  ? const Icon(Icons.visibility)
-                                  : const Icon(Icons.visibility_off),
+                              icon: isObscurePassword ? const Icon(Icons.visibility) : const Icon(Icons.visibility_off),
                             ),
                             IconButton(
                               onPressed: () {
@@ -467,13 +443,11 @@ class _RegisterViewState extends State<RegisterView> {
                             IconButton(
                               onPressed: () {
                                 setState(() {
-                                  isObscureConfirmPassword =
-                                      !isObscureConfirmPassword;
+                                  isObscureConfirmPassword = !isObscureConfirmPassword;
                                 });
                               },
-                              icon: isObscureConfirmPassword
-                                  ? const Icon(Icons.visibility)
-                                  : const Icon(Icons.visibility_off),
+                              icon:
+                                  isObscureConfirmPassword ? const Icon(Icons.visibility) : const Icon(Icons.visibility_off),
                             ),
                             IconButton(
                               onPressed: () {
@@ -827,8 +801,7 @@ class _RegisterViewState extends State<RegisterView> {
                               );
                             },
                           );
-                          await BlocProvider.of<CredentialCubit>(context)
-                              .signUpVendor(
+                          BlocProvider.of<CredentialCubit>(context).signUpVendor(
                             vendorEntity: VendorEntity(
                               username: username.text,
                               email: email.text,
@@ -842,11 +815,13 @@ class _RegisterViewState extends State<RegisterView> {
                               totalPriceSell: 0,
                               type: selectingType,
                               restaurantType: restaurantType,
+                              
                             ),
                           );
-                          if (mounted) {
-                            Navigator.of(context).pop();
-                          }
+                          Future.delayed(const Duration(seconds: 1)).then((value) {
+                            Navigator.pop(context);
+                            Navigator.pop(context);
+                          });
                         }
                       },
                       style: ButtonStyle(
@@ -858,8 +833,7 @@ class _RegisterViewState extends State<RegisterView> {
                             horizontal: 100.0,
                           ),
                         ),
-                        shape:
-                            MaterialStateProperty.all<RoundedRectangleBorder>(
+                        shape: MaterialStateProperty.all<RoundedRectangleBorder>(
                           RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(
                               5.0,
@@ -1122,8 +1096,7 @@ class RichTextNavigatorText extends StatelessWidget {
               ),
               TouchableOpacity(
                 onTap: () {
-                  Navigator.pushNamedAndRemoveUntil(
-                      context, PageConst.loginPage, (route) => false);
+                  Navigator.pushNamedAndRemoveUntil(context, PageConst.loginPage, (route) => false);
                 },
                 child: Text(
                   "เข้าสู่ระบบ",

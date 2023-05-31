@@ -18,6 +18,7 @@ import 'package:your_choices/src/presentation/blocs/vendor_bloc/add_filter_in_me
 import 'package:your_choices/src/presentation/blocs/vendor_bloc/add_filter_option/add_filter_option_cubit.dart';
 import 'package:your_choices/src/presentation/blocs/vendor_bloc/menu/menu_cubit.dart';
 import 'package:your_choices/utilities/loading_dialog.dart';
+
 import '../../../../../utilities/text_style.dart';
 import '../../../widgets/custom_vendor_appbar.dart';
 
@@ -174,9 +175,7 @@ class _AddMenuViewState extends State<AddMenuView> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              imageFile == null
-                  ? _buildNoImageUpload(size)
-                  : _buildUploadedImage(size),
+              imageFile == null ? _buildNoImageUpload(size) : _buildUploadedImage(size),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -261,8 +260,7 @@ class _AddMenuViewState extends State<AddMenuView> {
                                   FontWeight.w500,
                                 ),
                               ),
-                              if (filterOptionEntity.isRequired == true &&
-                                  filterOptionEntity.isMultiple == false) ...[
+                              if (filterOptionEntity.isRequired == true && filterOptionEntity.isMultiple == false) ...[
                                 Text(
                                   " (ต้องเลือก) ",
                                   style: AppTextStyle.googleFont(
@@ -271,8 +269,7 @@ class _AddMenuViewState extends State<AddMenuView> {
                                     FontWeight.normal,
                                   ),
                                 ),
-                              ] else if (filterOptionEntity.isRequired ==
-                                      false &&
+                              ] else if (filterOptionEntity.isRequired == false &&
                                   filterOptionEntity.isMultiple == true) ...[
                                 Text(
                                   " (เลือกได้เป็นจำนวน ${filterOptionEntity.multipleQuantity})",
@@ -287,9 +284,7 @@ class _AddMenuViewState extends State<AddMenuView> {
                           ),
                           TouchableOpacity(
                             onTap: () {
-                              context
-                                  .read<AddFilterInMenuCubit>()
-                                  .removeFiltersInMenu(
+                              context.read<AddFilterInMenuCubit>().removeFiltersInMenu(
                                     filterOptionEntity: filterOptionEntity,
                                   );
                             },
@@ -305,26 +300,21 @@ class _AddMenuViewState extends State<AddMenuView> {
                         shrinkWrap: true,
                         itemCount: filterOptionEntity.addOns?.length ?? 0,
                         itemBuilder: (context, index) {
-                          AddOnsEntity addOnsEntity =
-                              filterOptionEntity.addOns![index];
+                          AddOnsEntity addOnsEntity = filterOptionEntity.addOns![index];
                           return Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             mainAxisAlignment: MainAxisAlignment.start,
                             children: [
                               Row(
                                 children: [
-                                  if (filterOptionEntity.isRequired == true &&
-                                      filterOptionEntity.isMultiple ==
-                                          false) ...[
+                                  if (filterOptionEntity.isRequired == true && filterOptionEntity.isMultiple == false) ...[
                                     const Icon(
                                       Icons.circle_outlined,
                                       color: Colors.grey,
                                       size: 14,
                                     ),
-                                  ] else if (filterOptionEntity.isRequired ==
-                                          false &&
-                                      filterOptionEntity.isMultiple ==
-                                          true) ...[
+                                  ] else if (filterOptionEntity.isRequired == false &&
+                                      filterOptionEntity.isMultiple == true) ...[
                                     const Icon(
                                       Icons.rectangle_outlined,
                                       color: Colors.grey,
@@ -408,8 +398,7 @@ class _AddMenuViewState extends State<AddMenuView> {
       onTap: () {
         if (_formKey.currentState!.validate()) {
           loadingDialog(context);
-          final filtersList = List<FilterOptionEntity>.from(
-              context.read<AddFilterInMenuCubit>().state.filterOptions);
+          final filtersList = List<FilterOptionEntity>.from(context.read<AddFilterInMenuCubit>().state.filterOptions);
 
           final newDishesEntity = DishesEntity(
             dishesId: const Uuid().v1(),

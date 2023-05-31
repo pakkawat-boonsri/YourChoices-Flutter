@@ -11,6 +11,7 @@ class CartState extends Equatable {
 
   @override
   List<Object> get props => [
+        vendorEntities,
         cartItems,
       ];
 

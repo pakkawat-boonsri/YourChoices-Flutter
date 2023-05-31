@@ -1,15 +1,11 @@
-
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'package:flutter/material.dart';
 import 'package:touchable_opacity/touchable_opacity.dart';
 import 'package:your_choices/global.dart';
-
 import 'package:your_choices/src/domain/entities/vendor/filter_options/filter_option_entity.dart';
 import 'package:your_choices/src/presentation/widgets/custom_vendor_appbar.dart';
 
 import '../../../../../../utilities/text_style.dart';
-
-
 
 class FilterOptionDetailView extends StatefulWidget {
   final FilterOptionEntity filterOptionEntity;
@@ -32,8 +28,7 @@ class _FilterOptionDetailViewState extends State<FilterOptionDetailView> {
   @override
   void initState() {
     filterOptionEntity = widget.filterOptionEntity;
-    filterOptionName =
-        TextEditingController(text: filterOptionEntity.filterName);
+    filterOptionName = TextEditingController(text: filterOptionEntity.filterName);
     super.initState();
   }
 
@@ -75,9 +70,14 @@ class _FilterOptionDetailViewState extends State<FilterOptionDetailView> {
                   FontWeight.w500,
                 ),
               ),
-              _buildListOfAddOnsBloc(),
-              _buildAddChoiceButton(context),
-              const Spacer(),
+              Expanded(
+                child: _buildListOfAddOnsBloc(),
+              ),
+              Padding(
+                padding: const EdgeInsets.only(bottom: 10),
+                child: _buildAddChoiceButton(context),
+              ),
+              // const Spacer(),
               _buildConfirmAndCancelButton(context)
             ],
           ),
@@ -218,8 +218,7 @@ class _FilterOptionDetailViewState extends State<FilterOptionDetailView> {
                           children: [
                             Expanded(
                               child: RadioListTile(
-                                controlAffinity:
-                                    ListTileControlAffinity.leading,
+                                controlAffinity: ListTileControlAffinity.leading,
                                 contentPadding: EdgeInsets.zero,
                                 activeColor: Colors.amber.shade900,
                                 title: const Text("เพิ่มราคา"),
@@ -263,8 +262,7 @@ class _FilterOptionDetailViewState extends State<FilterOptionDetailView> {
                           children: [
                             Expanded(
                               child: RadioListTile(
-                                controlAffinity:
-                                    ListTileControlAffinity.leading,
+                                controlAffinity: ListTileControlAffinity.leading,
                                 contentPadding: EdgeInsets.zero,
                                 activeColor: Colors.amber.shade900,
                                 title: const Text("ลดราคา"),
@@ -405,7 +403,7 @@ class _FilterOptionDetailViewState extends State<FilterOptionDetailView> {
   Widget _buildListOfAddOnsBloc() {
     return ListView.separated(
       shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
+      // physics: const NeverScrollableScrollPhysics(),
       separatorBuilder: (context, index) => const SizedBox(
         height: 10,
       ),
@@ -444,8 +442,7 @@ class _FilterOptionDetailViewState extends State<FilterOptionDetailView> {
                                 FontWeight.normal,
                               ),
                             )
-                          : addOnsEntity.priceType ==
-                                  RadioTypes.priceIncrease.toString()
+                          : addOnsEntity.priceType == RadioTypes.priceIncrease.toString()
                               ? Text(
                                   "+${addOnsEntity.price ?? ""} ฿",
                                   style: AppTextStyle.googleFont(

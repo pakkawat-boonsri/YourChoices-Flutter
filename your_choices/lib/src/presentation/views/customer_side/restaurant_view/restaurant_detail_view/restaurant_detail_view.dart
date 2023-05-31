@@ -4,20 +4,27 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:touchable_opacity/touchable_opacity.dart';
+import 'package:your_choices/src/config/app_routes/on_generate_routes.dart';
+import 'package:your_choices/src/domain/entities/customer/cart/cart_entity.dart';
+import 'package:your_choices/src/domain/entities/customer/customer_entity.dart';
 import 'package:your_choices/src/domain/entities/vendor/dishes_menu/dishes_entity.dart';
-
 import 'package:your_choices/src/domain/entities/vendor/vendor_entity.dart';
+import 'package:your_choices/src/presentation/blocs/customer_bloc/cart/cart_cubit.dart';
 import 'package:your_choices/src/presentation/blocs/customer_bloc/favorite/favorite_cubit.dart';
 import 'package:your_choices/src/presentation/blocs/customer_bloc/favorite/favorite_state.dart';
 import 'package:your_choices/src/presentation/views/customer_side/restaurant_view/food_detail_view/cubit/food_detail_cubit.dart';
 import 'package:your_choices/src/presentation/views/customer_side/restaurant_view/food_detail_view/food_detail_view.dart';
+import 'package:your_choices/src/presentation/widgets/custom_text.dart';
 import 'package:your_choices/utilities/hex_color.dart';
+import 'package:your_choices/utilities/show_flutter_toast.dart';
 import 'package:your_choices/utilities/text_style.dart';
 
 class RestaurantDetailView extends StatefulWidget {
+  final CustomerEntity customerEntity;
   final VendorEntity vendorEntity;
   const RestaurantDetailView({
     Key? key,
+    required this.customerEntity,
     required this.vendorEntity,
   }) : super(key: key);
 
@@ -36,15 +43,48 @@ class _RestaurantDetailViewState extends State<RestaurantDetailView> {
           automaticallyImplyLeading: false,
           title: _buildTitle(context),
           flexibleSpace: FlexibleSpaceBar(
-            background: CachedNetworkImage(
-              imageUrl: widget.vendorEntity.resProfileUrl!,
-              fit: BoxFit.cover,
-              placeholder: (context, url) => const Center(
-                child: CircularProgressIndicator(
-                  color: Colors.amber,
-                ),
-              ),
-            ),
+            background: (widget.vendorEntity.isActive ?? false)
+                ? CachedNetworkImage(
+                    imageUrl: widget.vendorEntity.resProfileUrl!,
+                    fit: BoxFit.cover,
+                    placeholder: (context, url) => const Center(
+                      child: CircularProgressIndicator(
+                        color: Colors.amber,
+                      ),
+                    ),
+                  )
+                : Stack(
+                    children: [
+                      SizedBox(
+                        width: size.width,
+                        child: CachedNetworkImage(
+                          imageUrl: widget.vendorEntity.resProfileUrl!,
+                          fit: BoxFit.cover,
+                          placeholder: (context, url) => const Center(
+                            child: CircularProgressIndicator(
+                              color: Colors.amber,
+                            ),
+                          ),
+                        ),
+                      ),
+                      Container(
+                        alignment: Alignment.center,
+                        decoration: BoxDecoration(
+                          color: Colors.black.withOpacity(0.7),
+                          borderRadius: const BorderRadius.only(
+                            topLeft: Radius.circular(10),
+                            bottomLeft: Radius.circular(10),
+                          ),
+                        ),
+                        child: const CustomText(
+                          text: "Close",
+                          color: Colors.white,
+                          fontSize: 20,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
           ),
         ),
       ),
@@ -55,6 +95,94 @@ class _RestaurantDetailViewState extends State<RestaurantDetailView> {
           _buildListofFoods(size),
         ],
       ),
+      bottomNavigationBar: BlocBuilder<CartCubit, CartState>(
+        builder: (context, state) {
+          if (state.cartItems.isNotEmpty) {
+            return BottomAppBar(
+              elevation: 10,
+              height: 85,
+              color: Colors.white,
+              child: TouchableOpacity(
+                onTap: () {
+                  Navigator.pushNamed(context, PageConst.cartPage, arguments: widget.customerEntity);
+                },
+                child: Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 18),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(7),
+                    color: "FF602E".toColor(),
+                  ),
+                  child: Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 15),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Row(
+                          children: [
+                            Container(
+                              width: 28,
+                              height: 28,
+                              alignment: Alignment.center,
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(5),
+                                color: Colors.white,
+                              ),
+                              child: BlocBuilder<CartCubit, CartState>(
+                                builder: (context, state) {
+                                  return CustomText(
+                                    text: "${state.cartItems.length}",
+                                    color: "FF602E".toColor(),
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                  );
+                                },
+                              ),
+                            ),
+                            const SizedBox(
+                              width: 10,
+                            ),
+                            const Padding(
+                              padding: EdgeInsets.only(top: 3),
+                              child: CustomText(
+                                text: "ตระกร้าของฉัน",
+                                color: Colors.white,
+                                fontSize: 20,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
+                        BlocBuilder<CartCubit, CartState>(
+                          builder: (context, state) {
+                            final cartItems = List<CartItemEntity>.from(state.cartItems);
+                            num totalPrice = 0;
+                            for (var element in cartItems) {
+                              num menuTotalPrice = (element.totalPrice ?? 0);
+                              totalPrice += menuTotalPrice;
+                            }
+                            return Padding(
+                              padding: const EdgeInsets.only(top: 3.0),
+                              child: CustomText(
+                                text: "฿$totalPrice",
+                                color: Colors.white,
+                                fontSize: 20,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            );
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            );
+          } else {
+            return const SizedBox.shrink();
+          }
+        },
+      ),
     );
   }
 
@@ -63,8 +191,9 @@ class _RestaurantDetailViewState extends State<RestaurantDetailView> {
       width: size.width,
       height: size.height * 0.2,
       color: Colors.white,
+      padding: const EdgeInsets.symmetric(horizontal: 15),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Column(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -112,29 +241,20 @@ class _RestaurantDetailViewState extends State<RestaurantDetailView> {
             children: [
               BlocBuilder<FavoriteCubit, FavoriteState>(
                 builder: (_, state) {
-                  final isFavorite =
-                      state.vendorEntities.contains(widget.vendorEntity);
+                  final isFavorite = state.vendorEntities.contains(widget.vendorEntity);
                   return IconButton(
                     padding: EdgeInsets.zero,
                     onPressed: () {
                       if (isFavorite) {
-                        context
-                            .read<FavoriteCubit>()
-                            .onRemoveFavorite(widget.vendorEntity);
+                        context.read<FavoriteCubit>().onRemoveFavorite(widget.vendorEntity);
                       } else {
-                        context
-                            .read<FavoriteCubit>()
-                            .onAddFavorite(widget.vendorEntity);
+                        context.read<FavoriteCubit>().onAddFavorite(widget.vendorEntity);
                       }
                     },
                     icon: Icon(
                       size: 30,
-                      color: isFavorite
-                          ? Colors.amber.shade900
-                          : Colors.grey.shade800,
-                      isFavorite
-                          ? Icons.favorite_outlined
-                          : Icons.favorite_border_sharp,
+                      color: isFavorite ? Colors.amber.shade900 : Colors.grey.shade800,
+                      isFavorite ? Icons.favorite_outlined : Icons.favorite_border_sharp,
                     ),
                   );
                 },
@@ -222,25 +342,31 @@ class _RestaurantDetailViewState extends State<RestaurantDetailView> {
           final List<DishesEntity>? food = widget.vendorEntity.dishes;
           if (food != null) {
             return TouchableOpacity(
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => BlocProvider(
-                      create: (context) => FoodDetailCubit(),
-                      child: FoodDetailView(
-                        vendorEntity: widget.vendorEntity,
-                        dishesEntity: food[index],
-                      ),
-                    ),
-                  ),
-                );
-                // Navigator.pushNamed(
-                //   context,
-                //   PageConst.foodDetailPage,
-                //   arguments: food[index],
-                // );
-              },
+              onTap: (widget.vendorEntity.isActive ?? false) && (food[index].isActive ?? false)
+                  ? () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => BlocProvider(
+                            create: (context) => FoodDetailCubit(),
+                            child: FoodDetailView(
+                              customerEntity: widget.customerEntity,
+                              vendorEntity: widget.vendorEntity,
+                              dishesEntity: food[index],
+                            ),
+                          ),
+                        ),
+                      );
+                    }
+                  : !(widget.vendorEntity.isActive ?? false)
+                      ? () {
+                          showFlutterToast("ช่วงเวลานี้ร้านปิดให้บริการอยู่ โปรดกลับมาภายหลัง");
+                        }
+                      : (food[index].isActive ?? false)
+                          ? null
+                          : () {
+                              showFlutterToast("เมนูยังไม่จัดให้จำหน่าย โปรดกลับมาภายหลัง");
+                            },
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 5),
                 child: Column(
@@ -251,20 +377,53 @@ class _RestaurantDetailViewState extends State<RestaurantDetailView> {
                           width: size.width * 0.35,
                           height: size.height * 0.13,
                           child: ClipRRect(
-                            borderRadius: const BorderRadius.only(
-                              topLeft: Radius.circular(5),
-                              bottomLeft: Radius.circular(5),
-                            ),
-                            child: CachedNetworkImage(
-                              imageUrl: food[index].menuImg!,
-                              fit: BoxFit.cover,
-                              placeholder: (context, url) => const Center(
-                                child: CircularProgressIndicator(
-                                  color: Colors.amber,
-                                ),
+                              borderRadius: const BorderRadius.only(
+                                topLeft: Radius.circular(5),
+                                bottomLeft: Radius.circular(5),
                               ),
-                            ),
-                          ),
+                              child: (food[index].isActive ?? false)
+                                  ? CachedNetworkImage(
+                                      imageUrl: food[index].menuImg!,
+                                      fit: BoxFit.cover,
+                                      placeholder: (context, url) => const Center(
+                                        child: CircularProgressIndicator(
+                                          color: Colors.amber,
+                                        ),
+                                      ),
+                                    )
+                                  : Stack(
+                                      children: [
+                                        SizedBox(
+                                          width: size.width * 0.35,
+                                          height: size.height * 0.13,
+                                          child: CachedNetworkImage(
+                                            imageUrl: food[index].menuImg!,
+                                            fit: BoxFit.cover,
+                                            placeholder: (context, url) => const Center(
+                                              child: CircularProgressIndicator(
+                                                color: Colors.amber,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                        Container(
+                                          alignment: Alignment.center,
+                                          decoration: BoxDecoration(
+                                            color: Colors.black.withOpacity(0.7),
+                                            borderRadius: const BorderRadius.only(
+                                              topLeft: Radius.circular(5),
+                                              bottomLeft: Radius.circular(5),
+                                            ),
+                                          ),
+                                          child: const CustomText(
+                                            text: "Close",
+                                            color: Colors.white,
+                                            fontSize: 20,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                      ],
+                                    )),
                         ),
                         Expanded(
                           child: Container(
@@ -284,10 +443,8 @@ class _RestaurantDetailViewState extends State<RestaurantDetailView> {
                                     horizontal: 10,
                                   ),
                                   child: Column(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceEvenly,
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
+                                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                    crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
                                       Flexible(
                                         child: SizedBox(
@@ -308,8 +465,7 @@ class _RestaurantDetailViewState extends State<RestaurantDetailView> {
                                         child: SizedBox(
                                           width: size.width * 0.52,
                                           child: Row(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.spaceBetween,
+                                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                             children: [
                                               Flexible(
                                                 child: SizedBox(
@@ -317,10 +473,8 @@ class _RestaurantDetailViewState extends State<RestaurantDetailView> {
                                                   child: Text(
                                                     "${food[index].menuDescription}",
                                                     maxLines: 1,
-                                                    overflow:
-                                                        TextOverflow.ellipsis,
-                                                    style:
-                                                        AppTextStyle.googleFont(
+                                                    overflow: TextOverflow.ellipsis,
+                                                    style: AppTextStyle.googleFont(
                                                       Colors.grey.shade500,
                                                       14,
                                                       FontWeight.w500,
@@ -328,17 +482,33 @@ class _RestaurantDetailViewState extends State<RestaurantDetailView> {
                                                   ),
                                                 ),
                                               ),
-                                              Container(
-                                                width: 40,
-                                                height: 40,
-                                                decoration: BoxDecoration(
-                                                  shape: BoxShape.circle,
-                                                  color: "B44121".toColor(),
-                                                ),
-                                                child: const Icon(
-                                                  Icons.add,
-                                                  color: Colors.white,
-                                                ),
+                                              BlocBuilder<CartCubit, CartState>(
+                                                builder: (context, state) {
+                                                  return Container(
+                                                    width: 40,
+                                                    height: 40,
+                                                    alignment: Alignment.center,
+                                                    decoration: BoxDecoration(
+                                                      shape: BoxShape.circle,
+                                                      color: "B44121".toColor(),
+                                                    ),
+                                                    child: state.cartItems.isEmpty ||
+                                                            state.cartItems
+                                                                .where((element) => element.cartId == food[index].dishesId)
+                                                                .isEmpty
+                                                        ? const Icon(
+                                                            Icons.add,
+                                                            color: Colors.white,
+                                                          )
+                                                        : CustomText(
+                                                            text:
+                                                                "${state.cartItems.where((element) => element.cartId == food[index].dishesId).length}",
+                                                            color: Colors.white,
+                                                            fontSize: 18,
+                                                            fontWeight: FontWeight.w600,
+                                                          ),
+                                                  );
+                                                },
                                               ),
                                             ],
                                           ),

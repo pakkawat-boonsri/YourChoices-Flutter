@@ -1,4 +1,5 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
+
 import 'package:equatable/equatable.dart';
 
 class AddOnsEntity extends Equatable {
@@ -38,6 +39,24 @@ class AddOnsEntity extends Equatable {
       priceType: priceType ?? this.priceType,
       price: price ?? this.price,
       isSelected: isSelected ?? this.isSelected,
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return <String, dynamic>{
+      'addonsId': addonsId,
+      'addonsName': addonsName,
+      'priceType': priceType,
+      'price': price,
+    };
+  }
+
+  factory AddOnsEntity.fromMap(Map<String, dynamic> map) {
+    return AddOnsEntity(
+      addonsId: map['addonsId'] != null ? map['addonsId'] as String : null,
+      addonsName: map['addonsName'] != null ? map['addonsName'] as String : null,
+      priceType: map['priceType'] != null ? map['priceType'] as String : null,
+      price: map['price'] != null ? map['price'] as num : null,
     );
   }
 }

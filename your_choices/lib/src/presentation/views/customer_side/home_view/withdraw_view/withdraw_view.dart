@@ -1,14 +1,22 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'dart:developer';
+import 'dart:ui';
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
+import 'package:image_gallery_saver/image_gallery_saver.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:touchable_opacity/touchable_opacity.dart';
-
+import 'package:your_choices/injection_container.dart' as di;
 import 'package:your_choices/src/domain/entities/customer/customer_entity.dart';
+import 'package:your_choices/src/domain/usecases/firebase_usecases/customer/get_account_balance_usecase.dart';
+import 'package:your_choices/src/presentation/widgets/custom_text.dart';
 import 'package:your_choices/src/presentation/widgets/custom_vendor_appbar.dart';
 import 'package:your_choices/utilities/hex_color.dart';
+import 'package:your_choices/utilities/show_flutter_toast.dart';
 import 'package:your_choices/utilities/text_style.dart';
 
 class WithDrawView extends StatefulWidget {
@@ -25,7 +33,7 @@ class WithDrawView extends StatefulWidget {
 class _WithDrawViewState extends State<WithDrawView> {
   final _amount = TextEditingController();
   final _formkey = GlobalKey<FormState>();
-
+  final GlobalKey globalKey = GlobalKey();
   bool _isValidate = false;
 
   int? seletedIndex;
@@ -39,6 +47,31 @@ class _WithDrawViewState extends State<WithDrawView> {
       setState(() {
         _isValidate = false;
       });
+    }
+  }
+
+  Future<void> _saveQRCode() async {
+    if (await Permission.storage.request().isGranted) {
+      try {
+        if (context.mounted) {
+          RenderRepaintBoundary boundary = globalKey.currentContext!.findRenderObject() as RenderRepaintBoundary;
+          var image = await boundary.toImage();
+          ByteData? byteData = await image.toByteData(format: ImageByteFormat.png);
+          Uint8List pngBytes = byteData!.buffer.asUint8List();
+
+          final result = await ImageGallerySaver.saveImage(pngBytes);
+
+          if (result['isSuccess']) {
+            showFlutterToast('Image saved to gallery');
+          } else {
+            showFlutterToast('Failed to save image');
+          }
+        }
+      } catch (e) {
+        log('asd $e');
+      }
+    } else {
+      log('Permission denied');
     }
   }
 
@@ -91,8 +124,7 @@ class _WithDrawViewState extends State<WithDrawView> {
                   padding: const EdgeInsets.only(right: 30),
                   child: Text(
                     "฿ ${widget.customerEntity.balance}",
-                    style: AppTextStyle.googleFont(
-                        Colors.white, 34, FontWeight.w600),
+                    style: AppTextStyle.googleFont(Colors.white, 34, FontWeight.w600),
                   ),
                 ),
               ],
@@ -107,7 +139,75 @@ class _WithDrawViewState extends State<WithDrawView> {
                     child: TouchableOpacity(
                       onTap: _isValidate
                           ? () async {
-                              genarateQrCode(context);
+                              final accountBalance =
+                                  await di.sl<GetAccountBalanceUseCase>().call(widget.customerEntity.uid ?? "");
+                              if (accountBalance < num.parse(_amount.text)) {
+                                showFlutterToast("เงินในบัญชีไม่พอสำหรับการถอนเงิน");
+                                return;
+                              }
+
+                              final customerDeposit =
+                                  widget.customerEntity.copyWith(depositAmount: _amount.text, withdrawAmount: null).toJson();
+                              if (context.mounted) {
+                                await showDialog(
+                                  context: context,
+                                  builder: (context) {
+                                    return RepaintBoundary(
+                                      key: globalKey,
+                                      child: AlertDialog(
+                                        title: Row(
+                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            const CustomText(
+                                              text: "QRCode",
+                                              color: Colors.black,
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                            TouchableOpacity(
+                                              onTap: () async {
+                                                await _saveQRCode();
+                                              },
+                                              child: Container(
+                                                padding: const EdgeInsets.all(8),
+                                                decoration: BoxDecoration(
+                                                  color: Colors.amber.shade900,
+                                                  borderRadius: BorderRadius.circular(50),
+                                                ),
+                                                child: const Row(
+                                                  children: [
+                                                    Icon(
+                                                      CupertinoIcons.device_phone_portrait,
+                                                      color: Colors.white,
+                                                    ),
+                                                    CustomText(
+                                                      text: "Save To Device",
+                                                      color: Colors.white,
+                                                      fontSize: 16,
+                                                      fontWeight: FontWeight.w500,
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        content: Wrap(
+                                          children: [
+                                            Container(
+                                              alignment: Alignment.center,
+                                              width: MediaQuery.of(context).size.width,
+                                              child: QrImageView(
+                                                data: customerDeposit,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                );
+                              }
                             }
                           : null,
                       child: Container(
@@ -203,8 +303,7 @@ class _WithDrawViewState extends State<WithDrawView> {
                         ),
                         child: Text(
                           "${(index + 1) * 100}",
-                          style: AppTextStyle.googleFont(
-                              Colors.black, 16, FontWeight.w700),
+                          style: AppTextStyle.googleFont(Colors.black, 16, FontWeight.w700),
                         ),
                       ),
                     ),
@@ -229,9 +328,7 @@ class _WithDrawViewState extends State<WithDrawView> {
                 Container(
                   margin: const EdgeInsets.symmetric(horizontal: 20),
                   child: TextFormField(
-                    inputFormatters: <TextInputFormatter>[
-                      FilteringTextInputFormatter.digitsOnly
-                    ],
+                    inputFormatters: <TextInputFormatter>[FilteringTextInputFormatter.digitsOnly],
                     keyboardType: TextInputType.number,
                     onFieldSubmitted: (value) {
                       if (_formkey.currentState!.validate()) {
@@ -297,35 +394,6 @@ class _WithDrawViewState extends State<WithDrawView> {
           ),
         ],
       ),
-    );
-  }
-
-  genarateQrCode(BuildContext context) async {
-    final customerWithDraw = widget.customerEntity
-        .copyWith(
-          withdrawAmount: _amount.text,
-          depositAmount: null,
-        )
-        .toJson();
-    log(customerWithDraw);
-    return showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text("Qr Code"),
-          content: Wrap(
-            children: [
-              Container(
-                alignment: Alignment.center,
-                width: MediaQuery.of(context).size.width,
-                child: QrImage(
-                  data: customerWithDraw,
-                ),
-              ),
-            ],
-          ),
-        );
-      },
     );
   }
 }

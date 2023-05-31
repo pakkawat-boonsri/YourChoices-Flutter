@@ -8,3 +8,13 @@ enum RadioTypes {
   priceIncrease,
   priceDecrease,
 }
+
+enum OrderTypes {
+  accept,
+  collectToHistory,
+  
+  pending,
+  processing,
+  completed,
+  failure,
+}

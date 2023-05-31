@@ -1,23 +1,23 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:your_choices/src/data/models/vendor_model/dishes_model/dishes_model.dart';
 import 'package:your_choices/src/domain/entities/vendor/dishes_menu/dishes_entity.dart';
 import 'package:your_choices/src/domain/entities/vendor/vendor_entity.dart';
 
 class VendorModel extends VendorEntity {
   const VendorModel({
-    final String? uid,
-    final String? email,
-    final String? username,
-    final String? type,
-    final String? profileUrl,
-    final String? resName,
-    final String? resProfileUrl,
-    final bool? isActive,
-    final num? onQueue,
-    final String? description,
-    final num? totalPriceSell,
-    final String? restaurantType,
-    final List<DishesEntity>? dishes,
+  final String? uid,
+  final String? email,
+  final String? username,
+  final String? profileUrl,
+  final String? type,
+  final String? resName,
+  final String? resProfileUrl,
+  final bool? isActive,
+  final num? onQueue,
+  final String? description,
+  final num? totalPriceSell,
+  final String? restaurantType,
+  final Timestamp? accountCreatedWhen,
+  final List<DishesEntity>? dishes,
   }) : super(
           uid: uid,
           resName: resName,
@@ -32,6 +32,7 @@ class VendorModel extends VendorEntity {
           profileUrl: profileUrl,
           type: type,
           restaurantType: restaurantType,
+          accountCreatedWhen: accountCreatedWhen,
         );
 
   factory VendorModel.fromJson(DocumentSnapshot snap) {
@@ -39,11 +40,7 @@ class VendorModel extends VendorEntity {
     return VendorModel(
       username: snapshot['username'],
       description: snapshot['description'],
-      dishes: List.from(
-        snapshot['dishes'].map(
-          (x) => DishesModel.fromFirebase(snap),
-        ),
-      ),
+      dishes: const [],
       isActive: snapshot['isActive'],
       onQueue: snapshot['onQueue'],
       resName: snapshot['resName'],
@@ -54,6 +51,7 @@ class VendorModel extends VendorEntity {
       uid: snapshot['uid'],
       type: snapshot['type'],
       restaurantType: snapshot['restaurantType'],
+      accountCreatedWhen: snapshot['accountCreatedWhen'],
     );
   }
 
@@ -64,7 +62,6 @@ class VendorModel extends VendorEntity {
     data['email'] = email;
     data['uid'] = uid;
     data['description'] = description;
-    data['dishes'] = dishes;
     data['isActive'] = isActive;
     data['onQueue'] = onQueue;
     data['resName'] = resName;
@@ -72,6 +69,7 @@ class VendorModel extends VendorEntity {
     data['totalPriceSell'] = totalPriceSell;
     data['type'] = type;
     data['restaurantType'] = restaurantType;
+    data['accountCreatedWhen'] = accountCreatedWhen;
     return data;
   }
 }

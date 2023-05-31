@@ -7,11 +7,13 @@ class AddOnsModel extends AddOnsEntity {
     final String? addonsName,
     final String? priceType,
     final num? price,
+    final bool isSelected = false,
   }) : super(
           addonsName: addonsName,
           price: price,
           addonsId: addonsId,
           priceType: priceType,
+          isSelected: isSelected,
         );
 
   factory AddOnsModel.fromFirebase(DocumentSnapshot snap) {
@@ -32,5 +34,4 @@ class AddOnsModel extends AddOnsEntity {
     data['priceType'] = priceType;
     return data;
   }
-
 }

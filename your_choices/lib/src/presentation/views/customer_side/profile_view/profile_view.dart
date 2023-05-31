@@ -9,7 +9,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:touchable_opacity/touchable_opacity.dart';
-
+import 'package:your_choices/injection_container.dart' as di;
 import 'package:your_choices/src/config/app_routes/on_generate_routes.dart';
 import 'package:your_choices/src/domain/entities/customer/customer_entity.dart';
 import 'package:your_choices/src/domain/usecases/firebase_usecases/utilities/upload_image_to_storage_usecase.dart';
@@ -18,7 +18,6 @@ import 'package:your_choices/src/presentation/blocs/utilities_bloc/auth/auth_cub
 import 'package:your_choices/utilities/hex_color.dart';
 import 'package:your_choices/utilities/loading_dialog.dart';
 import 'package:your_choices/utilities/text_style.dart';
-import 'package:your_choices/injection_container.dart' as di;
 
 class ProfileView extends StatefulWidget {
   final CustomerEntity customerEntity;
@@ -288,39 +287,6 @@ class _ProfileViewState extends State<ProfileView> {
                 onTap: () {
                   Navigator.pushNamed(
                     context,
-                    PageConst.customerOrderHistoryPage,
-                  );
-                },
-                leading: Icon(
-                  CupertinoIcons.doc_plaintext,
-                  color: Colors.amber.shade900,
-                  size: 32,
-                ),
-                title: Text(
-                  "ประวัติคำสั่งซื้อ",
-                  style: AppTextStyle.googleFont(
-                    Colors.black,
-                    18,
-                    FontWeight.w600,
-                  ),
-                ),
-                trailing: const Icon(
-                  Icons.arrow_forward_ios,
-                  color: Colors.black,
-                  size: 18,
-                ),
-              ),
-            ),
-            Container(
-              margin: const EdgeInsets.only(top: 10),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(5),
-                color: Colors.white,
-              ),
-              child: ListTile(
-                onTap: () {
-                  Navigator.pushNamed(
-                    context,
                     PageConst.favoritePage,
                   );
                 },
@@ -402,8 +368,7 @@ class _ShowModelSheetContentState extends State<ShowModelSheetContent> {
 
   @override
   void initState() {
-    userNameController =
-        TextEditingController(text: widget.customerEntity.username);
+    userNameController = TextEditingController(text: widget.customerEntity.username);
     super.initState();
   }
 
@@ -471,14 +436,13 @@ class _ShowModelSheetContentState extends State<ShowModelSheetContent> {
                               child: CircleAvatar(
                                 radius: 58,
                                 backgroundColor: Colors.transparent,
-                                backgroundImage:
-                                    widget.customerEntity.profileUrl == null
-                                        ? const AssetImage(
-                                            "assets/images/image_picker.png",
-                                          ) as ImageProvider
-                                        : CachedNetworkImageProvider(
-                                            widget.customerEntity.profileUrl!,
-                                          ),
+                                backgroundImage: widget.customerEntity.profileUrl == null
+                                    ? const AssetImage(
+                                        "assets/images/image_picker.png",
+                                      ) as ImageProvider
+                                    : CachedNetworkImageProvider(
+                                        widget.customerEntity.profileUrl!,
+                                      ),
                               ),
                             )
                           : Padding(
@@ -626,9 +590,7 @@ class _ShowModelSheetContentState extends State<ShowModelSheetContent> {
                       username: userNameController.text,
                       profileUrl: widget.profileFile == null
                           ? widget.customerEntity.profileUrl
-                          : await di
-                              .sl<UploadImageToStorageUseCase>()
-                              .call(widget.profileFile!, "profileImage"),
+                          : await di.sl<UploadImageToStorageUseCase>().call(widget.profileFile!, "profileImage"),
                     ),
                   );
                   Future.delayed(const Duration(seconds: 2)).then((value) {

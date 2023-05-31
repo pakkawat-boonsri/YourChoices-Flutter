@@ -5,9 +5,11 @@ import 'package:your_choices/src/domain/entities/vendor/filter_options/filter_op
 class AddFilterInMenuCubit extends Cubit<AddFilterInMenuState> {
   AddFilterInMenuCubit() : super(const AddFilterInMenuInitial([]));
 
-  addFiltersInMenu({required FilterOptionEntity filterOptionEntity}) async {
-    final List<FilterOptionEntity> filters = [...state.filterOptions];
-    filters.add(filterOptionEntity);
+  addFiltersInMenu({required FilterOptionEntity filterOptionEntity}) {
+    List<FilterOptionEntity> filters = List<FilterOptionEntity>.from(state.filterOptions);
+    if (!(filters.contains(filterOptionEntity))) {
+      filters.add(filterOptionEntity);
+    }
     emit(AddFilterInMenuLoaded(filters));
   }
 
@@ -33,16 +35,14 @@ abstract class AddFilterInMenuState extends Equatable {
 }
 
 class AddFilterInMenuInitial extends AddFilterInMenuState {
-  const AddFilterInMenuInitial(List<FilterOptionEntity> filterOptions)
-      : super(filterOptions);
+  const AddFilterInMenuInitial(List<FilterOptionEntity> filterOptions) : super(filterOptions);
 
   @override
   List<Object?> get props => [];
 }
 
 class AddFilterInMenuLoaded extends AddFilterInMenuState {
-  const AddFilterInMenuLoaded(List<FilterOptionEntity> filterOptions)
-      : super(filterOptions);
+  const AddFilterInMenuLoaded(List<FilterOptionEntity> filterOptions) : super(filterOptions);
 
   @override
   List<Object?> get props => [filterOptions];

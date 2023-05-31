@@ -5,18 +5,24 @@ import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:your_choices/global.dart';
 import 'package:your_choices/src/data/data_sources/remote_data_source/remote_data_source.dart';
+import 'package:your_choices/src/data/models/customer_model/confirm_order_model/confirm_order_model.dart';
 import 'package:your_choices/src/data/models/customer_model/customer_model.dart';
 import 'package:your_choices/src/data/models/customer_model/transaction_model/transaction_model.dart';
 import 'package:your_choices/src/data/models/vendor_model/add_ons_model/add_ons_model.dart';
 import 'package:your_choices/src/data/models/vendor_model/dishes_model/dishes_model.dart';
 import 'package:your_choices/src/data/models/vendor_model/filter_option_model/filter_option_model.dart';
+import 'package:your_choices/src/data/models/vendor_model/order_model/order_model.dart';
 import 'package:your_choices/src/data/models/vendor_model/vendor_model.dart';
+import 'package:your_choices/src/domain/entities/customer/confirm_order/confirm_order_entity.dart';
 import 'package:your_choices/src/domain/entities/customer/customer_entity.dart';
-import 'package:your_choices/src/domain/entities/vendor/add_ons/add_ons_entity.dart';
+import 'package:your_choices/src/domain/entities/customer/transaction/transaction_entity.dart';
 import 'package:your_choices/src/domain/entities/vendor/dishes_menu/dishes_entity.dart';
 import 'package:your_choices/src/domain/entities/vendor/filter_options/filter_option_entity.dart';
+import 'package:your_choices/src/domain/entities/vendor/order/order_entity.dart';
 import 'package:your_choices/src/domain/entities/vendor/vendor_entity.dart';
+
 import '../../../../utilities/show_flutter_toast.dart';
 
 class FirebaseRemoteDataSourceImpl implements FirebaseRemoteDataSource {
@@ -45,7 +51,7 @@ class FirebaseRemoteDataSourceImpl implements FirebaseRemoteDataSource {
         profileUrl: profileUrl,
         type: customer.type,
         username: customer.username,
-      ).modeltoJson();
+      ).toMap();
       if (!value.exists) {
         customerCollection.doc(uid).set(newCustomer);
       } else {
@@ -221,20 +227,21 @@ class FirebaseRemoteDataSourceImpl implements FirebaseRemoteDataSource {
 
   @override
   Future<String> signInRole(String uid) async {
-    List<String> type = [FirebaseConst.customer, FirebaseConst.restaurant];
+    List<String> types = [FirebaseConst.customer, FirebaseConst.restaurant];
 
     Future<String> checkRoleData() async {
-      for (var element in type) {
-        var data = await firebaseFireStore.collection(element).doc(uid).get();
-        if (data.exists) {
-          var snapData = data.data();
-          if (snapData!['type'] == FirebaseConst.restaurant) {
-            return snapData['type'];
+      for (var type in types) {
+        var snapshot = await firebaseFireStore.collection(type).doc(uid).get();
+        if (snapshot.exists) {
+          var data = snapshot.data();
+          var role = data?['type'];
+          if (role == FirebaseConst.restaurant) {
+            return role;
           } else {
-            return snapData['type'];
+            return role;
           }
         } else {
-          log("no data type in database");
+          log("No data for type $type in the database");
         }
       }
       return "";
@@ -245,8 +252,7 @@ class FirebaseRemoteDataSourceImpl implements FirebaseRemoteDataSource {
 
   @override
   Stream<List<VendorEntity>> getSingleVendor(String uid) {
-    final vendorCollection =
-        firebaseFireStore.collection(FirebaseConst.restaurant).where("uid", isEqualTo: uid).limit(1);
+    final vendorCollection = firebaseFireStore.collection(FirebaseConst.restaurant).where("uid", isEqualTo: uid).limit(1);
 
     return vendorCollection.snapshots().map(
           (event) => event.docs
@@ -276,8 +282,7 @@ class FirebaseRemoteDataSourceImpl implements FirebaseRemoteDataSource {
   @override
   Future<void> createMenu(DishesEntity dishesEntity) async {
     final uid = await getCurrentUid();
-    final menuSubCollection =
-        firebaseFireStore.collection(FirebaseConst.restaurant).doc(uid).collection(FirebaseConst.menu);
+    final menuSubCollection = firebaseFireStore.collection(FirebaseConst.restaurant).doc(uid).collection(FirebaseConst.menu);
 
     menuSubCollection.doc(dishesEntity.dishesId).get().then((menuDoc) async {
       final newMenu = DishesModel(
@@ -351,24 +356,23 @@ class FirebaseRemoteDataSourceImpl implements FirebaseRemoteDataSource {
 
   @override
   Stream<List<DishesEntity>> getMenu(String uid) {
-    final menuSubCollection =
-        firebaseFireStore.collection(FirebaseConst.restaurant).doc(uid).collection(FirebaseConst.menu);
+    final menuSubCollection = firebaseFireStore.collection(FirebaseConst.restaurant).doc(uid).collection(FirebaseConst.menu);
 
     return menuSubCollection.snapshots().asyncMap((querySnapshot) async {
-      final dishesList = <DishesEntity>[];
+      final dishesList = <DishesModel>[];
 
       for (var menuDoc in querySnapshot.docs) {
-        final filterOptionsModel = <FilterOptionEntity>[];
+        final filterOptionsModel = <FilterOptionModel>[];
 
         final filterOptionSnapshot = await menuDoc.reference.collection(FirebaseConst.filterOption).get();
 
         for (var filterOptionDoc in filterOptionSnapshot.docs) {
-          final addOnsModel = <AddOnsEntity>[];
+          final addOnsModel = <AddOnsModel>[];
 
           final addOnSnapshot = await filterOptionDoc.reference.collection(FirebaseConst.addons).get();
 
           for (var addOnDoc in addOnSnapshot.docs) {
-            final addOnsEntity = AddOnsEntity(
+            final addOnsEntity = AddOnsModel(
               addonsId: addOnDoc['addonsId'],
               addonsName: addOnDoc['addonsName'],
               priceType: addOnDoc['priceType'],
@@ -377,7 +381,7 @@ class FirebaseRemoteDataSourceImpl implements FirebaseRemoteDataSource {
             addOnsModel.add(addOnsEntity);
           }
 
-          final filterOptionEntity = FilterOptionEntity(
+          final filterOptionEntity = FilterOptionModel(
             filterId: filterOptionDoc['filterId'],
             filterName: filterOptionDoc['filterName'],
             isMultiple: filterOptionDoc['isMultiple'],
@@ -388,7 +392,7 @@ class FirebaseRemoteDataSourceImpl implements FirebaseRemoteDataSource {
           filterOptionsModel.add(filterOptionEntity);
         }
 
-        final dishesEntity = DishesEntity(
+        final dishesEntity = DishesModel(
           dishesId: menuDoc['dishesId'],
           createdAt: menuDoc['createdAt'],
           isActive: menuDoc['isActive'],
@@ -408,8 +412,7 @@ class FirebaseRemoteDataSourceImpl implements FirebaseRemoteDataSource {
   @override
   Future<void> deleteMenu(DishesEntity dishesEntity) async {
     final uid = await getCurrentUid();
-    final menuSubCollection =
-        firebaseFireStore.collection(FirebaseConst.restaurant).doc(uid).collection(FirebaseConst.menu);
+    final menuSubCollection = firebaseFireStore.collection(FirebaseConst.restaurant).doc(uid).collection(FirebaseConst.menu);
     try {
       final dishesColRef = menuSubCollection.doc(dishesEntity.dishesId);
 
@@ -435,8 +438,7 @@ class FirebaseRemoteDataSourceImpl implements FirebaseRemoteDataSource {
   @override
   Future<void> updateMenu(DishesEntity dishesEntity) async {
     final uid = await getCurrentUid();
-    final menuSubCollection =
-        firebaseFireStore.collection(FirebaseConst.restaurant).doc(uid).collection(FirebaseConst.menu);
+    final menuSubCollection = firebaseFireStore.collection(FirebaseConst.restaurant).doc(uid).collection(FirebaseConst.menu);
     final menuDoc = await menuSubCollection.doc(dishesEntity.dishesId).get();
 
     final Map<String, dynamic> menuInfomation = {};
@@ -504,6 +506,9 @@ class FirebaseRemoteDataSourceImpl implements FirebaseRemoteDataSource {
     }
     if (vendorEntity.description != "" && vendorEntity.description != null) {
       restaurantInfomation['description'] = vendorEntity.description;
+    }
+    if (vendorEntity.restaurantType != "" && vendorEntity.restaurantType != null) {
+      restaurantInfomation['restaurantType'] = vendorEntity.restaurantType;
     }
 
     if (vendorDoc.exists) {
@@ -654,8 +659,7 @@ class FirebaseRemoteDataSourceImpl implements FirebaseRemoteDataSource {
   ) async {
     final uid = await getCurrentUid();
 
-    final menuCollection =
-        firebaseFireStore.collection(FirebaseConst.restaurant).doc(uid).collection(FirebaseConst.menu);
+    final menuCollection = firebaseFireStore.collection(FirebaseConst.restaurant).doc(uid).collection(FirebaseConst.menu);
 
     final menuQuerySnapshot = await menuCollection.get();
 
@@ -713,8 +717,7 @@ class FirebaseRemoteDataSourceImpl implements FirebaseRemoteDataSource {
   ) async {
     final uid = await getCurrentUid();
 
-    final menuCollection =
-        firebaseFireStore.collection(FirebaseConst.restaurant).doc(uid).collection(FirebaseConst.menu);
+    final menuCollection = firebaseFireStore.collection(FirebaseConst.restaurant).doc(uid).collection(FirebaseConst.menu);
 
     final menuQuerySnapshot = await menuCollection.get();
 
@@ -724,8 +727,7 @@ class FirebaseRemoteDataSourceImpl implements FirebaseRemoteDataSource {
 
     final menuDoc = await menuCollection.doc(menuDocId.id).get();
 
-    final filterOptionDocRef =
-        menuDoc.reference.collection(FirebaseConst.filterOption).doc(filterOptionEntity.filterId);
+    final filterOptionDocRef = menuDoc.reference.collection(FirebaseConst.filterOption).doc(filterOptionEntity.filterId);
 
     final addOnsColRef = filterOptionDocRef.collection(FirebaseConst.addons);
     final addOnsAllDoc = await addOnsColRef.get();
@@ -830,7 +832,7 @@ class FirebaseRemoteDataSourceImpl implements FirebaseRemoteDataSource {
               );
             }).toList(),
           );
-          return VendorEntity(
+          return VendorModel(
             uid: restaurantDoc['uid'],
             description: restaurantDoc['description'],
             email: restaurantDoc['email'],
@@ -881,6 +883,278 @@ class FirebaseRemoteDataSourceImpl implements FirebaseRemoteDataSource {
     }
   }
 
+  @override
+  Future<void> sendConfirmOrderToRestaurants(ConfirmOrderEntity confirmOrderEntity) async {
+    final orderCollection = firebaseFireStore.collection(FirebaseConst.orders);
+    await orderCollection.doc(confirmOrderEntity.orderId).get().then((orderDoc) async {
+      final newConfirmOrder = ConfirmOrderModel(
+        vendorEntity: confirmOrderEntity.vendorEntity,
+        orderId: confirmOrderEntity.orderId,
+        customerId: confirmOrderEntity.customerId,
+        restaurantId: confirmOrderEntity.restaurantId,
+        createdAt: confirmOrderEntity.createdAt,
+        orderTypes: confirmOrderEntity.orderTypes,
+        cartItems: confirmOrderEntity.cartItems,
+        customerName: confirmOrderEntity.customerName,
+      ).toMap();
+
+      if (orderDoc.exists) {
+        await orderCollection.doc(confirmOrderEntity.orderId).update(newConfirmOrder);
+      } else {
+        await orderCollection.doc(confirmOrderEntity.orderId).set(newConfirmOrder);
+      }
+    });
+  }
+
+  @override
+  Future<void> confirmOrder(OrderEntity orderEntity) async {
+    final orderCollection = firebaseFireStore.collection(FirebaseConst.orders);
+    final restaurantHistoryCollection = firebaseFireStore
+        .collection(FirebaseConst.restaurant)
+        .doc(orderEntity.restaurantId)
+        .collection(FirebaseConst.restaurantHistory);
+    final customerHistoryCollection = firebaseFireStore
+        .collection(FirebaseConst.customer)
+        .doc(orderEntity.customerId)
+        .collection(FirebaseConst.customerHistory);
+
+    await orderCollection.doc(orderEntity.orderId).get().then((orderDoc) async {
+      final newOrderModel = OrderModel(
+        vendorEntity: orderEntity.vendorEntity,
+        orderId: orderEntity.orderId,
+        customerId: orderEntity.customerId,
+        restaurantId: orderEntity.restaurantId,
+        createdAt: orderEntity.createdAt,
+        orderTypes: orderEntity.orderTypes,
+        cartItems: orderEntity.cartItems,
+        customerName: orderEntity.customerName,
+      ).toMap();
+
+      if (orderDoc.exists) {
+        await orderCollection.doc(orderEntity.orderId).update(newOrderModel);
+        if (orderEntity.orderTypes == OrderTypes.completed.toString()) {
+          await customerHistoryCollection.doc(orderEntity.orderId).get().then((customerHistoryDoc) async {
+            final collectConfirmOrderCompleted = OrderModel(
+              vendorEntity: orderEntity.vendorEntity,
+              orderId: orderEntity.orderId,
+              customerId: orderEntity.customerId,
+              restaurantId: orderEntity.restaurantId,
+              createdAt: orderEntity.createdAt,
+              orderTypes: OrderTypes.completed.toString(),
+              cartItems: orderEntity.cartItems,
+              customerName: orderEntity.customerName,
+            ).toMap();
+            if (customerHistoryDoc.exists) {
+              await customerHistoryCollection.doc(orderEntity.orderId).update(collectConfirmOrderCompleted);
+            } else {
+              await customerHistoryCollection.doc(orderEntity.orderId).set(collectConfirmOrderCompleted);
+            }
+          });
+        }
+        if (orderEntity.orderTypes == OrderTypes.collectToHistory.toString()) {
+          await restaurantHistoryCollection.doc(orderEntity.orderId).get().then((restaurantHistoryDoc) async {
+            final collectionConfirmOrder = OrderModel(
+              vendorEntity: orderEntity.vendorEntity,
+              orderId: orderEntity.orderId,
+              customerId: orderEntity.customerId,
+              restaurantId: orderEntity.restaurantId,
+              createdAt: orderEntity.createdAt,
+              orderTypes: OrderTypes.collectToHistory.toString(),
+              cartItems: orderEntity.cartItems,
+              customerName: orderEntity.customerName,
+            ).toMap();
+            if (restaurantHistoryDoc.exists) {
+              await restaurantHistoryCollection.doc(orderEntity.orderId).update(collectionConfirmOrder);
+            } else {
+              await restaurantHistoryCollection.doc(orderEntity.orderId).set(collectionConfirmOrder);
+            }
+          });
+          await deleteOrder(orderEntity);
+        }
+      } else {
+        await orderCollection.doc(orderEntity.orderId).set(newOrderModel);
+        if (orderEntity.orderTypes == OrderTypes.pending.toString()) {
+          await restaurantHistoryCollection.doc(orderEntity.orderId).get().then((orderHistoryDoc) async {
+            final collectionConfirmOrder = OrderModel(
+              vendorEntity: orderEntity.vendorEntity,
+              orderId: orderEntity.orderId,
+              customerId: orderEntity.customerId,
+              restaurantId: orderEntity.restaurantId,
+              createdAt: orderEntity.createdAt,
+              orderTypes: OrderTypes.accept.toString(),
+              cartItems: orderEntity.cartItems,
+              customerName: orderEntity.customerName,
+            ).toMap();
+            if (orderHistoryDoc.exists) {
+              await restaurantHistoryCollection.doc(orderEntity.orderId).update(collectionConfirmOrder);
+            } else {
+              await restaurantHistoryCollection.doc(orderEntity.orderId).set(collectionConfirmOrder);
+            }
+          });
+        }
+      }
+    });
+  }
+
+  @override
+  Stream<List<OrderEntity>> receiveOrderItemFromCustomer(String uid, String orderType) {
+    final orderCollection = firebaseFireStore.collection(FirebaseConst.orders);
+    return orderCollection
+        .where("restaurantId", isEqualTo: uid)
+        .where("orderTypes", isEqualTo: orderType)
+        .snapshots()
+        .map<List<OrderEntity>>(
+            (querySnapShot) => querySnapShot.docs.map<OrderEntity>((e) => OrderModel.fromMap(e.data())).toList());
+  }
+
+  @override
+  Future<void> deleteOrder(OrderEntity orderEntity) async {
+    //TODO : ทำระบบคืนเงินหากเป็น pending และ จัดเก็บออเดอร์ยกเลิก
+    final orderCollection = firebaseFireStore.collection(FirebaseConst.orders);
+    await orderCollection.doc(orderEntity.orderId).delete();
+
+    if (orderEntity.orderTypes == OrderTypes.pending.toString()) {
+      final returnTotalPrice =
+          orderEntity.cartItems!.fold(0.0, (previousValue, element) => previousValue + element.totalPrice!).floor();
+      await firebaseFireStore
+          .collection(FirebaseConst.customer)
+          .doc(orderEntity.customerId)
+          .update({"balance": returnTotalPrice}).catchError((e) {
+        log(e.toString());
+      });
+
+      final restaurantHistoryCollection = firebaseFireStore
+          .collection(FirebaseConst.restaurant)
+          .doc(orderEntity.restaurantId)
+          .collection(FirebaseConst.restaurantHistory);
+      final customerHistoryCollection = firebaseFireStore
+          .collection(FirebaseConst.restaurant)
+          .doc(orderEntity.customerId)
+          .collection(FirebaseConst.customerHistory);
+
+      final cancelOrderEntity = OrderModel(
+        vendorEntity: orderEntity.vendorEntity,
+        orderId: orderEntity.orderId,
+        customerId: orderEntity.customerId,
+        restaurantId: orderEntity.restaurantId,
+        createdAt: orderEntity.createdAt,
+        orderTypes: OrderTypes.failure.toString(),
+        cartItems: orderEntity.cartItems,
+        customerName: orderEntity.customerName,
+      ).toMap();
+
+      await customerHistoryCollection.doc(orderEntity.orderId).get().then((customerHistoryDoc) async {
+        if (customerHistoryDoc.exists) {
+          await customerHistoryCollection.doc(orderEntity.orderId).update(cancelOrderEntity);
+        } else {
+          await customerHistoryCollection.doc(orderEntity.orderId).set(cancelOrderEntity);
+        }
+      });
+      await restaurantHistoryCollection.doc(orderEntity.orderId).get().then((restaurantHistoryDoc) async {
+        if (restaurantHistoryDoc.exists) {
+          await restaurantHistoryCollection.doc(orderEntity.orderId).update(cancelOrderEntity);
+        } else {
+          await restaurantHistoryCollection.doc(orderEntity.orderId).set(cancelOrderEntity);
+        }
+      });
+    }
+  }
+
+  @override
+  Stream<List<ConfirmOrderEntity>> receiveOrderItemFromRestaurants(String uid) {
+    final customerHistoryCollection =
+        firebaseFireStore.collection(FirebaseConst.customer).doc(uid).collection(FirebaseConst.customerHistory);
+    return customerHistoryCollection
+        .where("customerId", isEqualTo: uid)
+        .snapshots()
+        .map<List<ConfirmOrderEntity>>((querySnapShot) => querySnapShot.docs
+            .map<ConfirmOrderEntity>(
+              (e) => ConfirmOrderModel.fromMap(
+                e.data(),
+              ),
+            )
+            .toList());
+  }
+
+  @override
+  Future<void> createTransaction(TransactionEntity transactionEntity) async {
+    final uid = await getCurrentUid();
+    final transactionCollection =
+        firebaseFireStore.collection(FirebaseConst.customer).doc(uid).collection(FirebaseConst.transaction);
+    try {
+      if (transactionEntity.type == "paid") {
+        final newPaidTransaction = TransactionModel(
+          id: transactionEntity.id,
+          date: transactionEntity.date,
+          menuName: transactionEntity.menuName,
+          resName: transactionEntity.resName,
+          totalPrice: transactionEntity.totalPrice,
+          type: transactionEntity.type,
+        ).toMap();
+        await transactionCollection.doc(transactionEntity.id).get().then((transactionDoc) async {
+          if (transactionDoc.exists) {
+            await transactionCollection.doc(transactionEntity.id).update(newPaidTransaction);
+          } else {
+            await transactionCollection.doc(transactionEntity.id).set(newPaidTransaction);
+          }
+        });
+      } else if (transactionEntity.type == "deposit") {
+        final newDepositTransaction = TransactionModel(
+          id: transactionEntity.id,
+          date: transactionEntity.date,
+          name: transactionEntity.name,
+          type: transactionEntity.type,
+          deposit: transactionEntity.deposit,
+        ).toMap();
+        await transactionCollection.doc(transactionEntity.id).get().then((transactionDoc) async {
+          if (transactionDoc.exists) {
+            await transactionCollection.doc(transactionEntity.id).update(newDepositTransaction);
+          } else {
+            await transactionCollection.doc(transactionEntity.id).set(newDepositTransaction);
+          }
+        });
+      } else {
+        final newWithDrawTransaction = TransactionModel(
+          id: transactionEntity.id,
+          date: transactionEntity.date,
+          name: transactionEntity.name,
+          type: transactionEntity.type,
+          withdraw: transactionEntity.withdraw,
+        ).toMap();
+        await transactionCollection.doc(transactionEntity.id).get().then((transactionDoc) async {
+          if (transactionDoc.exists) {
+            await transactionCollection.doc(transactionEntity.id).update(newWithDrawTransaction);
+          } else {
+            await transactionCollection.doc(transactionEntity.id).set(newWithDrawTransaction);
+          }
+        });
+      }
+    } catch (e) {
+      log("in rdsImpl: ${e.toString()}");
+    }
+  }
+
+  @override
+  Future<num> getAccountBalance(String uid) async {
+    return await firebaseFireStore
+        .collection(FirebaseConst.customer)
+        .doc(uid)
+        .get()
+        .then((customerDoc) => customerDoc['balance']);
+  }
+
+  @override
+  Stream<List<OrderEntity>> receiveOrderByDateTime(Timestamp timestamp) async* {
+    final uid = await getCurrentUid();
+    final restaurantHistoryCollection =
+        firebaseFireStore.collection(FirebaseConst.restaurant).doc(uid).collection(FirebaseConst.restaurantHistory);
+
+    final querySnapshot = await restaurantHistoryCollection.where("createdAt", isEqualTo: timestamp).get();
+
+    final orderEntities = querySnapshot.docs.map<OrderEntity>((orderDoc) => OrderModel.fromMap(orderDoc.data())).toList();
+
+    yield orderEntities;
+  }
 }
 
 class FirebaseConst {
@@ -890,4 +1164,7 @@ class FirebaseConst {
   static const String addons = "addons";
   static const String filterOption = "filterOption";
   static const String transaction = "transaction";
+  static const String orders = "orders";
+  static const String customerHistory = "customerHistory";
+  static const String restaurantHistory = "restaurantHistory";
 }

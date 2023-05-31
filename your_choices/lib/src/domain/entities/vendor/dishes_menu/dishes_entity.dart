@@ -66,4 +66,36 @@ class DishesEntity extends Equatable {
       disheImageFile: disheImageFile ?? this.disheImageFile,
     );
   }
+
+  Map<String, dynamic> toMap() {
+    return <String, dynamic>{
+      'dishesId': dishesId,
+      'createdAt': createdAt,
+      'isActive': isActive,
+      'menuName': menuName,
+      'menuImg': menuImg,
+      'menuPrice': menuPrice,
+      'menuDescription': menuDescription,
+      'filterOption': filterOption?.map((x) => x.toMap()).toList(),
+    };
+  }
+
+  factory DishesEntity.fromMap(Map<String, dynamic> map) {
+    return DishesEntity(
+      dishesId: map['dishesId'] != null ? map['dishesId'] as String : null,
+      createdAt: map['createdAt'],
+      isActive: map['isActive'] != null ? map['isActive'] as bool : null,
+      menuName: map['menuName'] != null ? map['menuName'] as String : null,
+      menuImg: map['menuImg'] != null ? map['menuImg'] as String : null,
+      menuPrice: map['menuPrice'] != null ? map['menuPrice'] as num : null,
+      menuDescription: map['menuDescription'] != null ? map['menuDescription'] as String : null,
+      filterOption: map['filterOption'] != null
+          ? List<FilterOptionEntity>.from(
+              (map['filterOption'] as List<dynamic>).map<FilterOptionEntity?>(
+                (x) => FilterOptionEntity.fromMap(x as Map<String, dynamic>),
+              ),
+            )
+          : null,
+    );
+  }
 }

@@ -3,15 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:touchable_opacity/touchable_opacity.dart';
 import 'package:your_choices/global.dart';
-
+import 'package:your_choices/injection_container.dart' as di;
 import 'package:your_choices/src/domain/entities/vendor/filter_options/filter_option_entity.dart';
 import 'package:your_choices/src/domain/usecases/firebase_usecases/customer/get_current_uid_usecase.dart';
 import 'package:your_choices/src/presentation/blocs/vendor_bloc/menu/menu_cubit.dart';
 import 'package:your_choices/src/presentation/widgets/custom_vendor_appbar.dart';
-import 'package:your_choices/injection_container.dart' as di;
+
 import '../../../../../../utilities/text_style.dart';
-
-
 
 class FilterOptionInMenuDetailView extends StatefulWidget {
   final FilterOptionEntity filterOptionEntity;
@@ -21,12 +19,10 @@ class FilterOptionInMenuDetailView extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  State<FilterOptionInMenuDetailView> createState() =>
-      _FilterOptionInMenuDetailViewState();
+  State<FilterOptionInMenuDetailView> createState() => _FilterOptionInMenuDetailViewState();
 }
 
-class _FilterOptionInMenuDetailViewState
-    extends State<FilterOptionInMenuDetailView> {
+class _FilterOptionInMenuDetailViewState extends State<FilterOptionInMenuDetailView> {
   late final FilterOptionEntity filterOptionEntity;
   late final TextEditingController filterOptionName;
   RadioTypes? _options;
@@ -36,8 +32,7 @@ class _FilterOptionInMenuDetailViewState
   @override
   void initState() {
     filterOptionEntity = widget.filterOptionEntity;
-    filterOptionName =
-        TextEditingController(text: filterOptionEntity.filterName);
+    filterOptionName = TextEditingController(text: filterOptionEntity.filterName);
     super.initState();
   }
 
@@ -87,7 +82,10 @@ class _FilterOptionInMenuDetailViewState
                   FontWeight.w500,
                 ),
               ),
-              _buildListOfAddOnsBloc(),
+              Expanded(
+                flex: 15,
+                child: _buildListOfAddOnsBloc(),
+              ),
               _buildAddChoiceButton(context),
               const Spacer(),
               _buildConfirmAndCancelButton(context)
@@ -100,7 +98,7 @@ class _FilterOptionInMenuDetailViewState
 
   Row _buildConfirmAndCancelButton(BuildContext context) {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      mainAxisAlignment: MainAxisAlignment.spaceAround,
       children: [
         TouchableOpacity(
           onTap: () {
@@ -230,8 +228,7 @@ class _FilterOptionInMenuDetailViewState
                           children: [
                             Expanded(
                               child: RadioListTile(
-                                controlAffinity:
-                                    ListTileControlAffinity.leading,
+                                controlAffinity: ListTileControlAffinity.leading,
                                 contentPadding: EdgeInsets.zero,
                                 activeColor: Colors.amber.shade900,
                                 title: const Text("เพิ่มราคา"),
@@ -275,8 +272,7 @@ class _FilterOptionInMenuDetailViewState
                           children: [
                             Expanded(
                               child: RadioListTile(
-                                controlAffinity:
-                                    ListTileControlAffinity.leading,
+                                controlAffinity: ListTileControlAffinity.leading,
                                 contentPadding: EdgeInsets.zero,
                                 activeColor: Colors.amber.shade900,
                                 title: const Text("ลดราคา"),
@@ -417,7 +413,7 @@ class _FilterOptionInMenuDetailViewState
   Widget _buildListOfAddOnsBloc() {
     return ListView.separated(
       shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
+      physics: const BouncingScrollPhysics(),
       separatorBuilder: (context, index) => const SizedBox(
         height: 10,
       ),
@@ -456,8 +452,7 @@ class _FilterOptionInMenuDetailViewState
                                 FontWeight.normal,
                               ),
                             )
-                          : addOnsEntity.priceType ==
-                                  RadioTypes.priceIncrease.toString()
+                          : addOnsEntity.priceType == RadioTypes.priceIncrease.toString()
                               ? Text(
                                   "+${addOnsEntity.price ?? ""} ฿",
                                   style: AppTextStyle.googleFont(

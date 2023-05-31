@@ -7,12 +7,13 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:touchable_opacity/touchable_opacity.dart';
+import 'package:your_choices/injection_container.dart' as di;
 import 'package:your_choices/src/config/app_routes/on_generate_routes.dart';
 import 'package:your_choices/src/domain/entities/vendor/vendor_entity.dart';
 import 'package:your_choices/src/domain/usecases/firebase_usecases/utilities/upload_image_to_storage_usecase.dart';
 import 'package:your_choices/src/presentation/widgets/custom_vendor_appbar.dart';
 import 'package:your_choices/utilities/loading_dialog.dart';
-import 'package:your_choices/injection_container.dart' as di;
+
 import '../../../../../../utilities/text_style.dart';
 import '../../../../blocs/vendor_bloc/vendor/vendor_cubit.dart';
 
@@ -29,13 +30,8 @@ class _EditRestaurantInfoViewState extends State<EditRestaurantInfoView> {
   late TextEditingController resName;
   late TextEditingController userName;
   late TextEditingController description;
-  List<String> restaurantTypes = [
-    "ร้านอาหารตามสั่ง",
-    "ร้านข้าวแกง",
-    "ร้านก๋วยเตี๋ยว",
-    "ร้านเครื่องดื่ม"
-  ];
-  String restaurantType = "ร้านก๋วยเตี๋ยว";
+  List<String> restaurantTypes = ["ร้านอาหารตามสั่ง", "ร้านข้าวแกง", "ร้านก๋วยเตี๋ยว", "ร้านเครื่องดื่ม"];
+  late String restaurantType;
   File? resImage;
   File? profileImage;
   bool isPickResImageClick = false;
@@ -156,6 +152,7 @@ class _EditRestaurantInfoViewState extends State<EditRestaurantInfoView> {
     resName = TextEditingController(text: vendorEntity.resName);
     userName = TextEditingController(text: vendorEntity.username);
     description = TextEditingController(text: vendorEntity.description);
+    restaurantType = vendorEntity.restaurantType!;
     super.initState();
   }
 
@@ -445,10 +442,8 @@ class _EditRestaurantInfoViewState extends State<EditRestaurantInfoView> {
                         radius: 65,
                         backgroundColor: Colors.transparent,
                         backgroundImage: vendorEntity.profileUrl == null
-                            ? const AssetImage("assets/images/image_picker.png")
-                                as ImageProvider
-                            : CachedNetworkImageProvider(
-                                vendorEntity.profileUrl!),
+                            ? const AssetImage("assets/images/image_picker.png") as ImageProvider
+                            : CachedNetworkImageProvider(vendorEntity.profileUrl!),
                       ),
                     )
                   : Padding(
@@ -605,25 +600,19 @@ class _EditRestaurantInfoViewState extends State<EditRestaurantInfoView> {
                   username: userName.text,
                   resName: resName.text,
                   description: description.text,
+                  restaurantType: restaurantType,
                   resProfileUrl: resImage == null
                       ? vendorEntity.resProfileUrl
-                      : await di
-                          .sl<UploadImageToStorageUseCase>()
-                          .call(resImage!, "resProfileImage"),
+                      : await di.sl<UploadImageToStorageUseCase>().call(resImage!, "resProfileImage"),
                   profileUrl: profileImage == null
                       ? vendorEntity.profileUrl
-                      : await di
-                          .sl<UploadImageToStorageUseCase>()
-                          .call(profileImage!, "profileImage"),
+                      : await di.sl<UploadImageToStorageUseCase>().call(profileImage!, "profileImage"),
                 ),
               )
                   .then((value) {
                 Navigator.pop(context);
                 Navigator.pushNamedAndRemoveUntil(
-                    context,
-                    PageConst.vendorMainView,
-                    arguments: vendorEntity.uid,
-                    (route) => false);
+                    context, PageConst.vendorMainView, arguments: vendorEntity.uid, (route) => false);
               });
             },
             child: Container(

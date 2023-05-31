@@ -1,5 +1,6 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 
+import 'package:badges/badges.dart' as badges;
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -7,17 +8,15 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:touchable_opacity/touchable_opacity.dart';
 import 'package:your_choices/src/config/app_routes/on_generate_routes.dart';
-
 import 'package:your_choices/src/domain/entities/customer/customer_entity.dart';
 import 'package:your_choices/src/presentation/blocs/customer_bloc/cart/cart_cubit.dart';
+import 'package:your_choices/src/presentation/blocs/customer_bloc/restaurant/restaurant_cubit.dart';
 import 'package:your_choices/src/presentation/views/customer_side/restaurant_view/restaurant_list_view/widgets/list_of_restaurants.dart';
 import 'package:your_choices/src/presentation/views/customer_side/search_box_view/bloc/search_box_bloc.dart';
 import 'package:your_choices/src/presentation/views/customer_side/search_box_view/seach_box_view.dart';
 import 'package:your_choices/src/presentation/widgets/custom_text.dart';
 import 'package:your_choices/utilities/hex_color.dart';
 import 'package:your_choices/utilities/text_style.dart';
-
-import 'package:badges/badges.dart' as badges;
 
 class RestaurantListView extends StatefulWidget {
   final CustomerEntity customerEntity;
@@ -40,6 +39,7 @@ class _RestaurantListViewState extends State<RestaurantListView> with SingleTick
   void initState() {
     tabController = TabController(vsync: this, length: restaurantTypes.length, initialIndex: 0);
     selectedType = restaurantTypes[0];
+    BlocProvider.of<RestaurantCubit>(context).getAllRestaurant();
     super.initState();
   }
 
@@ -55,32 +55,34 @@ class _RestaurantListViewState extends State<RestaurantListView> with SingleTick
     return Scaffold(
       floatingActionButton: BlocBuilder<CartCubit, CartState>(
         builder: (context, state) {
-          return FloatingActionButton(
-            backgroundColor: "B44121".toColor(),
-            onPressed: () {
-              Navigator.pushNamed(context, PageConst.cartPage);
-            },
-            child: badges.Badge(
-              // badgeAnimation: const badges.BadgeAnimation.size(),
-              position: badges.BadgePosition.topEnd(top: -16, end: -12),
-              badgeContent: Text(
-                "${state.cartItems.length}",
-                style: AppTextStyle.googleFont(
-                  Colors.white,
-                  15,
-                  FontWeight.normal,
-                ),
-              ),
-              badgeStyle: const badges.BadgeStyle(
-                padding: EdgeInsets.all(6),
-              ),
-              showBadge: state.cartItems.isNotEmpty,
-              child: const Icon(
-                CupertinoIcons.shopping_cart,
-                size: 32,
-              ),
-            ),
-          );
+          return state.cartItems.isEmpty
+              ? Container()
+              : FloatingActionButton(
+                  backgroundColor: "B44121".toColor(),
+                  onPressed: () {
+                    Navigator.pushNamed(context, PageConst.cartPage, arguments: widget.customerEntity);
+                  },
+                  child: badges.Badge(
+                    position: badges.BadgePosition.topEnd(top: -16, end: -12),
+                    badgeContent: Text(
+                      "${state.cartItems.length}",
+                      style: AppTextStyle.googleFont(
+                        "B44121".toColor(),
+                        16,
+                        FontWeight.bold,
+                      ),
+                    ),
+                    badgeStyle: const badges.BadgeStyle(
+                      badgeColor: Colors.white,
+                      padding: EdgeInsets.all(6),
+                    ),
+                    showBadge: state.cartItems.isNotEmpty,
+                    child: const Icon(
+                      CupertinoIcons.shopping_cart,
+                      size: 32,
+                    ),
+                  ),
+                );
         },
       ),
       appBar: _buildAppBarContent(size, context, widget.customerEntity),
@@ -131,15 +133,19 @@ class _RestaurantListViewState extends State<RestaurantListView> with SingleTick
               physics: const NeverScrollableScrollPhysics(),
               children: [
                 ListofRestaurants(
+                  customerEntity: widget.customerEntity,
                   restaurantType: selectedType,
                 ),
                 ListofRestaurants(
+                  customerEntity: widget.customerEntity,
                   restaurantType: selectedType,
                 ),
                 ListofRestaurants(
+                  customerEntity: widget.customerEntity,
                   restaurantType: selectedType,
                 ),
                 ListofRestaurants(
+                  customerEntity: widget.customerEntity,
                   restaurantType: selectedType,
                 ),
               ],
@@ -304,39 +310,3 @@ AppBar _buildAppBarContent(
     ),
   );
 }
-
-
-// TextField(
-//               style: AppTextStyle.googleFont(
-//                 Colors.black,
-//                 16,
-//                 FontWeight.w400,
-//               ),
-//               onTap: () {
-//                 Navigator.pushNamed(context, PageConst.searchboxPage);
-//               },
-//               decoration: InputDecoration(
-//                 filled: true,
-//                 fillColor: "D9D9D9".toColor(),
-//                 prefixIcon: const Padding(
-//                   padding: EdgeInsets.only(left: 20, right: 8),
-                  // child: Icon(
-                  //   CupertinoIcons.search,
-                  //   color: Colors.black,
-                  //   size: 30,
-                  // ),
-//                 ),
-//                 prefixIconColor: Colors.black,
-//                 hintText: "ค้นหาร้านที่ต้องการ",
-//                 hintStyle: AppTextStyle.googleFont(
-//                   "685A5A".toColor(),
-//                   14,
-//                   FontWeight.w600,
-//                 ),
-//                 contentPadding: const EdgeInsets.symmetric(vertical: 10.0),
-//                 border: OutlineInputBorder(
-//                   borderSide: BorderSide.none,
-//                   borderRadius: BorderRadius.circular(50),
-//                 ),
-//               ),
-//             ),

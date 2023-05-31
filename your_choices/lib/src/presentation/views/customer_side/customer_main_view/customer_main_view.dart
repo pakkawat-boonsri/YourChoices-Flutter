@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:google_nav_bar/google_nav_bar.dart';
 import 'package:your_choices/src/presentation/blocs/customer_bloc/customer/customer_cubit.dart';
 import 'package:your_choices/src/presentation/views/customer_side/customer_order_view/customer_order_view.dart';
 import 'package:your_choices/src/presentation/views/customer_side/profile_view/profile_view.dart';
 import 'package:your_choices/src/presentation/views/customer_side/restaurant_view/restaurant_list_view/restaurant_list_view.dart';
-import 'package:google_nav_bar/google_nav_bar.dart';
+
 import '../home_view/transaction_view/transaction_view.dart';
 
 class CustomerMainView extends StatefulWidget {
@@ -55,17 +56,16 @@ class _CustomerMainViewState extends State<CustomerMainView> {
                 children: [
                   TransactionView(customerEntity: currentCustomer),
                   RestaurantListView(customerEntity: currentCustomer),
-                  const CustomerOrderView(),
+                  CustomerOrderView(customerEntity: currentCustomer),
                   ProfileView(customerEntity: currentCustomer),
                 ],
               ),
-              bottomNavigationBar: Container(
+              bottomNavigationBar: BottomAppBar(
                 color: Colors.white,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 15,
-                    vertical: 10,
-                  ),
+                elevation: 12,
+                height: 64,
+                child: Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 12),
                   child: GNav(
                     selectedIndex: currentIndex,
                     gap: 8,

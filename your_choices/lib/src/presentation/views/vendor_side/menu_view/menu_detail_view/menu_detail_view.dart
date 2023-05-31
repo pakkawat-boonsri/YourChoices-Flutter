@@ -9,7 +9,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:touchable_opacity/touchable_opacity.dart';
-
 import 'package:your_choices/injection_container.dart' as di;
 import 'package:your_choices/src/domain/entities/vendor/dishes_menu/dishes_entity.dart';
 import 'package:your_choices/src/domain/entities/vendor/filter_options/filter_option_entity.dart';
@@ -47,15 +46,12 @@ class _MenuDetailViewState extends State<MenuDetailView> {
   bool isModified = false;
   @override
   void initState() {
-    super.initState();
     isActive = widget.dishesEntity.isActive ?? false;
     menuName = TextEditingController(text: widget.dishesEntity.menuName);
-    menuDescription =
-        TextEditingController(text: widget.dishesEntity.menuDescription);
-    menuPrice =
-        TextEditingController(text: widget.dishesEntity.menuPrice.toString());
-    BlocProvider.of<FilterOptionInMenuCubit>(context)
-        .getFilterOptionInMenu(widget.dishesEntity);
+    menuDescription = TextEditingController(text: widget.dishesEntity.menuDescription);
+    menuPrice = TextEditingController(text: widget.dishesEntity.menuPrice.toString());
+    BlocProvider.of<FilterOptionInMenuCubit>(context).getFilterOptionInMenu(widget.dishesEntity);
+    super.initState();
   }
 
   @override
@@ -89,8 +85,7 @@ class _MenuDetailViewState extends State<MenuDetailView> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               imageFile == null
-                  ? widget.dishesEntity.menuImg == null ||
-                          widget.dishesEntity.menuImg == ""
+                  ? widget.dishesEntity.menuImg == null || widget.dishesEntity.menuImg == ""
                       ? _buildNoImageUpload(size)
                       : _buildHaveMenuImage(size)
                   : _buildUploadedImage(size),
@@ -295,23 +290,17 @@ class _MenuDetailViewState extends State<MenuDetailView> {
           activeOpacity: 0.5,
           onTap: () async {
             if (_formKey.currentState!.validate()) {
-              List<FilterOptionEntity> newFilterList =
-                  List<FilterOptionEntity>.from(
+              List<FilterOptionEntity> newFilterList = List<FilterOptionEntity>.from(
                 context.read<FilterOptionInMenuCubit>().state,
               );
 
-              List<FilterOptionEntity> deletedList =
-                  List<FilterOptionEntity>.from(
-                context
-                    .read<FilterOptionInMenuCubit>()
-                    .getDeleteFilterOptionList,
+              List<FilterOptionEntity> deletedList = List<FilterOptionEntity>.from(
+                context.read<FilterOptionInMenuCubit>().getDeleteFilterOptionList,
               );
 
               if (deletedList.isNotEmpty) {
                 for (var deleteFilter in deletedList) {
-                  context
-                      .read<FilterOptionInMenuCubit>()
-                      .deletingFilterOptionInMenu(deleteFilter);
+                  context.read<FilterOptionInMenuCubit>().deletingFilterOptionInMenu(deleteFilter);
                 }
               }
 
@@ -323,18 +312,16 @@ class _MenuDetailViewState extends State<MenuDetailView> {
                       menuDescription: menuDescription.text,
                       menuImg: imageFile == null
                           ? widget.dishesEntity.menuImg
-                          : await di.sl<UploadImageToStorageUseCase>().call(
-                              imageFile!,
-                              "menuImages_${widget.dishesEntity.dishesId}"),
+                          : await di
+                              .sl<UploadImageToStorageUseCase>()
+                              .call(imageFile!, "menuImages_${widget.dishesEntity.dishesId}"),
                       menuPrice: int.parse(menuPrice.text),
                       filterOption: newFilterList,
                     ),
                   );
               Future.delayed(const Duration(seconds: 1)).then((value) {
                 context.read<FilterOptionInMenuCubit>().state.clear();
-                context
-                    .read<FilterOptionInMenuCubit>()
-                    .resetDeleteFilterOptionInMenu();
+                context.read<FilterOptionInMenuCubit>().resetDeleteFilterOptionInMenu();
 
                 Navigator.pop(context);
                 Navigator.pop(context);
@@ -462,8 +449,7 @@ class _MenuDetailViewState extends State<MenuDetailView> {
                               const SizedBox(
                                 width: 5,
                               ),
-                              if (filterOptionEntity.isRequired == true &&
-                                  filterOptionEntity.isMultiple == false) ...[
+                              if (filterOptionEntity.isRequired == true && filterOptionEntity.isMultiple == false) ...[
                                 Text(
                                   " (ต้องเลือก) ",
                                   style: AppTextStyle.googleFont(
@@ -472,11 +458,10 @@ class _MenuDetailViewState extends State<MenuDetailView> {
                                     FontWeight.normal,
                                   ),
                                 ),
-                              ] else if (filterOptionEntity.isRequired ==
-                                      false &&
+                              ] else if (filterOptionEntity.isRequired == false &&
                                   filterOptionEntity.isMultiple == true) ...[
                                 Text(
-                                  " (เลือกได้เป็นจำนวน ${filterOptionEntity.multipleQuantity})",
+                                  " (เลือกได้ ${filterOptionEntity.multipleQuantity} จำนวน )",
                                   style: AppTextStyle.googleFont(
                                     Colors.grey.shade800,
                                     14,
@@ -497,10 +482,7 @@ class _MenuDetailViewState extends State<MenuDetailView> {
                               isModified
                                   ? TouchableOpacity(
                                       onTap: () {
-                                        context
-                                            .read<FilterOptionInMenuCubit>()
-                                            .deleteFilterOptionInMenu(
-                                                filterOptionEntity);
+                                        context.read<FilterOptionInMenuCubit>().deleteFilterOptionInMenu(filterOptionEntity);
                                       },
                                       child: const Icon(
                                         Icons.close,
@@ -515,22 +497,17 @@ class _MenuDetailViewState extends State<MenuDetailView> {
                             physics: const NeverScrollableScrollPhysics(),
                             itemCount: filterOptionEntity.addOns?.length ?? 0,
                             itemBuilder: (context, index) {
-                              final addOnsEntity =
-                                  filterOptionEntity.addOns?[index];
+                              final addOnsEntity = filterOptionEntity.addOns?[index];
                               return Row(
                                 children: [
-                                  if (filterOptionEntity.isRequired == true &&
-                                      filterOptionEntity.isMultiple ==
-                                          false) ...[
+                                  if (filterOptionEntity.isRequired == true && filterOptionEntity.isMultiple == false) ...[
                                     Icon(
                                       Icons.circle_outlined,
                                       color: Colors.grey.shade800,
                                       size: 14,
                                     ),
-                                  ] else if (filterOptionEntity.isRequired ==
-                                          false &&
-                                      filterOptionEntity.isMultiple ==
-                                          true) ...[
+                                  ] else if (filterOptionEntity.isRequired == false &&
+                                      filterOptionEntity.isMultiple == true) ...[
                                     Icon(
                                       Icons.rectangle_outlined,
                                       color: Colors.grey.shade800,
@@ -558,8 +535,7 @@ class _MenuDetailViewState extends State<MenuDetailView> {
                                             FontWeight.normal,
                                           ),
                                         )
-                                      : addOnsEntity?.priceType ==
-                                              "RadioTypes.priceIncrease"
+                                      : addOnsEntity?.priceType == "RadioTypes.priceIncrease"
                                           ? Text(
                                               "+",
                                               style: AppTextStyle.googleFont(
@@ -578,8 +554,7 @@ class _MenuDetailViewState extends State<MenuDetailView> {
                                             ),
                                   addOnsEntity?.price == null
                                       ? const Text("")
-                                      : addOnsEntity?.priceType ==
-                                              "RadioTypes.priceIncrease"
+                                      : addOnsEntity?.priceType == "RadioTypes.priceIncrease"
                                           ? Text(
                                               "${addOnsEntity?.price ?? ""} ฿",
                                               style: AppTextStyle.googleFont(

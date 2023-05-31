@@ -1,6 +1,10 @@
 import 'dart:io';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:your_choices/src/domain/entities/customer/confirm_order/confirm_order_entity.dart';
 import 'package:your_choices/src/domain/entities/customer/customer_entity.dart';
+import 'package:your_choices/src/domain/entities/customer/transaction/transaction_entity.dart';
+import 'package:your_choices/src/domain/entities/vendor/order/order_entity.dart';
 
 import '../../../domain/entities/vendor/dishes_menu/dishes_entity.dart';
 import '../../../domain/entities/vendor/filter_options/filter_option_entity.dart';
@@ -11,13 +15,21 @@ abstract class FirebaseRemoteDataSource {
   Future<void> signUpCustomer(CustomerEntity customer);
   Stream<List<CustomerEntity>> getSingleCustomer(String uid);
   Stream<List<VendorEntity>> getAllRestaurants();
+  Future<num> getAccountBalance(String uid);
+  Future<void> createTransaction(TransactionEntity transactionEntity);
   Future<void> updateCustomerInfo(CustomerEntity customerEntity);
+  Future<void> sendConfirmOrderToRestaurants(ConfirmOrderEntity confirmOrderEntity);
+  Stream<List<ConfirmOrderEntity>> receiveOrderItemFromRestaurants(String uid);
 
   //for vendor
   Future<void> signUpVendor(VendorEntity vendorEntity);
   Stream<List<VendorEntity>> getSingleVendor(String uid);
   Future<void> openAndCloseRestaurant(VendorEntity vendorEntity);
   Future<void> updateRestaurantInfo(VendorEntity vendorEntity);
+  Stream<List<OrderEntity>> receiveOrderItemFromCustomer(String uid, String orderType);
+  Stream<List<OrderEntity>> receiveOrderByDateTime(Timestamp timestamp);
+  Future<void> confirmOrder(OrderEntity orderEntity);
+  Future<void> deleteOrder(OrderEntity orderEntity);
   //menu features
   Future<void> createMenu(DishesEntity dishesEntity);
   Stream<List<DishesEntity>> getMenu(String uid);

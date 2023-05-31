@@ -1,6 +1,10 @@
 import 'dart:io';
 
+import 'package:cloud_firestore_platform_interface/src/timestamp.dart';
+import 'package:your_choices/src/domain/entities/customer/confirm_order/confirm_order_entity.dart';
+import 'package:your_choices/src/domain/entities/customer/transaction/transaction_entity.dart';
 import 'package:your_choices/src/domain/entities/vendor/dishes_menu/dishes_entity.dart';
+import 'package:your_choices/src/domain/entities/vendor/order/order_entity.dart';
 
 import '../../domain/entities/customer/customer_entity.dart';
 import '../../domain/entities/vendor/filter_options/filter_option_entity.dart';
@@ -136,5 +140,32 @@ class FirebaseRepositoryImpl implements FirebaseRepository {
   Future<void> updateCustomerInfo(CustomerEntity customerEntity) async =>
       remoteDataSource.updateCustomerInfo(customerEntity);
 
-  
+  @override
+  Future<void> sendConfirmOrderToRestaurants(ConfirmOrderEntity confirmOrderEntity) async =>
+      remoteDataSource.sendConfirmOrderToRestaurants(confirmOrderEntity);
+
+  @override
+  Stream<List<OrderEntity>> receiveOrderItemFromCustomer(String uid, String orderType) =>
+      remoteDataSource.receiveOrderItemFromCustomer(uid, orderType);
+
+  @override
+  Future<void> confirmOrder(OrderEntity orderEntity) async => remoteDataSource.confirmOrder(orderEntity);
+
+  @override
+  Future<void> deleteOrder(OrderEntity orderEntity) async => remoteDataSource.deleteOrder(orderEntity);
+
+  @override
+  Stream<List<ConfirmOrderEntity>> receiveOrderItemFromRestaurants(String uid) =>
+      remoteDataSource.receiveOrderItemFromRestaurants(uid);
+
+  @override
+  Future<void> createTransaction(TransactionEntity transactionEntity) async =>
+      await remoteDataSource.createTransaction(transactionEntity);
+
+  @override
+  Future<num> getAccountBalance(String uid) async=> remoteDataSource.getAccountBalance(uid);
+
+  @override
+  Stream<List<OrderEntity>> receiveOrderByDateTime(Timestamp timestamp) =>
+      remoteDataSource.receiveOrderByDateTime(timestamp);
 }

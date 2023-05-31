@@ -5,9 +5,13 @@ import 'package:get_it/get_it.dart';
 import 'package:your_choices/src/data/data_sources/remote_data_source/remote_data_source.dart';
 import 'package:your_choices/src/data/repositories/firebase_repository_impl.dart';
 import 'package:your_choices/src/domain/repositories/firebase_repository.dart';
+import 'package:your_choices/src/domain/usecases/firebase_usecases/customer/create_transaction_usecase.dart';
+import 'package:your_choices/src/domain/usecases/firebase_usecases/customer/get_account_balance_usecase.dart';
 import 'package:your_choices/src/domain/usecases/firebase_usecases/customer/get_current_uid_usecase.dart';
 import 'package:your_choices/src/domain/usecases/firebase_usecases/customer/get_single_customer_usecase.dart';
 import 'package:your_choices/src/domain/usecases/firebase_usecases/customer/restaurant/get_all_restaurant_usecase.dart';
+import 'package:your_choices/src/domain/usecases/firebase_usecases/customer/restaurant/receive_order_from_restaurant_usecase.dart';
+import 'package:your_choices/src/domain/usecases/firebase_usecases/customer/restaurant/send_confirm_order_to_restaurant_usecase.dart';
 import 'package:your_choices/src/domain/usecases/firebase_usecases/customer/sign_up_customer_usecase.dart';
 import 'package:your_choices/src/domain/usecases/firebase_usecases/customer/update_customer_info_usecase.dart';
 import 'package:your_choices/src/domain/usecases/firebase_usecases/utilities/is_sign_in_usecase.dart';
@@ -18,19 +22,24 @@ import 'package:your_choices/src/domain/usecases/firebase_usecases/utilities/upl
 import 'package:your_choices/src/domain/usecases/firebase_usecases/vendor/filer_option/create_filter_option_usecase.dart';
 import 'package:your_choices/src/domain/usecases/firebase_usecases/vendor/filer_option/read_filter_option_usecase.dart';
 import 'package:your_choices/src/domain/usecases/firebase_usecases/vendor/filer_option/update_filter_option_usecase.dart';
+import 'package:your_choices/src/domain/usecases/firebase_usecases/vendor/filter_option_in_menu/add_filter_option_in_menu_usecase.dart';
+import 'package:your_choices/src/domain/usecases/firebase_usecases/vendor/filter_option_in_menu/delete_filter_option_in_menu_usecase.dart';
 import 'package:your_choices/src/domain/usecases/firebase_usecases/vendor/filter_option_in_menu/get_filter_option_in_menu_usecase.dart';
+import 'package:your_choices/src/domain/usecases/firebase_usecases/vendor/filter_option_in_menu/update_filter_option_in_menu_usecase.dart';
 import 'package:your_choices/src/domain/usecases/firebase_usecases/vendor/get_single_vendor_usecase.dart';
 import 'package:your_choices/src/domain/usecases/firebase_usecases/vendor/is_active_usecase.dart';
-import 'package:your_choices/src/domain/usecases/firebase_usecases/vendor/filter_option_in_menu/add_filter_option_in_menu_usecase.dart';
 import 'package:your_choices/src/domain/usecases/firebase_usecases/vendor/menu/create_menu_usecase.dart';
-import 'package:your_choices/src/domain/usecases/firebase_usecases/vendor/filter_option_in_menu/delete_filter_option_in_menu_usecase.dart';
 import 'package:your_choices/src/domain/usecases/firebase_usecases/vendor/menu/delete_menu_usecase.dart';
 import 'package:your_choices/src/domain/usecases/firebase_usecases/vendor/menu/get_menu_usecase.dart';
-import 'package:your_choices/src/domain/usecases/firebase_usecases/vendor/filter_option_in_menu/update_filter_option_in_menu_usecase.dart';
 import 'package:your_choices/src/domain/usecases/firebase_usecases/vendor/menu/update_menu_usecase.dart';
+import 'package:your_choices/src/domain/usecases/firebase_usecases/vendor/order_history/receive_order_by_date_usecase.dart';
 import 'package:your_choices/src/domain/usecases/firebase_usecases/vendor/sign_up_vendor_usecase.dart';
+import 'package:your_choices/src/domain/usecases/firebase_usecases/vendor/today_order_usecases/confirm_order_usecase.dart';
+import 'package:your_choices/src/domain/usecases/firebase_usecases/vendor/today_order_usecases/delete_order_usecase.dart';
+import 'package:your_choices/src/domain/usecases/firebase_usecases/vendor/today_order_usecases/receive_today_order_usecase.dart';
 import 'package:your_choices/src/domain/usecases/firebase_usecases/vendor/update_restaurant_info_usecase.dart';
 import 'package:your_choices/src/presentation/blocs/customer_bloc/cart/cart_cubit.dart';
+import 'package:your_choices/src/presentation/blocs/customer_bloc/customer_order/customer_order_cubit.dart';
 import 'package:your_choices/src/presentation/blocs/customer_bloc/favorite/favorite_cubit.dart';
 import 'package:your_choices/src/presentation/blocs/customer_bloc/restaurant/restaurant_cubit.dart';
 import 'package:your_choices/src/presentation/blocs/vendor_bloc/add_add_ons/add_add_ons_cubit.dart';
@@ -38,6 +47,8 @@ import 'package:your_choices/src/presentation/blocs/vendor_bloc/add_filter_in_me
 import 'package:your_choices/src/presentation/blocs/vendor_bloc/add_filter_option/add_filter_option_cubit.dart';
 import 'package:your_choices/src/presentation/blocs/vendor_bloc/filter_option/filter_options_cubit.dart';
 import 'package:your_choices/src/presentation/blocs/vendor_bloc/menu/menu_cubit.dart';
+import 'package:your_choices/src/presentation/blocs/vendor_bloc/order_history/order_history_cubit.dart';
+import 'package:your_choices/src/presentation/views/vendor_side/today_order_view/cubit/today_order_cubit.dart';
 
 import 'src/data/data_sources/remote_data_source_impl/remote_data_source_impl.dart';
 import 'src/domain/usecases/firebase_usecases/vendor/filer_option/delete_filter_option_usecase.dart';
@@ -62,21 +73,32 @@ Future<void> init() async {
 
   sl.registerFactory(
     () => CustomerCubit(
+      createTransactionUseCase: sl.call(),
       getSingleCustomerUseCase: sl.call(),
       updateCustomerInfoUseCase: sl.call(),
     ),
   );
   sl.registerFactory(
-    () => FavoriteCubit(
+    () => CustomerOrderCubit(
+      receiveOrderFromRestaurantUseCase: sl.call(),
     ),
   );
   sl.registerFactory(
+    () => FavoriteCubit(),
+  );
+  sl.registerFactory(
     () => CartCubit(
+      sendConfirmOrderToRestaurantUseCase: sl.call(),
     ),
   );
   sl.registerFactory(
     () => RestaurantCubit(
       getAllRestaurantUseCase: sl.call(),
+    ),
+  );
+  sl.registerFactory(
+    () => OrderHistoryCubit(
+      receiveOrderByDateTimeUseCase: sl.call(),
     ),
   );
 
@@ -129,10 +151,23 @@ Future<void> init() async {
   sl.registerFactory(
     () => AddFilterInMenuCubit(),
   );
+  sl.registerFactory(
+    () => TodayOrderCubit(
+      deleteOrderUseCase: sl.call(),
+      confirmOrderUseCase: sl.call(),
+      receiveTodayOrderUseCase: sl.call(),
+    ),
+  );
 
   //use-cases customer
   sl.registerLazySingleton(
     () => GetSingleCustomerUseCase(repository: sl.call()),
+  );
+  sl.registerLazySingleton(
+    () => GetAccountBalanceUseCase(repository: sl.call()),
+  );
+  sl.registerLazySingleton(
+    () => CreateTransactionUseCase(repository: sl.call()),
   );
   sl.registerLazySingleton(
     () => GetCurrentUidUseCase(repository: sl.call()),
@@ -147,11 +182,37 @@ Future<void> init() async {
   sl.registerLazySingleton(
     () => UpdateCustomerInfoUseCase(repository: sl.call()),
   );
+  sl.registerLazySingleton(
+    () => SendConfirmOrderToRestaurantUseCase(repository: sl.call()),
+  );
+  sl.registerLazySingleton(
+    () => ReceiveOrderFromRestaurantUseCase(repository: sl.call()),
+  );
 
   //use-case vendor
 
   sl.registerLazySingleton(
     () => SignUpVendorUseCase(
+      repository: sl.call(),
+    ),
+  );
+  sl.registerLazySingleton(
+    () => DeleteOrderUseCase(
+      repository: sl.call(),
+    ),
+  );
+  sl.registerLazySingleton(
+    () => ConfirmOrderUseCase(
+      repository: sl.call(),
+    ),
+  );
+  sl.registerLazySingleton(
+    () => ReceiveTodayOrderUseCase(
+      repository: sl.call(),
+    ),
+  );
+  sl.registerLazySingleton(
+    () => ReceiveOrderByDateTimeUseCase(
       repository: sl.call(),
     ),
   );

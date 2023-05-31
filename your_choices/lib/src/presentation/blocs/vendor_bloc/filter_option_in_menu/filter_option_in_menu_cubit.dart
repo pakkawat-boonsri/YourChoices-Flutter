@@ -6,7 +6,6 @@ import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:your_choices/src/domain/entities/vendor/dishes_menu/dishes_entity.dart';
 import 'package:your_choices/src/domain/entities/vendor/filter_options/filter_option_entity.dart';
-
 import 'package:your_choices/src/domain/usecases/firebase_usecases/vendor/filter_option_in_menu/add_filter_option_in_menu_usecase.dart';
 import 'package:your_choices/src/domain/usecases/firebase_usecases/vendor/filter_option_in_menu/delete_filter_option_in_menu_usecase.dart';
 import 'package:your_choices/src/domain/usecases/firebase_usecases/vendor/filter_option_in_menu/get_filter_option_in_menu_usecase.dart';
@@ -29,10 +28,19 @@ class FilterOptionInMenuCubit extends Cubit<List<FilterOptionEntity>> {
   Future<void> addFilterOptionInMenu(
     List<FilterOptionEntity> filterOptions,
   ) async {
-    var seen = <FilterOptionEntity>{};
-    List<FilterOptionEntity> uniquelist =
-        filterOptions.where((country) => seen.add(country)).toList();
-    emit(uniquelist);
+    List<FilterOptionEntity> filters = [...state];
+
+    for (var filter in filterOptions) {
+      if (filters.contains(filter)) {
+        filters.remove(filter);
+      } else {
+        filters.add(filter);
+      }
+    }
+
+    for (var filter in filters) {
+      await addFilterOptionInMenuUseCase.call(filter);
+    }
   }
 
   Future<void> getFilterOptionInMenu(DishesEntity dishesEntity) async {
@@ -61,8 +69,7 @@ class FilterOptionInMenuCubit extends Cubit<List<FilterOptionEntity>> {
 
   final List<FilterOptionEntity> deleteFilterOptionList = [];
 
-  List<FilterOptionEntity> get getDeleteFilterOptionList =>
-      deleteFilterOptionList;
+  List<FilterOptionEntity> get getDeleteFilterOptionList => deleteFilterOptionList;
 
   Future<void> deleteFilterOptionInMenu(
     FilterOptionEntity filterOptionEntity,

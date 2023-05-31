@@ -5,7 +5,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:touchable_opacity/touchable_opacity.dart';
 import 'package:your_choices/src/config/app_routes/on_generate_routes.dart';
+import 'package:your_choices/src/domain/entities/customer/customer_entity.dart';
 import 'package:your_choices/src/presentation/blocs/customer_bloc/restaurant/restaurant_cubit.dart';
+import 'package:your_choices/src/presentation/widgets/custom_text.dart';
 import 'package:your_choices/utilities/hex_color.dart';
 
 import '../../../../../../../utilities/text_style.dart';
@@ -13,9 +15,11 @@ import '../../../../../../domain/entities/vendor/vendor_entity.dart';
 import '../../../../../blocs/customer_bloc/restaurant/restaurant_state.dart';
 
 class ListofRestaurants extends StatefulWidget {
+  final CustomerEntity customerEntity;
   final String restaurantType;
   const ListofRestaurants({
     Key? key,
+    required this.customerEntity,
     required this.restaurantType,
   }) : super(key: key);
 
@@ -80,7 +84,10 @@ class _ListofRestaurantsState extends State<ListofRestaurants> {
                         Navigator.pushNamed(
                           context,
                           PageConst.restuarantPageDetail,
-                          arguments: vendorEntity,
+                          arguments: {
+                            "customerEntity": widget.customerEntity,
+                            "vendorEntity": vendorEntity,
+                          },
                         );
                       },
                       child: Padding(
@@ -93,20 +100,59 @@ class _ListofRestaurantsState extends State<ListofRestaurants> {
                                 CachedNetworkImage(
                                   imageUrl: vendorEntity.resProfileUrl ?? "",
                                   imageBuilder: (context, imageProvider) {
-                                    return Container(
-                                      width: size.width * 0.35,
-                                      height: 120,
-                                      decoration: BoxDecoration(
-                                        image: DecorationImage(
-                                          image: imageProvider,
-                                          fit: BoxFit.cover,
-                                        ),
-                                        borderRadius: const BorderRadius.only(
-                                          topLeft: Radius.circular(10),
-                                          bottomLeft: Radius.circular(10),
-                                        ),
-                                      ),
-                                    );
+                                    return vendorEntity.isActive ?? false
+                                        ? Container(
+                                            width: size.width * 0.35,
+                                            height: size.width * 0.315,
+                                            decoration: BoxDecoration(
+                                              image: DecorationImage(
+                                                image: imageProvider,
+                                                fit: BoxFit.cover,
+                                              ),
+                                              borderRadius: const BorderRadius.only(
+                                                topLeft: Radius.circular(10),
+                                                bottomLeft: Radius.circular(10),
+                                              ),
+                                            ),
+                                          )
+                                        : SizedBox(
+                                            width: size.width * 0.35,
+                                            height: size.width * 0.31,
+                                            child: Stack(
+                                              children: [
+                                                Container(
+                                                  decoration: BoxDecoration(
+                                                    image: DecorationImage(
+                                                      image: imageProvider,
+                                                      fit: BoxFit.cover,
+                                                    ),
+                                                    borderRadius: const BorderRadius.only(
+                                                      topLeft: Radius.circular(10),
+                                                      bottomLeft: Radius.circular(10),
+                                                    ),
+                                                  ),
+                                                ),
+                                                Container(
+                                                  width: size.width * 0.35,
+                                                  height: size.width * 0.315,
+                                                  alignment: Alignment.center,
+                                                  decoration: BoxDecoration(
+                                                    color: Colors.black.withOpacity(0.7),
+                                                    borderRadius: const BorderRadius.only(
+                                                      topLeft: Radius.circular(10),
+                                                      bottomLeft: Radius.circular(10),
+                                                    ),
+                                                  ),
+                                                  child: const CustomText(
+                                                    text: "Close",
+                                                    color: Colors.white,
+                                                    fontSize: 20,
+                                                    fontWeight: FontWeight.w600,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          );
                                   },
                                   placeholder: (context, url) => Container(
                                     width: size.width * 0.35,

@@ -1,12 +1,19 @@
 import 'dart:ui';
 
+import 'package:badges/badges.dart' as badges;
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:touchable_opacity/touchable_opacity.dart';
+import 'package:your_choices/global.dart';
+import 'package:your_choices/injection_container.dart' as di;
 import 'package:your_choices/src/config/app_routes/on_generate_routes.dart';
 import 'package:your_choices/src/domain/entities/vendor/vendor_entity.dart';
+import 'package:your_choices/src/presentation/blocs/vendor_bloc/order_history/order_history_cubit.dart';
+import 'package:your_choices/src/presentation/views/vendor_side/order_history_view.dart/order_history_view.dart';
+import 'package:your_choices/src/presentation/views/vendor_side/today_order_view/cubit/today_order_cubit.dart';
 import 'package:your_choices/utilities/hex_color.dart';
 import 'package:your_choices/utilities/text_style.dart';
 
@@ -36,9 +43,10 @@ class _VendorMainViewState extends State<VendorMainView> {
   ];
 
   @override
-  void didChangeDependencies() {
+  void initState() {
     BlocProvider.of<VendorCubit>(context).getSingleVendor(uid: widget.uid);
-    super.didChangeDependencies();
+    BlocProvider.of<TodayOrderCubit>(context).receiveOrderFromCustomer(widget.uid, OrderTypes.pending.toString());
+    super.initState();
   }
 
   String? logout;
@@ -48,9 +56,31 @@ class _VendorMainViewState extends State<VendorMainView> {
   Widget build(BuildContext context) {
     Size size = MediaQuery.of(context).size;
     return Scaffold(
-      extendBodyBehindAppBar: true,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(150),
+          child: BlocBuilder<VendorCubit, VendorState>(
+            builder: (context, vendorState) {
+              if (vendorState is VendorLoaded) {
+                VendorEntity vendorEntity = vendorState.vendorEntity;
+                return headerTitle(size, vendorEntity, context);
+              }
+              return Container();
+            },
+          ),
+        ),
+        flexibleSpace: FlexibleSpaceBar(
+          background: BlocBuilder<VendorCubit, VendorState>(
+            builder: (context, vendorState) {
+              if (vendorState is VendorLoaded) {
+                VendorEntity vendorEntity = vendorState.vendorEntity;
+                return blurImageBg(size, vendorEntity);
+              }
+              return Container();
+            },
+          ),
+        ),
         elevation: 0,
         title: PopupMenuButton(
           child: const Icon(Icons.exit_to_app_rounded),
@@ -71,7 +101,7 @@ class _VendorMainViewState extends State<VendorMainView> {
       ),
       body: Column(
         children: [
-          _buildBlocHeaderSection(size),
+          // _buildBlocHeaderSection(size),
           const SizedBox(
             height: 20,
           ),
@@ -117,11 +147,14 @@ class _VendorMainViewState extends State<VendorMainView> {
         }
       case 2:
         {
-          return Navigator.pushNamed(
-            context,
-            PageConst.orderHistoryPage,
-            arguments: vendorEntity,
-          );
+          return Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => BlocProvider(
+                  create: (context) => di.sl<OrderHistoryCubit>(),
+                  child: OrderHistoryView(vendorEntity: vendorEntity),
+                ),
+              ));
         }
       default:
     }
@@ -232,7 +265,7 @@ class _VendorMainViewState extends State<VendorMainView> {
           return TouchableOpacity(
             onTap: vendorEntity.isActive == true
                 ? () {
-                    Navigator.pushNamed(context, PageConst.todayOrderPage);
+                    Navigator.pushNamed(context, PageConst.todayOrderPage, arguments: vendorEntity.uid);
                   }
                 : null,
             child: Container(
@@ -247,10 +280,42 @@ class _VendorMainViewState extends State<VendorMainView> {
                 padding: const EdgeInsets.symmetric(horizontal: 10),
                 child: Row(
                   children: [
-                    const Icon(
-                      CupertinoIcons.cart,
-                      color: Colors.white,
-                      size: 26,
+                    BlocBuilder<TodayOrderCubit, TodayOrderState>(
+                      builder: (context, state) {
+                        if (state is TodayOrderLoading) {
+                        } else if (state is TodayOrderLoaded) {
+                          return state.orderEntities
+                                  .where((element) => element.orderTypes == OrderTypes.pending.toString())
+                                  .isNotEmpty
+                              ? badges.Badge(
+                                  position: badges.BadgePosition.topEnd(top: -16, end: -12),
+                                  badgeContent: Text(
+                                    "${state.orderEntities.length}",
+                                    style: AppTextStyle.googleFont(
+                                      Colors.white,
+                                      14,
+                                      FontWeight.w500,
+                                    ),
+                                  ),
+                                  badgeStyle: const badges.BadgeStyle(
+                                    badgeColor: Colors.red,
+                                    padding: EdgeInsets.all(6),
+                                  ),
+                                  showBadge: state.orderEntities.isNotEmpty,
+                                  child: const Icon(
+                                    CupertinoIcons.cart,
+                                    color: Colors.white,
+                                    size: 26,
+                                  ),
+                                )
+                              : const Icon(
+                                  CupertinoIcons.cart,
+                                  color: Colors.white,
+                                  size: 26,
+                                );
+                        }
+                        return Container();
+                      },
                     ),
                     const SizedBox(
                       width: 15,
@@ -280,9 +345,7 @@ class _VendorMainViewState extends State<VendorMainView> {
                             child: Icon(
                               CupertinoIcons.forward,
                               size: 23,
-                              color: vendorEntity.isActive!
-                                  ? Colors.green
-                                  : Colors.red,
+                              color: vendorEntity.isActive! ? Colors.green : Colors.red,
                             ),
                           ),
                         ],
@@ -300,212 +363,190 @@ class _VendorMainViewState extends State<VendorMainView> {
     );
   }
 
-  BlocBuilder<VendorCubit, VendorState> _buildBlocHeaderSection(Size size) {
-    return BlocBuilder<VendorCubit, VendorState>(
-      builder: (context, vendorState) {
-        if (vendorState is VendorLoaded) {
-          VendorEntity vendorEntity = vendorState.vendorEntity;
-          return Stack(
-            children: [
-              blurImageBg(size, vendorEntity),
-              headerTitle(size, vendorEntity, context),
-            ],
-          );
-        }
-        return Container();
-      },
-    );
-  }
-
   Widget headerTitle(
     Size size,
     VendorEntity vendorEntity,
     BuildContext context,
   ) {
-    return Padding(
-      padding: EdgeInsets.only(top: size.height / 9),
-      child: Column(
-        children: [
-          Container(
-            margin: const EdgeInsets.symmetric(
-              horizontal: 20,
-            ),
-            width: size.width,
-            child: Text(
-              "${vendorEntity.resName}",
-              style: AppTextStyle.googleFont(
-                Colors.white,
-                24,
-                FontWeight.bold,
-              ),
+    return Column(
+      children: [
+        Container(
+          margin: const EdgeInsets.symmetric(
+            horizontal: 20,
+          ),
+          width: size.width,
+          child: Text(
+            "${vendorEntity.resName}",
+            style: AppTextStyle.googleFont(
+              Colors.white,
+              24,
+              FontWeight.bold,
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 20,
-            ),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: 20,
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                "${vendorEntity.username}",
+                style: AppTextStyle.googleFont(
+                  Colors.white,
+                  18,
+                  FontWeight.w500,
+                ),
+              ),
+              SizedBox(
+                width: 56,
+                height: 56,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(10),
+                  child: vendorEntity.profileUrl != null || vendorEntity.profileUrl != ""
+                      ? CachedNetworkImage(
+                          imageUrl: vendorEntity.profileUrl!,
+                          fit: BoxFit.cover,
+                        )
+                      : Image.asset("assets/images/image_picker.png"),
+                ),
+              )
+            ],
+          ),
+        ),
+        const SizedBox(
+          height: 10,
+        ),
+        Container(
+          width: size.width,
+          height: 49,
+          margin: const EdgeInsets.symmetric(
+            horizontal: 20,
+          ),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(5),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 10),
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  "${vendorEntity.username}",
-                  style: AppTextStyle.googleFont(
-                    Colors.white,
-                    18,
-                    FontWeight.w500,
+                FaIcon(
+                  FontAwesomeIcons.store,
+                  size: 26,
+                  color: vendorEntity.isActive! ? Colors.green : Colors.red,
+                ),
+                const SizedBox(
+                  width: 10,
+                ),
+                vendorEntity.isActive!
+                    ? Text(
+                        "เปิดรับออเดอร์",
+                        style: AppTextStyle.googleFont(
+                          Colors.green,
+                          17,
+                          FontWeight.w500,
+                        ),
+                      )
+                    : Text(
+                        "ปิดรับออเดอร์",
+                        style: AppTextStyle.googleFont(
+                          Colors.red,
+                          17,
+                          FontWeight.w500,
+                        ),
+                      ),
+                const Spacer(),
+                const VerticalDivider(
+                  endIndent: 7,
+                  indent: 7,
+                  color: Colors.grey,
+                  thickness: 1,
+                ),
+                const SizedBox(
+                  width: 3,
+                ),
+                TouchableOpacity(
+                  onTap: () {
+                    showModalBottomSheet(
+                      context: context,
+                      builder: (context) {
+                        return Wrap(
+                          children: [
+                            ListTile(
+                              onTap: () async {
+                                await BlocProvider.of<VendorCubit>(context)
+                                    .openAndCloseRestaurant(
+                                  vendorEntity.copyWith(isActive: true),
+                                )
+                                    .then((value) {
+                                  if (mounted) {
+                                    Navigator.of(context).pop();
+                                  }
+                                });
+                              },
+                              title: Text(
+                                "เปิดร้าน",
+                                style: AppTextStyle.googleFont(
+                                  Colors.black,
+                                  18,
+                                  FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                            const Divider(
+                              indent: 10,
+                              endIndent: 10,
+                              height: 1,
+                              color: Colors.black,
+                            ),
+                            ListTile(
+                              onTap: () async {
+                                await BlocProvider.of<VendorCubit>(context)
+                                    .openAndCloseRestaurant(
+                                  vendorEntity.copyWith(isActive: false),
+                                )
+                                    .then((value) {
+                                  if (mounted) {
+                                    Navigator.of(context).pop();
+                                  }
+                                });
+                              },
+                              title: Text(
+                                "ปิดร้าน",
+                                style: AppTextStyle.googleFont(
+                                  Colors.black,
+                                  18,
+                                  FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                          ],
+                        );
+                      },
+                    );
+                  },
+                  child: Text(
+                    "เปลี่ยน",
+                    style: AppTextStyle.googleFont(
+                      Colors.grey,
+                      17,
+                      FontWeight.w500,
+                    ),
                   ),
                 ),
-                SizedBox(
-                  width: 56,
-                  height: 56,
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(10),
-                    child: vendorEntity.profileUrl != null ||
-                            vendorEntity.profileUrl != ""
-                        ? CachedNetworkImage(
-                            imageUrl: vendorEntity.profileUrl!,
-                            fit: BoxFit.cover,
-                          )
-                        : Image.asset("assets/images/image_picker.png"),
-                  ),
-                )
               ],
             ),
           ),
-          const SizedBox(
-            height: 13,
-          ),
-          Container(
-            width: size.width,
-            height: 49,
-            margin: const EdgeInsets.symmetric(
-              horizontal: 20,
-            ),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(5),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 10),
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.storefront_outlined,
-                    size: 26,
-                    color: vendorEntity.isActive! ? Colors.black : Colors.grey,
-                  ),
-                  const SizedBox(
-                    width: 10,
-                  ),
-                  vendorEntity.isActive!
-                      ? Text(
-                          "เปิดรับออเดอร์",
-                          style: AppTextStyle.googleFont(
-                            Colors.green,
-                            17,
-                            FontWeight.w500,
-                          ),
-                        )
-                      : Text(
-                          "ปิดรับออเดอร์",
-                          style: AppTextStyle.googleFont(
-                            Colors.red,
-                            17,
-                            FontWeight.w500,
-                          ),
-                        ),
-                  const Spacer(),
-                  const VerticalDivider(
-                    endIndent: 7,
-                    indent: 7,
-                    color: Colors.grey,
-                    thickness: 1,
-                  ),
-                  const SizedBox(
-                    width: 3,
-                  ),
-                  TouchableOpacity(
-                    onTap: () {
-                      showModalBottomSheet(
-                        context: context,
-                        builder: (context) {
-                          return Wrap(
-                            children: [
-                              ListTile(
-                                onTap: () async {
-                                  await BlocProvider.of<VendorCubit>(context)
-                                      .openAndCloseRestaurant(
-                                    vendorEntity.copyWith(isActive: true),
-                                  )
-                                      .then((value) {
-                                    if (mounted) {
-                                      Navigator.of(context).pop();
-                                    }
-                                  });
-                                },
-                                title: Text(
-                                  "เปิดร้าน",
-                                  style: AppTextStyle.googleFont(
-                                    Colors.black,
-                                    18,
-                                    FontWeight.w500,
-                                  ),
-                                ),
-                              ),
-                              const Divider(
-                                indent: 10,
-                                endIndent: 10,
-                                height: 1,
-                                color: Colors.black,
-                              ),
-                              ListTile(
-                                onTap: () async {
-                                  await BlocProvider.of<VendorCubit>(context)
-                                      .openAndCloseRestaurant(
-                                    vendorEntity.copyWith(isActive: false),
-                                  )
-                                      .then((value) {
-                                    if (mounted) {
-                                      Navigator.of(context).pop();
-                                    }
-                                  });
-                                },
-                                title: Text(
-                                  "ปิดร้าน",
-                                  style: AppTextStyle.googleFont(
-                                    Colors.black,
-                                    18,
-                                    FontWeight.w500,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          );
-                        },
-                      );
-                    },
-                    child: Text(
-                      "เปลี่ยน",
-                      style: AppTextStyle.googleFont(
-                        Colors.grey,
-                        17,
-                        FontWeight.w500,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          )
-        ],
-      ),
+        )
+      ],
     );
   }
 
   Container blurImageBg(Size size, VendorEntity vendorEntity) {
     return Container(
       width: size.width,
-      height: size.height * 1 / 3.3,
       decoration: BoxDecoration(
         image: DecorationImage(
           image: CachedNetworkImageProvider(vendorEntity.resProfileUrl!),

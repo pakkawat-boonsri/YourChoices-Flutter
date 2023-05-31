@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:your_choices/src/domain/entities/customer/customer_entity.dart';
 import 'package:your_choices/src/domain/entities/vendor/filter_options/filter_option_entity.dart';
 import 'package:your_choices/src/domain/entities/vendor/vendor_entity.dart';
+import 'package:your_choices/src/presentation/views/customer_side/cart_view/cart_item_detail/cart_item_detail.dart';
 import 'package:your_choices/src/presentation/views/customer_side/cart_view/cart_view.dart';
-import 'package:your_choices/src/presentation/views/customer_side/customer_order_history_view/customer_order_history_view.dart';
+import 'package:your_choices/src/presentation/views/customer_side/cart_view/confirm_cart_items_view/confirm_cart_items_view.dart';
+import 'package:your_choices/src/presentation/views/customer_side/customer_order_view/customer_order_view.dart';
 import 'package:your_choices/src/presentation/views/customer_side/favorite_view/favorite_view.dart';
 import 'package:your_choices/src/presentation/views/customer_side/home_view/deposit_view/deposit_view.dart';
 import 'package:your_choices/src/presentation/views/customer_side/home_view/withdraw_view/withdraw_view.dart';
@@ -70,10 +72,11 @@ class OnGenerateRoute {
         }
       case PageConst.restuarantPageDetail:
         {
-          if (args is VendorEntity) {
+          if (args is Map) {
             return routeBuilder(
               RestaurantDetailView(
-                vendorEntity: args,
+                customerEntity: args['customerEntity'],
+                vendorEntity: args['vendorEntity'],
               ),
             );
           } else {
@@ -87,6 +90,7 @@ class OnGenerateRoute {
           if (args is Map) {
             return routeBuilder(
               FoodDetailView(
+                customerEntity: args['customerEntity'],
                 vendorEntity: args['vendorEntity'],
                 dishesEntity: args['dishesEntity'],
               ),
@@ -97,9 +101,33 @@ class OnGenerateRoute {
             );
           }
         }
-      case PageConst.customerOrderHistoryPage:
+      case PageConst.cartItemDetailPage:
         {
-          return routeBuilder(const CustomerOrderHistoryView());
+          if (args is Map) {
+            return routeBuilder(
+              CartItemDetailView(
+                vendorEntity: args['vendorEntity'],
+                cartItemEntity: args['cartItemEntity'],
+              ),
+            );
+          } else {
+            return routeBuilder(
+              const NoPageFound(),
+            );
+          }
+        }
+
+      case PageConst.customerOrderPage:
+        {
+          if (args is CustomerEntity) {
+            return routeBuilder(CustomerOrderView(
+              customerEntity: args,
+            ));
+          } else {
+            return routeBuilder(
+              const NoPageFound(),
+            );
+          }
         }
       case PageConst.searchboxPage:
         {
@@ -111,14 +139,46 @@ class OnGenerateRoute {
         }
       case PageConst.cartPage:
         {
-          return routeBuilder(const CartView());
+          if (args is CustomerEntity) {
+            return routeBuilder(CartView(
+              customerEntity: args,
+            ));
+          } else {
+            return routeBuilder(
+              const NoPageFound(),
+            );
+          }
+        }
+      case PageConst.confirmCartItemPage:
+        {
+          if (args is Map) {
+            return routeBuilder(
+              ConfirmCartItemsView(
+                customerEntity: args['customerEntity'],
+                cartItemEntities: args['cartItemEntities'],
+                vendorEntities: args['vendorEntities'],
+              ),
+            );
+          } else {
+            return routeBuilder(
+              const NoPageFound(),
+            );
+          }
         }
       // vendor route
       case PageConst.todayOrderPage:
         {
-          return routeBuilder(
-            const TodayOrderView(),
-          );
+          if (args is String) {
+            return routeBuilder(
+              TodayOrderView(
+                uid: args,
+              ),
+            );
+          } else {
+            return routeBuilder(
+              const NoPageFound(),
+            );
+          }
         }
       case PageConst.vendorMainView:
         {
@@ -274,10 +334,14 @@ class PageConst {
   static const String restuarantPageDetail = "restuarantPageDetail";
   static const String foodDetailPage = "foodDetailPage";
   static const String profilePage = "profilePage";
-  static const String customerOrderHistoryPage = "customerOrderHistoryPage";
+
+  static const String customerOrderPage = "customerOrderPage";
   static const String favoritePage = "favoritePage";
   static const String cartPage = "cartPage";
   static const String searchboxPage = "searchboxPage";
+  static const String cartItemDetailPage = "cartItemDetailPage";
+  static const String confirmCartItemPage = "confirmCartItemPage";
+
   //vendor routes
   static const String vendorMainView = "vendorMainView";
   static const String menuPage = "menuPage";

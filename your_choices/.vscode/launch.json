@@ -20,6 +20,27 @@
             "request": "launch",
             "type": "dart",
             "flutterMode": "release"
+        },
+        {
+            "name": "CustomerMobile",
+            "request": "launch",
+            "type": "dart",
+            "deviceId": "emulator-5554",
+        },
+        {
+            "name": "RestaurantMobile",
+            "request": "launch",
+            "type": "dart",
+            "deviceId": "emulator-5556",
+        },
+    ],
+    "compounds": [
+        {
+            "name": "All Devices",
+            "configurations": [
+                "CustomerMobile",
+                "RestaurantMobile",
+            ]
         }
-    ]
+    ],
 }

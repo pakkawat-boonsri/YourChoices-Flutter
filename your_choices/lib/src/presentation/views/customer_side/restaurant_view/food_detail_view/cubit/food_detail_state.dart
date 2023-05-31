@@ -4,6 +4,7 @@ part of 'food_detail_cubit.dart';
 class FoodDetailState extends Equatable {
   final List<FilterOptionEntity> filters;
   final List<bool> isSelectRequireFilters;
+  final bool isEnable;
   final List<num> additionalPrice;
   final String eatHereOrTakeHome;
   final int quantity;
@@ -11,6 +12,7 @@ class FoodDetailState extends Equatable {
   const FoodDetailState({
     this.filters = const [],
     this.isSelectRequireFilters = const [],
+    this.isEnable = true,
     this.additionalPrice = const [],
     this.eatHereOrTakeHome = "",
     this.quantity = 1,
@@ -20,6 +22,7 @@ class FoodDetailState extends Equatable {
   List<Object> get props => [
         filters,
         isSelectRequireFilters,
+        isEnable,
         additionalPrice,
         eatHereOrTakeHome,
         quantity,
@@ -28,14 +31,15 @@ class FoodDetailState extends Equatable {
   FoodDetailState copyWith({
     List<FilterOptionEntity>? filters,
     List<bool>? isSelectRequireFilters,
+    bool? isEnable,
     List<num>? additionalPrice,
     String? eatHereOrTakeHome,
     int? quantity,
   }) {
     return FoodDetailState(
       filters: filters ?? this.filters,
-      isSelectRequireFilters:
-          isSelectRequireFilters ?? this.isSelectRequireFilters,
+      isSelectRequireFilters: isSelectRequireFilters ?? this.isSelectRequireFilters,
+      isEnable: isEnable ?? this.isEnable,
       additionalPrice: additionalPrice ?? this.additionalPrice,
       eatHereOrTakeHome: eatHereOrTakeHome ?? this.eatHereOrTakeHome,
       quantity: quantity ?? this.quantity,
