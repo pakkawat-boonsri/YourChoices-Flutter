@@ -283,6 +283,11 @@ class _VendorMainViewState extends State<VendorMainView> {
                     BlocBuilder<TodayOrderCubit, TodayOrderState>(
                       builder: (context, state) {
                         if (state is TodayOrderLoading) {
+                          return const Icon(
+                            CupertinoIcons.cart,
+                            color: Colors.white,
+                            size: 26,
+                          );
                         } else if (state is TodayOrderLoaded) {
                           return state.orderEntities
                                   .where((element) => element.orderTypes == OrderTypes.pending.toString())

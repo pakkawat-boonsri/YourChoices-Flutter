@@ -70,6 +70,7 @@ flutter {
 }
 
 dependencies {
+    implementation 'com.google.mlkit:barcode-scanning:17.1.0'
     implementation platform('com.google.firebase:firebase-bom:30.4.1')
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
 }

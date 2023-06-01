@@ -7,6 +7,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:your_choices/global.dart';
 import 'package:your_choices/src/data/data_sources/remote_data_source/remote_data_source.dart';
+import 'package:your_choices/src/data/models/admin_model/admin_transaction_model.dart';
 import 'package:your_choices/src/data/models/customer_model/confirm_order_model/confirm_order_model.dart';
 import 'package:your_choices/src/data/models/customer_model/customer_model.dart';
 import 'package:your_choices/src/data/models/customer_model/transaction_model/transaction_model.dart';
@@ -15,6 +16,7 @@ import 'package:your_choices/src/data/models/vendor_model/dishes_model/dishes_mo
 import 'package:your_choices/src/data/models/vendor_model/filter_option_model/filter_option_model.dart';
 import 'package:your_choices/src/data/models/vendor_model/order_model/order_model.dart';
 import 'package:your_choices/src/data/models/vendor_model/vendor_model.dart';
+import 'package:your_choices/src/domain/entities/admin/admin_transaction_entity.dart';
 import 'package:your_choices/src/domain/entities/customer/confirm_order/confirm_order_entity.dart';
 import 'package:your_choices/src/domain/entities/customer/customer_entity.dart';
 import 'package:your_choices/src/domain/entities/customer/transaction/transaction_entity.dart';
@@ -227,7 +229,7 @@ class FirebaseRemoteDataSourceImpl implements FirebaseRemoteDataSource {
 
   @override
   Future<String> signInRole(String uid) async {
-    List<String> types = [FirebaseConst.customer, FirebaseConst.restaurant];
+    List<String> types = [FirebaseConst.customer, FirebaseConst.restaurant, FirebaseConst.admin];
 
     Future<String> checkRoleData() async {
       for (var type in types) {
@@ -236,6 +238,8 @@ class FirebaseRemoteDataSourceImpl implements FirebaseRemoteDataSource {
           var data = snapshot.data();
           var role = data?['type'];
           if (role == FirebaseConst.restaurant) {
+            return role;
+          } else if (role == FirebaseConst.customer) {
             return role;
           } else {
             return role;
@@ -1022,7 +1026,6 @@ class FirebaseRemoteDataSourceImpl implements FirebaseRemoteDataSource {
           .update({"balance": returnTotalPrice}).catchError((e) {
         log(e.toString());
       });
-
       final restaurantHistoryCollection = firebaseFireStore
           .collection(FirebaseConst.restaurant)
           .doc(orderEntity.restaurantId)
@@ -1148,12 +1151,103 @@ class FirebaseRemoteDataSourceImpl implements FirebaseRemoteDataSource {
     final uid = await getCurrentUid();
     final restaurantHistoryCollection =
         firebaseFireStore.collection(FirebaseConst.restaurant).doc(uid).collection(FirebaseConst.restaurantHistory);
+    final startOfDay = DateTime(timestamp.toDate().year, timestamp.toDate().month, timestamp.toDate().day);
+    final endOfDay = DateTime(timestamp.toDate().year, timestamp.toDate().month, timestamp.toDate().day + 1);
 
-    final querySnapshot = await restaurantHistoryCollection.where("createdAt", isEqualTo: timestamp).get();
+    final querySnapshot = await restaurantHistoryCollection
+        .where("createdAt", isGreaterThanOrEqualTo: startOfDay)
+        .where("createdAt", isLessThan: endOfDay)
+        .get();
 
     final orderEntities = querySnapshot.docs.map<OrderEntity>((orderDoc) => OrderModel.fromMap(orderDoc.data())).toList();
 
     yield orderEntities;
+  }
+
+  @override
+  Future<void> approveCustomerDepositOrWithdraw(CustomerEntity customerEntity) async {
+    final customerCollection = firebaseFireStore.collection(FirebaseConst.customer).doc(customerEntity.uid);
+    final customerSnapshot = await customerCollection.get();
+    final currentBalance = (customerSnapshot.data()?['balance'] ?? 0) as num;
+
+    num newBalance = 0;
+    if (customerEntity.depositAmount != null && customerEntity.withdrawAmount == null) {
+      num amount = num.parse(customerEntity.depositAmount ?? "0");
+      newBalance = currentBalance + amount;
+    } else if (customerEntity.depositAmount == null && customerEntity.withdrawAmount != null) {
+      num amount = num.parse(customerEntity.withdrawAmount ?? "0");
+      newBalance = currentBalance - amount;
+      if (newBalance < 0) {
+        showFlutterToast("ไม่สามารถทำธุรกรรมได้เนื่องจากจำนวนเงินไม่เพียงพอต่อการถอน");
+        return;
+      }
+    } else {
+      log("ไม่มี transaction อันนี้ในระบบ");
+    }
+    // Update the balance in Firestore
+    await customerCollection.update({'balance': newBalance});
+  }
+
+  @override
+  Future<void> createTransactionFromAdminHistory(AdminTransactionEntity adminTransactionEntity) async {
+    final uid = await getCurrentUid();
+    final adminHistoryCollection =
+        firebaseFireStore.collection(FirebaseConst.admin).doc(uid).collection(FirebaseConst.adminHistory);
+
+    if (adminTransactionEntity.transactionType == "deposit") {
+      final newAdminTransactionModel = AdminTransactionModel(
+        id: adminTransactionEntity.id,
+        date: adminTransactionEntity.date,
+        customerName: adminTransactionEntity.customerName,
+        deposit: adminTransactionEntity.deposit,
+        transactionType: adminTransactionEntity.transactionType,
+        withdraw: adminTransactionEntity.withdraw,
+      ).toMap();
+
+      await adminHistoryCollection.doc(adminTransactionEntity.id).get().then((adminTransactionDoc) async {
+        if (adminTransactionDoc.exists) {
+          await adminHistoryCollection.doc(adminTransactionEntity.id).update(newAdminTransactionModel);
+        } else {
+          await adminHistoryCollection.doc(adminTransactionEntity.id).set(newAdminTransactionModel);
+        }
+      });
+    } else if (adminTransactionEntity.transactionType == "withdraw") {
+      final newAdminTransactionModel = AdminTransactionModel(
+        id: adminTransactionEntity.id,
+        date: adminTransactionEntity.date,
+        customerName: adminTransactionEntity.customerName,
+        deposit: adminTransactionEntity.deposit,
+        transactionType: adminTransactionEntity.transactionType,
+        withdraw: adminTransactionEntity.withdraw,
+      ).toMap();
+
+      await adminHistoryCollection.doc(adminTransactionEntity.id).get().then((adminTransactionDoc) async {
+        if (adminTransactionDoc.exists) {
+          await adminHistoryCollection.doc(adminTransactionEntity.id).update(newAdminTransactionModel);
+        } else {
+          await adminHistoryCollection.doc(adminTransactionEntity.id).set(newAdminTransactionModel);
+        }
+      });
+    }
+  }
+
+  @override
+  Stream<List<AdminTransactionEntity>> getTransactionFromAdminHistoryByDateTime(Timestamp timestamp) async* {
+    final uid = await getCurrentUid();
+    final adminHistoryCollection =
+        firebaseFireStore.collection(FirebaseConst.admin).doc(uid).collection(FirebaseConst.adminHistory);
+    final startOfDay = DateTime(timestamp.toDate().year, timestamp.toDate().month, timestamp.toDate().day);
+    final endOfDay = DateTime(timestamp.toDate().year, timestamp.toDate().month, timestamp.toDate().day + 1);
+
+    final querySnapshot = await adminHistoryCollection
+        .where("date", isGreaterThanOrEqualTo: startOfDay)
+        .where("date", isLessThan: endOfDay)
+        .get();
+
+    final adminTransactionEntities =
+        querySnapshot.docs.map((adminTransactionDoc) => AdminTransactionModel.fromMap(adminTransactionDoc.data())).toList();
+
+    yield adminTransactionEntities;
   }
 }
 
@@ -1161,6 +1255,8 @@ class FirebaseConst {
   static const String menu = "menu";
   static const String customer = "customer";
   static const String restaurant = "restuarant";
+  static const String admin = "admin";
+  static const String adminHistory = "adminHistory";
   static const String addons = "addons";
   static const String filterOption = "filterOption";
   static const String transaction = "transaction";

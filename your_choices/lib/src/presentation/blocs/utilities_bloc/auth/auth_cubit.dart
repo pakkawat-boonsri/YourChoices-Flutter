@@ -26,12 +26,10 @@ class AuthCubit extends Cubit<AuthState> {
   Future<void> appStarted(BuildContext context) async {
     try {
       bool isSignIn = await isSignInUseCase.call();
-      log("logging isSignIn in cubit $isSignIn");
+      
       if (isSignIn) {
         final String uid = await getCurrentUidUseCase.call();
         final String type = await signInRoleUseCase.call(uid);
-        log("logging uid in cubit $uid");
-        log("logging type in cubit $type");
         emit(Authenticated(
           uid: uid,
           type: type,

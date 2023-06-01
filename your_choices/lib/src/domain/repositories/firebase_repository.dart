@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:your_choices/src/domain/entities/admin/admin_transaction_entity.dart';
 import 'package:your_choices/src/domain/entities/customer/confirm_order/confirm_order_entity.dart';
 import 'package:your_choices/src/domain/entities/customer/customer_entity.dart';
 import 'package:your_choices/src/domain/entities/customer/transaction/transaction_entity.dart';
@@ -11,6 +12,11 @@ import 'package:your_choices/src/domain/entities/vendor/order/order_entity.dart'
 import '../entities/vendor/vendor_entity.dart';
 
 abstract class FirebaseRepository {
+  //for admin
+  Future<void> approveCustomerDepositOrWithdraw(CustomerEntity customerEntity);
+  Future<void> createTransactionFromAdminHistory(AdminTransactionEntity adminTransactionEntity);
+  Stream<List<AdminTransactionEntity>> getTransactionFromAdminHistoryByDateTime(Timestamp timestamp);
+
   //for Customer
   Future<void> signUpCustomer(CustomerEntity customer);
   Stream<List<CustomerEntity>> getSingleCustomer(String uid);

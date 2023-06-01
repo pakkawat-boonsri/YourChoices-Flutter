@@ -33,14 +33,11 @@
             "type": "dart",
             "deviceId": "emulator-5556",
         },
-    ],
-    "compounds": [
         {
-            "name": "All Devices",
-            "configurations": [
-                "CustomerMobile",
-                "RestaurantMobile",
-            ]
-        }
+            "name": "AdminMobile",
+            "request": "launch",
+            "type": "dart",
+            "deviceId": "emulator-5558",
+        },
     ],
 }

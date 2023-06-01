@@ -5,6 +5,7 @@ import 'package:intl/date_symbol_data_local.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:your_choices/src/config/app_routes/on_generate_routes.dart';
+import 'package:your_choices/src/presentation/blocs/admin_bloc/admin_cubit.dart';
 import 'package:your_choices/src/presentation/blocs/customer_bloc/cart/cart_cubit.dart';
 import 'package:your_choices/src/presentation/blocs/customer_bloc/customer_order/customer_order_cubit.dart';
 import 'package:your_choices/src/presentation/blocs/customer_bloc/favorite/favorite_cubit.dart';
@@ -14,6 +15,7 @@ import 'package:your_choices/src/presentation/blocs/vendor_bloc/add_filter_in_me
 import 'package:your_choices/src/presentation/blocs/vendor_bloc/add_filter_option/add_filter_option_cubit.dart';
 import 'package:your_choices/src/presentation/blocs/vendor_bloc/filter_option/filter_options_cubit.dart';
 import 'package:your_choices/src/presentation/blocs/vendor_bloc/menu/menu_cubit.dart';
+import 'package:your_choices/src/presentation/views/admin_side/admin_main_view/admin_main_view.dart';
 import 'package:your_choices/src/presentation/views/customer_side/customer_main_view/customer_main_view.dart';
 import 'package:your_choices/src/presentation/views/login_view/login_view.dart';
 import 'package:your_choices/src/presentation/views/vendor_side/today_order_view/cubit/today_order_cubit.dart';
@@ -66,6 +68,7 @@ class _YourChoicesState extends State<YourChoices> {
         BlocProvider(create: (_) => di.sl<CartCubit>()),
         BlocProvider(create: (_) => di.sl<TodayOrderCubit>()),
         BlocProvider(create: (_) => di.sl<CustomerOrderCubit>()),
+        BlocProvider(create: (_) => di.sl<AdminCubit>()),
       ],
       child: MaterialApp(
         onGenerateRoute: OnGenerateRoute.route,
@@ -87,8 +90,10 @@ class _YourChoicesState extends State<YourChoices> {
                 if (state is Authenticated) {
                   if (state.type == "restaurant") {
                     return VendorMainView(uid: state.uid);
-                  } else {
+                  } else if (state.type == 'customer') {
                     return CustomerMainView(uid: state.uid);
+                  } else {
+                    return AdminMainView(uid: state.uid);
                   }
                 } else {
                   return const LoginView();

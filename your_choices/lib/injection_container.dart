@@ -5,6 +5,9 @@ import 'package:get_it/get_it.dart';
 import 'package:your_choices/src/data/data_sources/remote_data_source/remote_data_source.dart';
 import 'package:your_choices/src/data/repositories/firebase_repository_impl.dart';
 import 'package:your_choices/src/domain/repositories/firebase_repository.dart';
+import 'package:your_choices/src/domain/usecases/firebase_usecases/admin/approve_customer_deposit_or_withdraw_usecase.dart';
+import 'package:your_choices/src/domain/usecases/firebase_usecases/admin/create_transaction_from_admin_history_usecase.dart';
+import 'package:your_choices/src/domain/usecases/firebase_usecases/admin/get_transaction_from_admin_history_by_date_time_usecase.dart';
 import 'package:your_choices/src/domain/usecases/firebase_usecases/customer/create_transaction_usecase.dart';
 import 'package:your_choices/src/domain/usecases/firebase_usecases/customer/get_account_balance_usecase.dart';
 import 'package:your_choices/src/domain/usecases/firebase_usecases/customer/get_current_uid_usecase.dart';
@@ -38,6 +41,7 @@ import 'package:your_choices/src/domain/usecases/firebase_usecases/vendor/today_
 import 'package:your_choices/src/domain/usecases/firebase_usecases/vendor/today_order_usecases/delete_order_usecase.dart';
 import 'package:your_choices/src/domain/usecases/firebase_usecases/vendor/today_order_usecases/receive_today_order_usecase.dart';
 import 'package:your_choices/src/domain/usecases/firebase_usecases/vendor/update_restaurant_info_usecase.dart';
+import 'package:your_choices/src/presentation/blocs/admin_bloc/admin_cubit.dart';
 import 'package:your_choices/src/presentation/blocs/customer_bloc/cart/cart_cubit.dart';
 import 'package:your_choices/src/presentation/blocs/customer_bloc/customer_order/customer_order_cubit.dart';
 import 'package:your_choices/src/presentation/blocs/customer_bloc/favorite/favorite_cubit.dart';
@@ -157,6 +161,24 @@ Future<void> init() async {
       confirmOrderUseCase: sl.call(),
       receiveTodayOrderUseCase: sl.call(),
     ),
+  );
+  sl.registerFactory(
+    () => AdminCubit(
+      approveCustomerDepositOrWithdrawUseCase: sl.call(),
+      createTransactionFromAdminHistoryUseCase: sl.call(),
+      getTransactionFromAdminHistoryByDateTimeUseCase: sl.call(),
+    ),
+  );
+
+  //use-cases admin
+  sl.registerLazySingleton(
+    () => GetTransactionFromAdminHistoryByDateTimeUseCase(repository: sl.call()),
+  );
+  sl.registerLazySingleton(
+    () => CreateTransactionFromAdminHistoryUseCase(repository: sl.call()),
+  );
+  sl.registerLazySingleton(
+    () => ApproveCustomerDepositOrWithdrawUseCase(repository: sl.call()),
   );
 
   //use-cases customer

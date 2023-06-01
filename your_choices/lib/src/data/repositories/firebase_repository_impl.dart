@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:cloud_firestore_platform_interface/src/timestamp.dart';
+import 'package:your_choices/src/domain/entities/admin/admin_transaction_entity.dart';
 import 'package:your_choices/src/domain/entities/customer/confirm_order/confirm_order_entity.dart';
 import 'package:your_choices/src/domain/entities/customer/transaction/transaction_entity.dart';
 import 'package:your_choices/src/domain/entities/vendor/dishes_menu/dishes_entity.dart';
@@ -163,9 +164,21 @@ class FirebaseRepositoryImpl implements FirebaseRepository {
       await remoteDataSource.createTransaction(transactionEntity);
 
   @override
-  Future<num> getAccountBalance(String uid) async=> remoteDataSource.getAccountBalance(uid);
+  Future<num> getAccountBalance(String uid) async => remoteDataSource.getAccountBalance(uid);
 
   @override
   Stream<List<OrderEntity>> receiveOrderByDateTime(Timestamp timestamp) =>
       remoteDataSource.receiveOrderByDateTime(timestamp);
+
+  @override
+  Future<void> approveCustomerDepositOrWithdraw(CustomerEntity customerEntity) async =>
+      remoteDataSource.approveCustomerDepositOrWithdraw(customerEntity);
+
+  @override
+  Stream<List<AdminTransactionEntity>> getTransactionFromAdminHistoryByDateTime(Timestamp timestamp) =>
+      remoteDataSource.getTransactionFromAdminHistoryByDateTime(timestamp);
+
+  @override
+  Future<void> createTransactionFromAdminHistory(AdminTransactionEntity adminTransactionEntity) async =>
+      remoteDataSource.createTransactionFromAdminHistory(adminTransactionEntity);
 }
