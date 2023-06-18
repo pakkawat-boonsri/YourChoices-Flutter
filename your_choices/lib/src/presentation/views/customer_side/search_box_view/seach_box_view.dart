@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:touchable_opacity/touchable_opacity.dart';
 import 'package:your_choices/src/config/app_routes/on_generate_routes.dart';
+import 'package:your_choices/src/domain/entities/customer/customer_entity.dart';
 import 'package:your_choices/src/domain/entities/vendor/vendor_entity.dart';
 import 'package:your_choices/src/presentation/blocs/customer_bloc/restaurant/restaurant_cubit.dart';
 import 'package:your_choices/src/presentation/blocs/customer_bloc/restaurant/restaurant_state.dart';
@@ -14,9 +15,11 @@ import 'package:your_choices/utilities/hex_color.dart';
 import 'package:your_choices/utilities/text_style.dart';
 
 class SeachBoxView extends StatefulWidget {
+  final CustomerEntity customerEntity;
   final bool? isNodeFocus;
   const SeachBoxView({
     Key? key,
+    required this.customerEntity,
     this.isNodeFocus,
   }) : super(key: key);
 
@@ -76,9 +79,7 @@ class _SeachBoxViewState extends State<SeachBoxView> {
               controller: searchTextController,
               autofocus: widget.isNodeFocus ?? false,
               onChanged: (value) {
-                context
-                    .read<SearchBoxBloc>()
-                    .add(OnTypingTextField(searchText: value));
+                context.read<SearchBoxBloc>().add(OnTypingTextField(searchText: value));
               },
               style: AppTextStyle.googleFont(
                 Colors.black,
@@ -130,15 +131,12 @@ class _SeachBoxViewState extends State<SeachBoxView> {
               );
             case RestaurantLoadedData:
               final currentState = state as RestaurantLoadedData;
-              final List<VendorEntity> listofRestaurants =
-                  List<VendorEntity>.from(currentState.vendorEntities);
+              final List<VendorEntity> listofRestaurants = List<VendorEntity>.from(currentState.vendorEntities);
               return BlocBuilder<SearchBoxBloc, SearchBoxState>(
                 builder: (context, state) {
                   final searchText = state.searchText;
                   final searchResult = listofRestaurants
-                      .where((element) => element.resName!
-                          .toLowerCase()
-                          .contains(searchText.toLowerCase()))
+                      .where((element) => element.resName!.toLowerCase().contains(searchText.toLowerCase()))
                       .toList();
                   return ListView.separated(
                     shrinkWrap: true,
@@ -153,7 +151,10 @@ class _SeachBoxViewState extends State<SeachBoxView> {
                           Navigator.pushNamed(
                             context,
                             PageConst.restuarantPageDetail,
-                            arguments: vendorEntity,
+                            arguments: {
+                              'vendorEntity': vendorEntity,
+                              "customerEntity": widget.customerEntity,
+                            },
                           );
                         },
                         child: Padding(
@@ -189,8 +190,7 @@ class _SeachBoxViewState extends State<SeachBoxView> {
                                         color: Colors.amber,
                                       ),
                                     ),
-                                    errorWidget: (context, url, error) =>
-                                        Container(
+                                    errorWidget: (context, url, error) => Container(
                                       width: size.width * 0.35,
                                       height: 120,
                                       decoration: const BoxDecoration(
@@ -221,18 +221,15 @@ class _SeachBoxViewState extends State<SeachBoxView> {
                                         ),
                                       ),
                                       child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceEvenly,
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                                         children: [
                                           Container(
                                             margin: const EdgeInsets.only(
                                               right: 10,
                                             ),
                                             child: Text(
-                                              vendorEntity.resName ??
-                                                  "No ResName",
+                                              vendorEntity.resName ?? "No ResName",
                                               maxLines: 1,
                                               overflow: TextOverflow.ellipsis,
                                               style: AppTextStyle.googleFont(
@@ -243,8 +240,7 @@ class _SeachBoxViewState extends State<SeachBoxView> {
                                             ),
                                           ),
                                           Row(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.spaceBetween,
+                                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                             children: [
                                               Expanded(
                                                 child: Container(
@@ -253,15 +249,13 @@ class _SeachBoxViewState extends State<SeachBoxView> {
                                                   ),
                                                   child: Text(
                                                     "${vendorEntity.description}",
-                                                    style:
-                                                        AppTextStyle.googleFont(
+                                                    style: AppTextStyle.googleFont(
                                                       Colors.grey,
                                                       14,
                                                       FontWeight.normal,
                                                     ),
                                                     maxLines: 2,
-                                                    overflow:
-                                                        TextOverflow.ellipsis,
+                                                    overflow: TextOverflow.ellipsis,
                                                   ),
                                                 ),
                                               ),
@@ -269,24 +263,18 @@ class _SeachBoxViewState extends State<SeachBoxView> {
                                                 padding: EdgeInsets.only(
                                                   right: 10.0,
                                                 ),
-                                                child:
-                                                    Icon(Icons.arrow_forward),
+                                                child: Icon(Icons.arrow_forward),
                                               )
                                             ],
                                           ),
                                           Text.rich(
                                             TextSpan(
                                               text: "มี ",
-                                              style: AppTextStyle.googleFont(
-                                                  Colors.black,
-                                                  14,
-                                                  FontWeight.normal),
+                                              style: AppTextStyle.googleFont(Colors.black, 14, FontWeight.normal),
                                               children: [
                                                 TextSpan(
-                                                  text:
-                                                      "${vendorEntity.onQueue}",
-                                                  style:
-                                                      AppTextStyle.googleFont(
+                                                  text: "${vendorEntity.onQueue}",
+                                                  style: AppTextStyle.googleFont(
                                                     "FF602E".toColor(),
                                                     16,
                                                     FontWeight.normal,
@@ -294,8 +282,7 @@ class _SeachBoxViewState extends State<SeachBoxView> {
                                                 ),
                                                 TextSpan(
                                                   text: " คิว ณ ขณะนี้",
-                                                  style:
-                                                      AppTextStyle.googleFont(
+                                                  style: AppTextStyle.googleFont(
                                                     Colors.black,
                                                     14,
                                                     FontWeight.normal,

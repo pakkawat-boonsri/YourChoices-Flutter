@@ -11,6 +11,7 @@ import 'package:your_choices/src/config/app_routes/on_generate_routes.dart';
 import 'package:your_choices/src/domain/entities/customer/customer_entity.dart';
 import 'package:your_choices/src/presentation/blocs/customer_bloc/cart/cart_cubit.dart';
 import 'package:your_choices/src/presentation/blocs/customer_bloc/restaurant/restaurant_cubit.dart';
+import 'package:your_choices/src/presentation/blocs/customer_bloc/restaurant/restaurant_state.dart';
 import 'package:your_choices/src/presentation/views/customer_side/restaurant_view/restaurant_list_view/widgets/list_of_restaurants.dart';
 import 'package:your_choices/src/presentation/views/customer_side/search_box_view/bloc/search_box_bloc.dart';
 import 'package:your_choices/src/presentation/views/customer_side/search_box_view/seach_box_view.dart';
@@ -33,13 +34,11 @@ class _RestaurantListViewState extends State<RestaurantListView> with SingleTick
   final searchText = TextEditingController();
   late TabController tabController;
   List<String> restaurantTypes = ["ร้านอาหารตามสั่ง", "ร้านข้าวแกง", "ร้านก๋วยเตี๋ยว", "ร้านเครื่องดื่ม"];
-  late String selectedType;
 
   @override
   void initState() {
     tabController = TabController(vsync: this, length: restaurantTypes.length, initialIndex: 0);
-    selectedType = restaurantTypes[0];
-    BlocProvider.of<RestaurantCubit>(context).getAllRestaurant();
+    BlocProvider.of<RestaurantCubit>(context).getByRestaurantType(type: restaurantTypes[0]);
     super.initState();
   }
 
@@ -106,9 +105,23 @@ class _RestaurantListViewState extends State<RestaurantListView> with SingleTick
             indicatorColor: Colors.amber.shade900,
             unselectedLabelColor: Colors.grey,
             onTap: (value) {
-              setState(() {
-                selectedType = restaurantTypes[value];
-              });
+              switch (value) {
+                case 0:
+                  BlocProvider.of<RestaurantCubit>(context).getByRestaurantType(type: restaurantTypes[value]);
+                  break;
+                case 1:
+                  BlocProvider.of<RestaurantCubit>(context).getByRestaurantType(type: restaurantTypes[value]);
+                  break;
+                case 2:
+                  BlocProvider.of<RestaurantCubit>(context).getByRestaurantType(type: restaurantTypes[value]);
+
+                  break;
+                case 3:
+                  BlocProvider.of<RestaurantCubit>(context).getByRestaurantType(type: restaurantTypes[value]);
+
+                  break;
+                default:
+              }
             },
             tabs: restaurantTypes
                 .map(
@@ -132,21 +145,89 @@ class _RestaurantListViewState extends State<RestaurantListView> with SingleTick
               controller: tabController,
               physics: const NeverScrollableScrollPhysics(),
               children: [
-                ListofRestaurants(
-                  customerEntity: widget.customerEntity,
-                  restaurantType: selectedType,
+                BlocBuilder<RestaurantCubit, RestaurantState>(
+                  builder: (context, state) {
+                    if (state is RestaurantLoadingData) {
+                      return SizedBox(
+                        width: size.width,
+                        child: const Center(
+                          child: CircularProgressIndicator(
+                            color: Colors.deepOrange,
+                          ),
+                        ),
+                      );
+                    } else if (state is RestaurantLoadedData) {
+                      return ListofRestaurants(
+                        customerEntity: widget.customerEntity,
+                        vendorEntities: state.vendorEntities,
+                        restaurantType: restaurantTypes[tabController.index],
+                      );
+                    }
+                    return Container();
+                  },
                 ),
-                ListofRestaurants(
-                  customerEntity: widget.customerEntity,
-                  restaurantType: selectedType,
+                BlocBuilder<RestaurantCubit, RestaurantState>(
+                  builder: (context, state) {
+                    if (state is RestaurantLoadingData) {
+                      return SizedBox(
+                        width: size.width,
+                        child: const Center(
+                          child: CircularProgressIndicator(
+                            color: Colors.deepOrange,
+                          ),
+                        ),
+                      );
+                    } else if (state is RestaurantLoadedData) {
+                      return ListofRestaurants(
+                        customerEntity: widget.customerEntity,
+                        vendorEntities: state.vendorEntities,
+                        restaurantType: restaurantTypes[tabController.index],
+                      );
+                    }
+                    return Container();
+                  },
                 ),
-                ListofRestaurants(
-                  customerEntity: widget.customerEntity,
-                  restaurantType: selectedType,
+                BlocBuilder<RestaurantCubit, RestaurantState>(
+                  builder: (context, state) {
+                    if (state is RestaurantLoadingData) {
+                      return SizedBox(
+                        width: size.width,
+                        child: const Center(
+                          child: CircularProgressIndicator(
+                            color: Colors.deepOrange,
+                          ),
+                        ),
+                      );
+                    } else if (state is RestaurantLoadedData) {
+                      return ListofRestaurants(
+                        customerEntity: widget.customerEntity,
+                        vendorEntities: state.vendorEntities,
+                        restaurantType: restaurantTypes[tabController.index],
+                      );
+                    }
+                    return Container();
+                  },
                 ),
-                ListofRestaurants(
-                  customerEntity: widget.customerEntity,
-                  restaurantType: selectedType,
+                BlocBuilder<RestaurantCubit, RestaurantState>(
+                  builder: (context, state) {
+                    if (state is RestaurantLoadingData) {
+                      return SizedBox(
+                        width: size.width,
+                        child: const Center(
+                          child: CircularProgressIndicator(
+                            color: Colors.deepOrange,
+                          ),
+                        ),
+                      );
+                    } else if (state is RestaurantLoadedData) {
+                      return ListofRestaurants(
+                        customerEntity: widget.customerEntity,
+                        vendorEntities: state.vendorEntities,
+                        restaurantType: restaurantTypes[tabController.index],
+                      );
+                    }
+                    return Container();
+                  },
                 ),
               ],
             ),
@@ -238,7 +319,11 @@ AppBar _buildAppBarContent(
                 const Spacer(),
                 TouchableOpacity(
                   onTap: () {
-                    Navigator.pushNamed(context, PageConst.favoritePage);
+                    Navigator.pushNamed(
+                      context,
+                      PageConst.favoritePage,
+                      arguments: customerEntity,
+                    );
                   },
                   child: Container(
                     width: 45,
@@ -264,7 +349,8 @@ AppBar _buildAppBarContent(
                 MaterialPageRoute(
                   builder: (context) => BlocProvider(
                     create: (context) => SearchBoxBloc(),
-                    child: const SeachBoxView(
+                    child: SeachBoxView(
+                      customerEntity: customerEntity,
                       isNodeFocus: true,
                     ),
                   ),

@@ -76,7 +76,7 @@ class FilterOptionEntity extends Equatable {
       'isRequired': isRequired,
       'isMultiple': isMultiple,
       'multipleQuantity': multipleQuantity,
-      // 'addOns': addOns?.map((x) => x.toMap()).toList(),
+      'addOns': addOns?.map((x) => x.toMap()).toList(),
       'selectedAddOnRadioListTile': selectedAddOnRadioListTile?.toMap(),
       'selectedAddOnCheckBoxListTile': selectedAddOnCheckBoxListTile?.map((x) => x.toMap()).toList(),
     };
@@ -91,7 +91,7 @@ class FilterOptionEntity extends Equatable {
       multipleQuantity: map['multipleQuantity'] != null ? map['multipleQuantity'] as int : null,
       addOns: map['addOns'] != null
           ? List<AddOnsEntity>.from(
-              (map['addOns'] as List<int>).map<AddOnsEntity?>(
+              (map['addOns'] as List<dynamic>).map<AddOnsEntity?>(
                 (x) => AddOnsEntity.fromMap(x as Map<String, dynamic>),
               ),
             )

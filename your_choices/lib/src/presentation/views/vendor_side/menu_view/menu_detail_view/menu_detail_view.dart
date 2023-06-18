@@ -418,7 +418,10 @@ class _MenuDetailViewState extends State<MenuDetailView> {
                           Navigator.pushNamed(
                             context,
                             PageConst.filterOptionInMenuDetailPage,
-                            arguments: filterOptionEntity,
+                            arguments: {
+                              'dishesEntity': widget.dishesEntity,
+                              'filterOptionEntity': filterOptionEntity,
+                            },
                           );
                         }
                       : null,

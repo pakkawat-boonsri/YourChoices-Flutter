@@ -6,7 +6,7 @@ class GetSingleCustomerUseCase {
 
   GetSingleCustomerUseCase({required this.repository});
 
-  Stream<List<CustomerEntity>> call(String uid) {
+  Stream<CustomerEntity> call(String uid){
     return repository.getSingleCustomer(uid);
   }
 }

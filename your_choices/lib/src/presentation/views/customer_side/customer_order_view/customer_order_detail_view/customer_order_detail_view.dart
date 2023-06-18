@@ -28,6 +28,8 @@ class _CustomerOrderDetailViewState extends State<CustomerOrderDetailView> {
         return "กำลังทำการปรุงอาหาร";
       case "OrderTypes.completed":
         return "ออเดอร์สำเร็จเรียบร้อย";
+      case "OrderTypes.failure":
+        return "ออเดอร์ถูกยกเลิกหรือเกิดข้อผิดพลาดขึ้น";
       default:
         "";
     }
@@ -101,9 +103,12 @@ class _CustomerOrderDetailViewState extends State<CustomerOrderDetailView> {
                       Container(
                         width: 8,
                         height: 8,
-                        decoration: const BoxDecoration(
+                        decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color: Colors.green,
+                          color: checkOrderTypes(widget.confirmOrderEntity.orderTypes ?? "") ==
+                                  "ออเดอร์ถูกยกเลิกหรือเกิดข้อผิดพลาดขึ้น"
+                              ? Colors.red
+                              : Colors.green,
                         ),
                       ),
                       const SizedBox(
@@ -111,7 +116,10 @@ class _CustomerOrderDetailViewState extends State<CustomerOrderDetailView> {
                       ),
                       CustomText(
                         text: "${checkOrderTypes(widget.confirmOrderEntity.orderTypes ?? "")}",
-                        color: Colors.green,
+                        color: checkOrderTypes(widget.confirmOrderEntity.orderTypes ?? "") ==
+                                "ออเดอร์ถูกยกเลิกหรือเกิดข้อผิดพลาดขึ้น"
+                            ? Colors.red
+                            : Colors.green,
                         fontSize: 14,
                         fontWeight: FontWeight.w500,
                       ),
@@ -124,9 +132,9 @@ class _CustomerOrderDetailViewState extends State<CustomerOrderDetailView> {
                       color: Colors.grey[300],
                     ),
                   ),
-                  Row(
+                  const Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: const [
+                    children: [
                       CustomText(
                         text: "รายการอาหาร",
                         color: Colors.black,

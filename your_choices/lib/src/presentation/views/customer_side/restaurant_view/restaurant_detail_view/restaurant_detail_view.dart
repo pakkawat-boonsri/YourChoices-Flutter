@@ -1,5 +1,7 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 
+import 'dart:developer';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -240,21 +242,22 @@ class _RestaurantDetailViewState extends State<RestaurantDetailView> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               BlocBuilder<FavoriteCubit, FavoriteState>(
-                builder: (_, state) {
-                  final isFavorite = state.vendorEntities.contains(widget.vendorEntity);
+                builder: (context, state) {
+                  final isHave = state.vendorEntities.any((element) => element.uid == widget.vendorEntity.uid);
+                  log("$isHave");
                   return IconButton(
                     padding: EdgeInsets.zero,
-                    onPressed: () {
-                      if (isFavorite) {
-                        context.read<FavoriteCubit>().onRemoveFavorite(widget.vendorEntity);
+                    onPressed: () async {
+                      if (isHave) {
+                        await context.read<FavoriteCubit>().onRemoveFavorite(widget.vendorEntity);
                       } else {
-                        context.read<FavoriteCubit>().onAddFavorite(widget.vendorEntity);
+                        await context.read<FavoriteCubit>().onAddFavorite(widget.vendorEntity);
                       }
                     },
                     icon: Icon(
                       size: 30,
-                      color: isFavorite ? Colors.amber.shade900 : Colors.grey.shade800,
-                      isFavorite ? Icons.favorite_outlined : Icons.favorite_border_sharp,
+                      color: isHave ? Colors.amber.shade900 : Colors.grey.shade800,
+                      isHave ? Icons.favorite_outlined : Icons.favorite_border_sharp,
                     ),
                   );
                 },

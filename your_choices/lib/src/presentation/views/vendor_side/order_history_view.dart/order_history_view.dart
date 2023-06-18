@@ -9,7 +9,6 @@ import 'package:your_choices/src/presentation/blocs/vendor_bloc/order_history/or
 import 'package:your_choices/src/presentation/views/vendor_side/order_history_view.dart/order_history_tabbar_view/accepted_order_view.dart';
 import 'package:your_choices/src/presentation/views/vendor_side/order_history_view.dart/order_history_tabbar_view/cancel_order_view.dart';
 import 'package:your_choices/src/presentation/widgets/custom_text.dart';
-import 'package:your_choices/utilities/hex_color.dart';
 
 import '../../../../../utilities/date_format.dart';
 import '../../../../../utilities/text_style.dart';
@@ -32,10 +31,10 @@ class _OrderHistoryViewState extends State<OrderHistoryView> with SingleTickerPr
   DateTime currentDate = DateTime.now();
   @override
   void initState() {
+    super.initState();
     vendorEntity = widget.vendorEntity;
     tabController = TabController(length: 2, vsync: this, initialIndex: 0);
-    context.read<OrderHistoryCubit>().receiveOrderByDateTime(Timestamp.fromDate(currentDate));
-    super.initState();
+    context.read<OrderHistoryCubit>().receiveOrderByDateTime(Timestamp.fromDate(DateTime.now()));
   }
 
   @override
@@ -70,6 +69,18 @@ class _OrderHistoryViewState extends State<OrderHistoryView> with SingleTickerPr
             margin: const EdgeInsets.only(top: 10),
             child: TabBar(
               controller: tabController,
+              onTap: (index) {
+                switch (index) {
+                  case 0:
+                    context.read<OrderHistoryCubit>().receiveOrderByDateTime(Timestamp.fromDate(currentDate));
+
+                    break;
+                  case 1:
+                    context.read<OrderHistoryCubit>().receiveOrderByDateTime(Timestamp.fromDate(currentDate));
+                    break;
+                  default:
+                }
+              },
               indicatorColor: Colors.amber.shade900,
               unselectedLabelColor: Colors.grey,
               tabs: [
@@ -100,18 +111,38 @@ class _OrderHistoryViewState extends State<OrderHistoryView> with SingleTickerPr
               children: [
                 BlocBuilder<OrderHistoryCubit, OrderHistoryState>(
                   builder: (context, state) {
-                    return AcceptedOrderView(
-                      timestamp: Timestamp.fromDate(state.currentDate),
-                      orders: state.orderEntities,
-                    );
+                    if (state is OrderHistoryLoading) {
+                      return SizedBox(
+                        width: size.width,
+                        child: const Center(
+                          child: CircularProgressIndicator(
+                            color: Colors.amber,
+                          ),
+                        ),
+                      );
+                    } else if (state is OrderHistoryLoaded) {
+                      return AcceptedOrderView(orders: state.orderEntities);
+                    } else {
+                      return Container();
+                    }
                   },
                 ),
                 BlocBuilder<OrderHistoryCubit, OrderHistoryState>(
                   builder: (context, state) {
-                    return CancelOrderView(
-                      timestamp: Timestamp.fromDate(state.currentDate),
-                      orders: state.orderEntities,
-                    );
+                    if (state is OrderHistoryLoading) {
+                      return SizedBox(
+                        width: size.width,
+                        child: const Center(
+                          child: CircularProgressIndicator(
+                            color: Colors.amber,
+                          ),
+                        ),
+                      );
+                    } else if (state is OrderHistoryLoaded) {
+                      return CancelOrderView(orders: state.orderEntities);
+                    } else {
+                      return Container();
+                    }
                   },
                 ),
               ],
@@ -133,13 +164,35 @@ class _OrderHistoryViewState extends State<OrderHistoryView> with SingleTickerPr
         ),
         BlocBuilder<OrderHistoryCubit, OrderHistoryState>(
           builder: (context, state) {
-            return CustomText(
-              text:
-                  "฿ ${state.orderEntities.where((element) => element.orderTypes == OrderTypes.completed.toString()).fold(0.0, (previousValue, element) => previousValue + (element.cartItems!.fold(0.0, (previousValue, element) => previousValue! + element.totalPrice!.toDouble()) ?? 0)).toDouble().floor()}",
-              color: "2EE140".toColor(),
-              fontSize: 36,
-              fontWeight: FontWeight.bold,
-            );
+            if (state is OrderHistoryLoading) {
+              return SizedBox(
+                width: MediaQuery.of(context).size.width,
+                height: 80,
+                child: const Center(
+                  child: CircularProgressIndicator(
+                    color: Colors.amber,
+                  ),
+                ),
+              );
+            } else if (state is OrderHistoryLoaded) {
+              return tabController.index == 0
+                  ? CustomText(
+                      text:
+                          "฿ ${state.orderEntities.where((element) => element.orderTypes == OrderTypes.completed.toString() || element.orderTypes == OrderTypes.collectToHistory.toString()).fold(0.0, (previousValue, element) => previousValue + (element.cartItems!.fold(0.0, (previousValue, element) => previousValue! + element.totalPrice!.toDouble()) ?? 0)).toDouble().floor()}",
+                      color: Colors.green,
+                      fontSize: 36,
+                      fontWeight: FontWeight.bold,
+                    )
+                  : CustomText(
+                      text:
+                          "฿ ${state.orderEntities.where((element) => element.orderTypes == OrderTypes.failure.toString()).fold(0.0, (previousValue, element) => previousValue + (element.cartItems!.fold(0.0, (previousValue, element) => previousValue! + element.totalPrice!.toDouble()) ?? 0)).toDouble().floor()}",
+                      color: Colors.red,
+                      fontSize: 36,
+                      fontWeight: FontWeight.bold,
+                    );
+            } else {
+              return Container();
+            }
           },
         ),
         TouchableOpacity(

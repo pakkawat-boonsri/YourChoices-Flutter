@@ -1,6 +1,7 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+// ignore_for_file: public_member_api_docs, sort_constructors_first
+
+import 'package:your_choices/src/data/models/customer_model/transaction_model/transaction_model.dart';
 import 'package:your_choices/src/domain/entities/customer/customer_entity.dart';
-import 'package:your_choices/src/domain/entities/customer/transaction/transaction_entity.dart';
 
 class CustomerModel extends CustomerEntity {
   const CustomerModel({
@@ -10,7 +11,7 @@ class CustomerModel extends CustomerEntity {
     final String? username,
     final String? profileUrl,
     final num? balance,
-    final List<TransactionEntity>? transaction,
+    final List<TransactionModel>? transaction,
   }) : super(
           uid: uid,
           balance: balance,
@@ -21,27 +22,14 @@ class CustomerModel extends CustomerEntity {
           type: type,
         );
 
-  factory CustomerModel.fromJson(DocumentSnapshot snap) {
-    var snapshot = snap.data() as Map<String, dynamic>;
+  factory CustomerModel.fromMap(Map<String, dynamic> map) {
     return CustomerModel(
-      username: snapshot['username'],
-      type: snapshot['type'],
-      profileUrl: snapshot['profileUrl'],
-      email: snapshot['email'],
-      balance: snapshot['balance'],
-      uid: snapshot['uid'],
-      transaction: const <TransactionEntity>[],
+      uid: map['uid'] != null ? map['uid'] as String : null,
+      email: map['email'] != null ? map['email'] as String : null,
+      username: map['username'] != null ? map['username'] as String : null,
+      profileUrl: map['profileUrl'] != null ? map['profileUrl'] as String : null,
+      balance: map['balance'] != null ? map['balance'] as num : null,
+      type: map['type'] != null ? map['type'] as String : null,
     );
-  }
-
-  Map<String, dynamic> modeltoJson() {
-    final Map<String, dynamic> data = <String, dynamic>{};
-    data['username'] = username;
-    data['type'] = type;
-    data['profileUrl'] = profileUrl;
-    data['email'] = email;
-    data['balance'] = balance;
-    data['uid'] = uid;
-    return data;
   }
 }

@@ -30,7 +30,7 @@ class _CustomerOrderViewState extends State<CustomerOrderView> with SingleTicker
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[300],
+      // backgroundColor: Colors.white,
       appBar: AppBar(
         centerTitle: true,
         title: Text(
@@ -52,7 +52,7 @@ class _CustomerOrderViewState extends State<CustomerOrderView> with SingleTicker
               child: Container(
                 height: 48,
                 decoration: BoxDecoration(
-                  color: Colors.grey[100],
+                  color: Colors.grey[350],
                   borderRadius: BorderRadius.circular(
                     25.0,
                   ),

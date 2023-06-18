@@ -204,6 +204,7 @@ class CartItemDetailCubit extends Cubit<CartItemDetailState> {
 
   onTappedEatHereOrTakeHome(String? value) {
     final updatedIsSelectRequireFilters = List<bool>.from(state.isSelectRequireFilters);
+    // ignore: unnecessary_null_comparison
     if (state.eatHereOrTakeHome != null) {
       updatedIsSelectRequireFilters.last = true;
     } else {

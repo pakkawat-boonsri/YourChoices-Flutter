@@ -1,5 +1,4 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -147,8 +146,7 @@ class VendorEntity extends Equatable {
       description: map['description'] != null ? map['description'] as String : null,
       totalPriceSell: map['totalPriceSell'] != null ? map['totalPriceSell'] as num : null,
       restaurantType: map['restaurantType'] != null ? map['restaurantType'] as String : null,
-      accountCreatedWhen:
-          map['accountCreatedWhen'] ,
+      accountCreatedWhen: map['accountCreatedWhen'],
       dishes: map['dishes'] != null
           ? List<DishesEntity>.from(
               (map['dishes'] as List<dynamic>).map<DishesEntity?>(
@@ -156,7 +154,6 @@ class VendorEntity extends Equatable {
               ),
             )
           : null,
-      
     );
   }
 }

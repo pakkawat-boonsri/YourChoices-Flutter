@@ -310,11 +310,13 @@ class _ConfirmCartItemsViewState extends State<ConfirmCartItemsView> {
               for (var cartItem in newCartItems) {
                 final newTransactionEntity = TransactionEntity(
                   id: const Uuid().v4(),
+                  customerId: widget.customerEntity.uid ?? "",
                   date: Timestamp.now(),
                   type: "paid",
                   menuName: cartItem.dishesEntity?.menuName ?? "",
                   resName: vendorEntity.resName,
                   totalPrice: cartItem.totalPrice,
+
                 );
 
                 if (context.mounted) {

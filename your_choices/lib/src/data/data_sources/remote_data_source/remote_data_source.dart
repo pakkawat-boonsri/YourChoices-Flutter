@@ -5,6 +5,7 @@ import 'package:your_choices/src/domain/entities/admin/admin_transaction_entity.
 import 'package:your_choices/src/domain/entities/customer/confirm_order/confirm_order_entity.dart';
 import 'package:your_choices/src/domain/entities/customer/customer_entity.dart';
 import 'package:your_choices/src/domain/entities/customer/transaction/transaction_entity.dart';
+import 'package:your_choices/src/domain/entities/vendor/add_ons/add_ons_entity.dart';
 import 'package:your_choices/src/domain/entities/vendor/order/order_entity.dart';
 
 import '../../../domain/entities/vendor/dishes_menu/dishes_entity.dart';
@@ -19,13 +20,17 @@ abstract class FirebaseRemoteDataSource {
 
   //for Customer
   Future<void> signUpCustomer(CustomerEntity customer);
-  Stream<List<CustomerEntity>> getSingleCustomer(String uid);
+  Stream<CustomerEntity> getSingleCustomer(String uid);
   Stream<List<VendorEntity>> getAllRestaurants();
   Future<num> getAccountBalance(String uid);
   Future<void> createTransaction(TransactionEntity transactionEntity);
   Future<void> updateCustomerInfo(CustomerEntity customerEntity);
   Future<void> sendConfirmOrderToRestaurants(ConfirmOrderEntity confirmOrderEntity);
   Stream<List<ConfirmOrderEntity>> receiveOrderItemFromRestaurants(String uid);
+  Stream<List<ConfirmOrderEntity>> receiveCompletedOrderItemFromRestaurants(String uid);
+  Future<void> onAddFavoriteRestaurant(VendorEntity vendorEntity);
+  Stream<List<VendorEntity>> getFavoriteRestaurants();
+  Future<void> onRemoveFavorite(VendorEntity vendorEntity);
 
   //for vendor
   Future<void> signUpVendor(VendorEntity vendorEntity);
@@ -44,15 +49,17 @@ abstract class FirebaseRemoteDataSource {
   Future<void> deleteMenu(DishesEntity dishesEntity);
 
   //menuDetail features
-  Future<void> addFilterOptionInMenu(FilterOptionEntity filterOptionEntity);
+  Future<void> addFilterOptionInMenu(DishesEntity dishesEntity ,FilterOptionEntity filterOptionEntity);
   Future<void> deleteFilterOptionInMenu(FilterOptionEntity filterOptionEntity);
   Future<void> updateFilterOptionInMenu(FilterOptionEntity filterOptionEntity);
+  Future<void> onDeletingAddOnsInFilterOptionInMenu(DishesEntity dishesEntity,FilterOptionEntity filterOptionEntity ,AddOnsEntity addOnsEntity);
 
   //filter option features
   Future<void> createFilterOption(FilterOptionEntity filterOptionEntity);
   Stream<List<FilterOptionEntity>> readFilterOption(String uid);
   Future<void> updateFilterOption(FilterOptionEntity filterOptionEntity);
   Future<void> deleteFilterOption(FilterOptionEntity filterOptionEntity);
+  Future<void> onDeletingAddOnsInFilterOptionDetail(FilterOptionEntity filterOptionEntity ,AddOnsEntity addOnsEntity);
 
   //utilities
   Future<void> signInUser(String email, String password);

@@ -505,12 +505,15 @@ class _OrderDetailViewState extends State<OrderDetailView> {
                   } else ...{
                     TouchableOpacity(
                       onTap: () {
-                        // loadingDialog(context);
+                        loadingDialog(context);
+                        final newOrderEntity =
+                            widget.orderEntity.copyWith(orderTypes: OrderTypes.collectToHistory.toString());
+                        context.read<TodayOrderCubit>().confirmOrder(newOrderEntity);
 
-                        // Future.delayed(const Duration(milliseconds: 800)).then((value) {
-                        //   Navigator.pop(context);
-                        //   Navigator.pop(context);
-                        // });
+                        Future.delayed(const Duration(milliseconds: 800)).then((value) {
+                          Navigator.pop(context);
+                          Navigator.pop(context);
+                        });
                       },
                       child: Container(
                         alignment: Alignment.center,

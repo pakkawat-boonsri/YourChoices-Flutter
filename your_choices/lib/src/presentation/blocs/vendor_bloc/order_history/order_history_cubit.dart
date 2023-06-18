@@ -13,22 +13,19 @@ class OrderHistoryCubit extends Cubit<OrderHistoryState> {
   final ReceiveOrderByDateTimeUseCase receiveOrderByDateTimeUseCase;
   OrderHistoryCubit({
     required this.receiveOrderByDateTimeUseCase,
-  }) : super(
-          OrderHistoryState(
-            currentDate: DateTime.now(),
-            orderEntities: const [],
-          ),
-        );
+  }) : super(const OrderHistoryInitial());
 
   void receiveOrderByDateTime(Timestamp timestamp) {
+    emit(const OrderHistoryLoading());
+    Future.delayed(const Duration(milliseconds: 800)).then((value) {
       try {
         final orders = receiveOrderByDateTimeUseCase.call(timestamp);
         orders.listen((order) {
-          emit(state.copyWith(orderEntities: order));
+          emit(OrderHistoryLoaded(currentDate: DateTime.now(), orderEntities: order));
         });
       } catch (e) {
         log("inside OrderHistoryCubit => ${e.toString()}");
       }
-
+    });
   }
 }

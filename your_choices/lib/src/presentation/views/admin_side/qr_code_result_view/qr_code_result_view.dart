@@ -246,7 +246,10 @@ class _QrCodeResultViewState extends State<QrCodeResultView> {
                   TouchableOpacity(
                     onTap: () async {
                       loadingDialog(context);
-                      await context.read<AdminCubit>().approveCustomerDepositWithdraw(customerEntity);
+                      final uid = await di.sl<GetCurrentUidUseCase>().call();
+                      if (context.mounted) {
+                        context.read<AdminCubit>().approveCustomerDepositWithdraw(customerEntity);
+                      }
                       final newAdminTransaction = AdminTransactionEntity(
                         id: const Uuid().v4(),
                         customerName: customerEntity.username,
@@ -258,36 +261,43 @@ class _QrCodeResultViewState extends State<QrCodeResultView> {
                             customerEntity.withdrawAmount != null ? num.parse(customerEntity.withdrawAmount ?? "0") : null,
                       );
                       if (context.mounted) {
-                        await context.read<AdminCubit>().createAdminTransaction(newAdminTransaction);
+                        context.read<AdminCubit>().createAdminTransaction(newAdminTransaction);
                       }
 
                       if (customerEntity.depositAmount != null && customerEntity.withdrawAmount == null) {
                         final newDepositTransaction = TransactionEntity(
                           id: const Uuid().v4(),
+                          customerId: customerEntity.uid ?? "",
                           date: Timestamp.now(),
                           deposit: num.parse(customerEntity.depositAmount ?? "0"),
                           name: "เติมเงินเข้าบัญชี",
                           type: "deposit",
                         );
                         if (context.mounted) {
-                          await context.read<CustomerCubit>().createTransaction(newDepositTransaction);
+                          context.read<CustomerCubit>().createTransaction(newDepositTransaction);
                         }
                       } else if (customerEntity.depositAmount == null && customerEntity.withdrawAmount != null) {
                         final newWithdrawTransaction = TransactionEntity(
                           id: const Uuid().v4(),
+                          customerId: customerEntity.uid ?? "",
                           date: Timestamp.now(),
                           withdraw: num.parse(customerEntity.withdrawAmount ?? "0"),
                           name: "ถอนเงินออกจากบัญชี",
                           type: "withdraw",
                         );
                         if (context.mounted) {
-                          await context.read<CustomerCubit>().createTransaction(newWithdrawTransaction);
+                          context.read<CustomerCubit>().createTransaction(newWithdrawTransaction);
                         }
                       }
 
-                      await Future.delayed(const Duration(seconds: 1)).then((value) {
+                      Future.delayed(const Duration(seconds: 1)).then((value) {
                         Navigator.pop(context);
-                        Navigator.pop(context);
+
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => AdminMainView(uid: uid),
+                            ));
                       });
                     },
                     child: Container(

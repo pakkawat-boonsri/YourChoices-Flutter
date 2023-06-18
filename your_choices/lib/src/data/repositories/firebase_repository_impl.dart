@@ -1,9 +1,10 @@
 import 'dart:io';
 
-import 'package:cloud_firestore_platform_interface/src/timestamp.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:your_choices/src/domain/entities/admin/admin_transaction_entity.dart';
 import 'package:your_choices/src/domain/entities/customer/confirm_order/confirm_order_entity.dart';
 import 'package:your_choices/src/domain/entities/customer/transaction/transaction_entity.dart';
+import 'package:your_choices/src/domain/entities/vendor/add_ons/add_ons_entity.dart';
 import 'package:your_choices/src/domain/entities/vendor/dishes_menu/dishes_entity.dart';
 import 'package:your_choices/src/domain/entities/vendor/order/order_entity.dart';
 
@@ -26,9 +27,7 @@ class FirebaseRepositoryImpl implements FirebaseRepository {
   }
 
   @override
-  Stream<List<CustomerEntity>> getSingleCustomer(
-    String uid,
-  ) {
+  Stream<CustomerEntity> getSingleCustomer(String uid) {
     return remoteDataSource.getSingleCustomer(uid);
   }
 
@@ -123,8 +122,8 @@ class FirebaseRepositoryImpl implements FirebaseRepository {
       await remoteDataSource.updateFilterOption(filterOptionEntity);
 
   @override
-  Future<void> addFilterOptionInMenu(FilterOptionEntity filterOptionEntity) async =>
-      remoteDataSource.addFilterOptionInMenu(filterOptionEntity);
+  Future<void> addFilterOptionInMenu(DishesEntity dishesEntity ,FilterOptionEntity filterOptionEntity) async =>
+      remoteDataSource.addFilterOptionInMenu( dishesEntity ,filterOptionEntity);
 
   @override
   Future<void> deleteFilterOptionInMenu(FilterOptionEntity filterOptionEntity) async =>
@@ -181,4 +180,34 @@ class FirebaseRepositoryImpl implements FirebaseRepository {
   @override
   Future<void> createTransactionFromAdminHistory(AdminTransactionEntity adminTransactionEntity) async =>
       remoteDataSource.createTransactionFromAdminHistory(adminTransactionEntity);
+
+  @override
+  Stream<List<ConfirmOrderEntity>> receiveCompletedOrderItemFromRestaurants(String uid) {
+    return remoteDataSource.receiveCompletedOrderItemFromRestaurants(uid);
+  }
+
+  @override
+  Stream<List<VendorEntity>> getFavorites() {
+    return remoteDataSource.getFavoriteRestaurants();
+  }
+
+  @override
+  Future<void> onAddFavoriteRestaurant(VendorEntity vendorEntity) async {
+    return remoteDataSource.onAddFavoriteRestaurant(vendorEntity);
+  }
+
+  @override
+  Future<void> onRemoveFavorite(VendorEntity vendorEntity) async {
+    return remoteDataSource.onRemoveFavorite(vendorEntity);
+  }
+
+  @override
+  Future<void> onDeletingAddOnsInFilterOptionDetail(FilterOptionEntity filterOptionEntity ,AddOnsEntity addOnsEntity) async {
+    return await remoteDataSource.onDeletingAddOnsInFilterOptionDetail( filterOptionEntity ,addOnsEntity);
+  }
+
+  @override
+  Future<void> onDeletingAddOnsInFilterOptionInMenu(DishesEntity dishesEntity,FilterOptionEntity filterOptionEntity ,AddOnsEntity addOnsEntity) async {
+    return await remoteDataSource.onDeletingAddOnsInFilterOptionInMenu(dishesEntity,filterOptionEntity, addOnsEntity);
+  }
 }

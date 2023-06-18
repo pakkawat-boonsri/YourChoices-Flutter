@@ -4,11 +4,13 @@ import 'dart:developer';
 
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
+import 'package:your_choices/src/domain/entities/vendor/add_ons/add_ons_entity.dart';
 import 'package:your_choices/src/domain/entities/vendor/dishes_menu/dishes_entity.dart';
 import 'package:your_choices/src/domain/entities/vendor/filter_options/filter_option_entity.dart';
 import 'package:your_choices/src/domain/usecases/firebase_usecases/vendor/filter_option_in_menu/add_filter_option_in_menu_usecase.dart';
 import 'package:your_choices/src/domain/usecases/firebase_usecases/vendor/filter_option_in_menu/delete_filter_option_in_menu_usecase.dart';
 import 'package:your_choices/src/domain/usecases/firebase_usecases/vendor/filter_option_in_menu/get_filter_option_in_menu_usecase.dart';
+import 'package:your_choices/src/domain/usecases/firebase_usecases/vendor/filter_option_in_menu/on_delete_addon_in_filter_option_in_menu_usecase.dart';
 import 'package:your_choices/src/domain/usecases/firebase_usecases/vendor/filter_option_in_menu/update_filter_option_in_menu_usecase.dart';
 
 part 'filter_option_in_menu_state.dart';
@@ -18,16 +20,19 @@ class FilterOptionInMenuCubit extends Cubit<List<FilterOptionEntity>> {
   final GetFilterOptionInMenuUseCase getFilterOptionInMenuUseCase;
   final UpdateFilterOptionInMenuUseCase updateFilterOptionInMenuUseCase;
   final DeleteFilterOptionInMenuUseCase deleteFilterOptionInMenuUseCase;
+  final OnDeleteAddonInFilterOptionInMenuUseCase onDeleteAddonInFilterOptionInMenuUseCase;
   FilterOptionInMenuCubit({
     required this.addFilterOptionInMenuUseCase,
     required this.getFilterOptionInMenuUseCase,
     required this.updateFilterOptionInMenuUseCase,
     required this.deleteFilterOptionInMenuUseCase,
+    required this.onDeleteAddonInFilterOptionInMenuUseCase,
   }) : super([]);
 
-  Future<void> addFilterOptionInMenu(
-    List<FilterOptionEntity> filterOptions,
-  ) async {
+  Future<void> addFilterOptionInMenu({
+    required final DishesEntity dishesEntity ,
+    required final List<FilterOptionEntity> filterOptions,
+  }) async {
     List<FilterOptionEntity> filters = [...state];
 
     for (var filter in filterOptions) {
@@ -39,7 +44,7 @@ class FilterOptionInMenuCubit extends Cubit<List<FilterOptionEntity>> {
     }
 
     for (var filter in filters) {
-      await addFilterOptionInMenuUseCase.call(filter);
+      await addFilterOptionInMenuUseCase.call(dishesEntity,filter);
     }
   }
 
@@ -65,6 +70,17 @@ class FilterOptionInMenuCubit extends Cubit<List<FilterOptionEntity>> {
     FilterOptionEntity filterOptionEntity,
   ) async {
     await deleteFilterOptionInMenuUseCase.call(filterOptionEntity);
+  }
+
+  Future<void> onDeleteAddonInFilterOptionInMenu({
+    required final DishesEntity dishesEntity,
+    required final FilterOptionEntity filterOptionEntity,
+    required final List<AddOnsEntity> addOnsEntity,
+  }) async {
+    // ignore: avoid_function_literals_in_foreach_calls
+    addOnsEntity.forEach((element) async {
+      await onDeleteAddonInFilterOptionInMenuUseCase.call(dishesEntity,filterOptionEntity,element);
+    });
   }
 
   final List<FilterOptionEntity> deleteFilterOptionList = [];

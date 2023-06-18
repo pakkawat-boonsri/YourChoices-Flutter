@@ -27,17 +27,14 @@ class _AddFilterOptionViewState extends State<AddFilterOptionView> {
   bool isMultipleChoice = false;
   RadioTypes? _options;
   final filterOptionName = TextEditingController();
-  final filterQuantity = TextEditingController();
   final addOnsName = TextEditingController();
   final addOnsPrice = TextEditingController();
   final _formKey = GlobalKey<FormState>();
-  // final _dialogKey = GlobalKey<FormState>();
   int quantity = 1;
 
   @override
   void dispose() {
     filterOptionName.dispose();
-    filterQuantity.dispose();
     addOnsName.dispose();
     addOnsPrice.dispose();
     super.dispose();
@@ -45,7 +42,6 @@ class _AddFilterOptionViewState extends State<AddFilterOptionView> {
 
   @override
   Widget build(BuildContext context) {
-    Size size = MediaQuery.of(context).size;
     return Scaffold(
       resizeToAvoidBottomInset: false,
       appBar: CustomAppbar(

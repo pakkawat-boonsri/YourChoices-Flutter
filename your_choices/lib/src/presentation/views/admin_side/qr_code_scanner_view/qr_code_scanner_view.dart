@@ -1,4 +1,3 @@
-import 'dart:developer';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -37,15 +36,17 @@ class _QrCodeScannerViewState extends State<QrCodeScannerView> {
     }
   }
 
-  void _onQRViewCreated(QRViewController controller) {
+  void _onQRViewCreated(QRViewController controller) async {
     this.controller = controller;
-
+    controller.pauseCamera();
+    await Future.delayed(const Duration(seconds: 2)).then((value) {
+      controller.resumeCamera();
+    });
     controller.scannedDataStream.listen((scanData) {
       result = scanData.code!;
       if (result.isNotEmpty) {
-        controller.stopCamera();
-        log(result);
         loadingDialog(context);
+        controller.pauseCamera();
         Future.delayed(const Duration(seconds: 1)).then((value) {
           Navigator.pop(context);
           Navigator.pop(context);

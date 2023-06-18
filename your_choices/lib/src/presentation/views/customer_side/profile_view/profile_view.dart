@@ -288,6 +288,7 @@ class _ProfileViewState extends State<ProfileView> {
                   Navigator.pushNamed(
                     context,
                     PageConst.favoritePage,
+                    arguments: widget.customerEntity,
                   );
                 },
                 leading: Icon(

@@ -91,7 +91,7 @@ class _AdminMainViewState extends State<AdminMainView> {
           ),
           SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.all(13.0),
+              padding: const EdgeInsets.fromLTRB(13, 13, 13, 0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -176,7 +176,7 @@ class _AdminMainViewState extends State<AdminMainView> {
                           } else if (state is AdminLoaded) {
                             return CustomText(
                               text:
-                                  "฿ ${((state.transactions.where((element) => element.transactionType == "deposit").fold(0.0, (previousValue, element) => previousValue + (element.deposit ?? 0))) - (state.transactions.where((element) => element.transactionType == "deposit").fold(0.0, (previousValue, element) => previousValue + (element.withdraw ?? 0))).floor())}",
+                                  "฿ ${((state.transactions.where((element) => element.transactionType == "deposit").fold(0.0, (previousValue, element) => previousValue + (element.deposit ?? 0))) - (state.transactions.where((element) => element.transactionType == "withdraw").fold(0.0, (previousValue, element) => previousValue + (element.withdraw ?? 0))).floor())}",
                               color: Colors.white,
                               fontSize: 28,
                               fontWeight: FontWeight.w500,
@@ -188,7 +188,7 @@ class _AdminMainViewState extends State<AdminMainView> {
                     ],
                   ),
                   const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 5),
+                    padding: EdgeInsets.only(top: 8),
                     child: Divider(
                       color: Colors.grey,
                     ),
@@ -197,7 +197,7 @@ class _AdminMainViewState extends State<AdminMainView> {
               ),
             ),
           ),
-          SliverFillRemaining(
+          SliverToBoxAdapter(
             child: BlocBuilder<AdminCubit, AdminState>(
               builder: (context, state) {
                 if (state is AdminLoading) {
@@ -208,31 +208,28 @@ class _AdminMainViewState extends State<AdminMainView> {
                   );
                 } else if (state is AdminLoaded) {
                   if (state.transactions.isEmpty) {
-                    return Container(
-                      color: Colors.red,
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          SizedBox(
-                            width: 150,
-                            height: 150,
-                            child: Image.asset(
-                              "assets/images/money_transaction.png",
-                              fit: BoxFit.cover,
-                            ),
+                    return Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        SizedBox(
+                          width: 150,
+                          height: 150,
+                          child: Image.asset(
+                            "assets/images/money_transaction.png",
+                            fit: BoxFit.cover,
                           ),
-                          const HeightContainer(height: 10),
-                          Text(
-                            "ณ วันนี้ยังไม่มีการทำธุรกรรม เช่น เติมเงินหรือถอนเงิน",
-                            textAlign: TextAlign.center,
-                            style: AppTextStyle.googleFont(
-                              Colors.grey,
-                              15,
-                              FontWeight.w400,
-                            ),
+                        ),
+                        const HeightContainer(height: 10),
+                        Text(
+                          "ณ วันนี้ยังไม่มีการทำธุรกรรม เช่น เติมเงินหรือถอนเงิน",
+                          textAlign: TextAlign.center,
+                          style: AppTextStyle.googleFont(
+                            Colors.grey,
+                            15,
+                            FontWeight.w400,
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     );
                   } else {
                     return Padding(
@@ -247,13 +244,15 @@ class _AdminMainViewState extends State<AdminMainView> {
                             fontSize: 20,
                           ),
                           const HeightContainer(height: 10),
-                          ListView.builder(
+                          ListView.separated(
+                            separatorBuilder: (context, index) => const HeightContainer(height: 10),
                             shrinkWrap: true,
                             padding: EdgeInsets.zero,
                             physics: const NeverScrollableScrollPhysics(),
                             itemCount: state.transactions.length,
                             itemBuilder: (context, index) {
                               AdminTransactionEntity adminTransactionEntity = state.transactions[index];
+
                               return Row(
                                 children: [
                                   Container(

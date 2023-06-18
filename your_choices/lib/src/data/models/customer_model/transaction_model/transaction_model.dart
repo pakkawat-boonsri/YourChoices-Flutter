@@ -14,7 +14,9 @@ class TransactionModel extends TransactionEntity {
     final String? name,
     final num? deposit,
     final num? withdraw,
+    final String? customerId,
   }) : super(
+          customerId: customerId,
           id: id,
           date: date,
           deposit: deposit,
@@ -29,6 +31,7 @@ class TransactionModel extends TransactionEntity {
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
       'id': id,
+      'customerId': customerId,
       'date': date,
       'menuName': menuName,
       'totalPrice': totalPrice,
@@ -43,6 +46,7 @@ class TransactionModel extends TransactionEntity {
   factory TransactionModel.fromMap(Map<String, dynamic> map) {
     return TransactionModel(
       id: map['id'] != null ? map['id'] as String : null,
+      customerId: map['customerId'] != null ? map['customerId'] as String : null,
       date: map['date'],
       menuName: map['menuName'] != null ? map['menuName'] as String : null,
       totalPrice: map['totalPrice'] != null ? map['totalPrice'] as num : null,

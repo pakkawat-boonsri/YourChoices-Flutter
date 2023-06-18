@@ -1,8 +1,10 @@
+// ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:touchable_opacity/touchable_opacity.dart';
 import 'package:your_choices/src/config/app_routes/on_generate_routes.dart';
+import 'package:your_choices/src/domain/entities/customer/customer_entity.dart';
 import 'package:your_choices/src/domain/entities/vendor/vendor_entity.dart';
 import 'package:your_choices/src/presentation/blocs/customer_bloc/favorite/favorite_cubit.dart';
 import 'package:your_choices/src/presentation/blocs/customer_bloc/favorite/favorite_state.dart';
@@ -12,13 +14,23 @@ import 'package:your_choices/utilities/hex_color.dart';
 import 'package:your_choices/utilities/text_style.dart';
 
 class FavoriteView extends StatefulWidget {
-  const FavoriteView({super.key});
+  final CustomerEntity customerEntity;
+  const FavoriteView({
+    Key? key,
+    required this.customerEntity,
+  }) : super(key: key);
 
   @override
   State<FavoriteView> createState() => _FavoriteViewState();
 }
 
 class _FavoriteViewState extends State<FavoriteView> {
+  @override
+  void initState() {
+    context.read<FavoriteCubit>().onGetFavorites();
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -50,9 +62,9 @@ class _FavoriteViewState extends State<FavoriteView> {
                       ),
                     ),
                   ),
-                  Column(
+                  const Column(
                     crossAxisAlignment: CrossAxisAlignment.center,
-                    children: const [
+                    children: [
                       CustomText(
                         text: "ไม่มีรายการบันทึกร้านโปรดของคุณ",
                         color: Colors.white,
@@ -60,8 +72,7 @@ class _FavoriteViewState extends State<FavoriteView> {
                         fontWeight: FontWeight.w500,
                       ),
                       CustomText(
-                        text:
-                            "\"ไม่คิดออกเลือกไม่ถูก กดดูหน้าบันทุกร้านการโปรด\"",
+                        text: "\"ไม่คิดออกเลือกไม่ถูก กดดูหน้าบันทุกร้านการโปรด\"",
                         color: Colors.grey,
                         fontSize: 15,
                         fontWeight: FontWeight.w400,
@@ -88,7 +99,10 @@ class _FavoriteViewState extends State<FavoriteView> {
                   Navigator.pushNamed(
                     context,
                     PageConst.restuarantPageDetail,
-                    arguments: vendorEntity,
+                    arguments: {
+                      'customerEntity': widget.customerEntity,
+                      'vendorEntity': vendorEntity,
+                    },
                   );
                 },
                 child: Padding(

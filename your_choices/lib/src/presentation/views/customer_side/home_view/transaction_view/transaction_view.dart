@@ -5,6 +5,7 @@ import 'package:touchable_opacity/touchable_opacity.dart';
 import 'package:your_choices/src/config/app_routes/on_generate_routes.dart';
 import 'package:your_choices/src/domain/entities/customer/customer_entity.dart';
 import 'package:your_choices/utilities/date_format.dart';
+import 'package:your_choices/utilities/height_container.dart';
 import 'package:your_choices/utilities/hex_color.dart';
 import 'package:your_choices/utilities/text_style.dart';
 
@@ -285,28 +286,35 @@ class _TransactionViewState extends State<TransactionView> {
               ),
             ),
             widget.customerEntity.transaction?.isEmpty ?? true
-                ? Column(
-                    children: [
-                      Image.asset(
-                        "assets/images/transaction.png",
-                        width: 150,
-                        height: 150,
-                        color: Colors.grey.shade600,
-                      ),
-                      const SizedBox(
-                        height: 10,
-                      ),
-                      Text(
-                        "ไม่มีรายการธุรกรรมใดๆ ณ ขณะนี้",
-                        style: AppTextStyle.googleFont(
-                          Colors.grey,
-                          18,
-                          FontWeight.w500,
+                ? Container(
+                    width: size.width,
+                    height: double.maxFinite,
+                    color: Colors.red,
+                    child: Column(
+                      children: [
+                        Image.asset(
+                          "assets/images/transaction.png",
+                          width: 150,
+                          height: 150,
+                          color: Colors.grey.shade600,
                         ),
-                      )
-                    ],
+                        const SizedBox(
+                          height: 10,
+                        ),
+                        Text(
+                          "ไม่มีรายการธุรกรรมใดๆ ณ ขณะนี้",
+                          style: AppTextStyle.googleFont(
+                            Colors.grey,
+                            18,
+                            FontWeight.w500,
+                          ),
+                        )
+                      ],
+                    ),
                   )
-                : ListView.builder(
+                : ListView.separated(
+                    physics: const NeverScrollableScrollPhysics(),
+                    separatorBuilder: (context, index) => const HeightContainer(height: 10),
                     padding: const EdgeInsets.only(bottom: 10),
                     shrinkWrap: true,
                     itemCount: widget.customerEntity.transaction?.length ?? 0,

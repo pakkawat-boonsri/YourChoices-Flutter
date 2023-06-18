@@ -76,6 +76,7 @@ class _ListOfFilterOptionViewState extends State<ListOfFilterOptionView> {
             ),
           ),
           BlocBuilder<FilterOptionCubit, FilterOptionState>(
+            
             builder: (context, state) {
               if (state is FilterOptionLoading) {
                 return Center(
@@ -240,7 +241,8 @@ class HaveFilterOptionList extends StatelessWidget {
                   loadingDialog(context);
                   if (previousRouteName == PageConst.menuDetailPage) {
                     context.read<FilterOptionInMenuCubit>().addFilterOptionInMenu(
-                          filterOptionList,
+                      dishesEntity: dishesEntity!,filterOptions: filterOptionList,
+                          
                         );
                   } else {
                     for (var filterOptionEntity in filterOptionList) {

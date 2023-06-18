@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:touchable_opacity/touchable_opacity.dart';
 import 'package:your_choices/global.dart';
+import 'package:your_choices/src/domain/entities/vendor/order/order_entity.dart';
 import 'package:your_choices/src/presentation/views/vendor_side/today_order_view/cubit/today_order_cubit.dart';
 import 'package:your_choices/src/presentation/views/vendor_side/today_order_view/tab_bar_view/done_order_view.dart';
 import 'package:your_choices/src/presentation/views/vendor_side/today_order_view/tab_bar_view/inprogess_order_view.dart';
@@ -127,17 +128,26 @@ class _TodayOrderViewState extends State<TodayOrderView> {
             BlocBuilder<TodayOrderCubit, TodayOrderState>(
               builder: (context, state) {
                 if (state is TodayOrderLoading) {
-                  return Container(
-                    color: Colors.grey[350],
-                    child: Center(
-                      child: CircularProgressIndicator(
-                        color: Colors.amber.shade900,
-                      ),
+                  return Center(
+                    child: CircularProgressIndicator(
+                      color: Colors.amber.shade900,
                     ),
                   );
                 } else if (state is TodayOrderLoaded) {
+                  final List<OrderEntity> orderEntitys = state.orderEntities
+                      .where((element) =>
+                          element.orderTypes == OrderTypes.accept.toString() ||
+                          element.orderTypes == OrderTypes.pending.toString())
+                      .toList();
+                  orderEntitys.sort(
+                    (a, b) {
+                      final newA = a.createdAt!.toDate();
+                      final newB = b.createdAt!.toDate();
+                      return newB.compareTo(newA);
+                    },
+                  );
                   return NewOrderView(
-                    orderEntities: state.orderEntities,
+                    orderEntities: orderEntitys,
                   );
                 }
                 return Container();
@@ -146,17 +156,24 @@ class _TodayOrderViewState extends State<TodayOrderView> {
             BlocBuilder<TodayOrderCubit, TodayOrderState>(
               builder: (context, state) {
                 if (state is TodayOrderLoading) {
-                  return Container(
-                    color: Colors.grey[350],
-                    child: Center(
-                      child: CircularProgressIndicator(
-                        color: Colors.amber.shade900,
-                      ),
+                  return Center(
+                    child: CircularProgressIndicator(
+                      color: Colors.amber.shade900,
                     ),
                   );
                 } else if (state is TodayOrderLoaded) {
+                  final List<OrderEntity> orderEntitys = state.orderEntities
+                      .where((element) => element.orderTypes == OrderTypes.processing.toString())
+                      .toList();
+                  orderEntitys.sort(
+                    (a, b) {
+                      final newA = a.createdAt!.toDate();
+                      final newB = b.createdAt!.toDate();
+                      return newB.compareTo(newA);
+                    },
+                  );
                   return InProgessOrderView(
-                    orderEntities: state.orderEntities,
+                    orderEntities: orderEntitys,
                   );
                 }
 
@@ -166,17 +183,23 @@ class _TodayOrderViewState extends State<TodayOrderView> {
             BlocBuilder<TodayOrderCubit, TodayOrderState>(
               builder: (context, state) {
                 if (state is TodayOrderLoading) {
-                  return Container(
-                    color: Colors.grey[350],
-                    child: Center(
-                      child: CircularProgressIndicator(
-                        color: Colors.amber.shade900,
-                      ),
+                  return Center(
+                    child: CircularProgressIndicator(
+                      color: Colors.amber.shade900,
                     ),
                   );
                 } else if (state is TodayOrderLoaded) {
+                  final List<OrderEntity> orderEntitys =
+                      state.orderEntities.where((element) => element.orderTypes == OrderTypes.completed.toString()).toList();
+                  orderEntitys.sort(
+                    (a, b) {
+                      final newA = a.createdAt!.toDate();
+                      final newB = b.createdAt!.toDate();
+                      return newB.compareTo(newA);
+                    },
+                  );
                   return DoneOrderView(
-                    orderEntities: state.orderEntities,
+                    orderEntities: orderEntitys,
                   );
                 }
                 return Container();

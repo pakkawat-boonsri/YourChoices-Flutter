@@ -9,10 +9,14 @@ import 'package:your_choices/src/domain/usecases/firebase_usecases/admin/approve
 import 'package:your_choices/src/domain/usecases/firebase_usecases/admin/create_transaction_from_admin_history_usecase.dart';
 import 'package:your_choices/src/domain/usecases/firebase_usecases/admin/get_transaction_from_admin_history_by_date_time_usecase.dart';
 import 'package:your_choices/src/domain/usecases/firebase_usecases/customer/create_transaction_usecase.dart';
+import 'package:your_choices/src/domain/usecases/firebase_usecases/customer/favorite/get_favorite_restaurant_usecase.dart';
+import 'package:your_choices/src/domain/usecases/firebase_usecases/customer/favorite/on_add_favorite_usecase.dart';
+import 'package:your_choices/src/domain/usecases/firebase_usecases/customer/favorite/on_delete_favorite_usecase.dart';
 import 'package:your_choices/src/domain/usecases/firebase_usecases/customer/get_account_balance_usecase.dart';
 import 'package:your_choices/src/domain/usecases/firebase_usecases/customer/get_current_uid_usecase.dart';
 import 'package:your_choices/src/domain/usecases/firebase_usecases/customer/get_single_customer_usecase.dart';
 import 'package:your_choices/src/domain/usecases/firebase_usecases/customer/restaurant/get_all_restaurant_usecase.dart';
+import 'package:your_choices/src/domain/usecases/firebase_usecases/customer/restaurant/receive_completed_order_from_restaurant_usecase.dart';
 import 'package:your_choices/src/domain/usecases/firebase_usecases/customer/restaurant/receive_order_from_restaurant_usecase.dart';
 import 'package:your_choices/src/domain/usecases/firebase_usecases/customer/restaurant/send_confirm_order_to_restaurant_usecase.dart';
 import 'package:your_choices/src/domain/usecases/firebase_usecases/customer/sign_up_customer_usecase.dart';
@@ -23,11 +27,13 @@ import 'package:your_choices/src/domain/usecases/firebase_usecases/utilities/sig
 import 'package:your_choices/src/domain/usecases/firebase_usecases/utilities/sign_out_usecase.dart';
 import 'package:your_choices/src/domain/usecases/firebase_usecases/utilities/upload_image_to_storage_usecase.dart';
 import 'package:your_choices/src/domain/usecases/firebase_usecases/vendor/filer_option/create_filter_option_usecase.dart';
+import 'package:your_choices/src/domain/usecases/firebase_usecases/vendor/filer_option/on_delete_addon_in_filter_option_detail_usecase.dart';
 import 'package:your_choices/src/domain/usecases/firebase_usecases/vendor/filer_option/read_filter_option_usecase.dart';
 import 'package:your_choices/src/domain/usecases/firebase_usecases/vendor/filer_option/update_filter_option_usecase.dart';
 import 'package:your_choices/src/domain/usecases/firebase_usecases/vendor/filter_option_in_menu/add_filter_option_in_menu_usecase.dart';
 import 'package:your_choices/src/domain/usecases/firebase_usecases/vendor/filter_option_in_menu/delete_filter_option_in_menu_usecase.dart';
 import 'package:your_choices/src/domain/usecases/firebase_usecases/vendor/filter_option_in_menu/get_filter_option_in_menu_usecase.dart';
+import 'package:your_choices/src/domain/usecases/firebase_usecases/vendor/filter_option_in_menu/on_delete_addon_in_filter_option_in_menu_usecase.dart';
 import 'package:your_choices/src/domain/usecases/firebase_usecases/vendor/filter_option_in_menu/update_filter_option_in_menu_usecase.dart';
 import 'package:your_choices/src/domain/usecases/firebase_usecases/vendor/get_single_vendor_usecase.dart';
 import 'package:your_choices/src/domain/usecases/firebase_usecases/vendor/is_active_usecase.dart';
@@ -85,10 +91,15 @@ Future<void> init() async {
   sl.registerFactory(
     () => CustomerOrderCubit(
       receiveOrderFromRestaurantUseCase: sl.call(),
+      receiveCompletedOrderFromRestaurantUseCase: sl.call(),
     ),
   );
   sl.registerFactory(
-    () => FavoriteCubit(),
+    () => FavoriteCubit(
+      getFavoriteRestaurantUseCase: sl.call(),
+      onAddFavoriteUseCase: sl.call(),
+      onDeleteFavoriteUseCase: sl.call(),
+    ),
   );
   sl.registerFactory(
     () => CartCubit(
@@ -136,6 +147,7 @@ Future<void> init() async {
       deleteFilterOptionInMenuUseCase: sl.call(),
       getFilterOptionInMenuUseCase: sl.call(),
       updateFilterOptionInMenuUseCase: sl.call(),
+      onDeleteAddonInFilterOptionInMenuUseCase: sl.call(),
     ),
   );
   sl.registerFactory(
@@ -144,6 +156,7 @@ Future<void> init() async {
       readFilterOptionUseCase: sl.call(),
       updateFilterOptionUseCase: sl.call(),
       deleteFilterOptionUseCase: sl.call(),
+      onDeleteAddonInFilterOptionDetail: sl.call(),
     ),
   );
   sl.registerFactory(
@@ -183,6 +196,15 @@ Future<void> init() async {
 
   //use-cases customer
   sl.registerLazySingleton(
+    () => GetFavoriteRestaurantUseCase(repository: sl.call()),
+  );
+  sl.registerLazySingleton(
+    () => OnAddFavoriteUseCase(repository: sl.call()),
+  );
+  sl.registerLazySingleton(
+    () => OnDeleteFavoriteUseCase(repository: sl.call()),
+  );
+  sl.registerLazySingleton(
     () => GetSingleCustomerUseCase(repository: sl.call()),
   );
   sl.registerLazySingleton(
@@ -209,6 +231,9 @@ Future<void> init() async {
   );
   sl.registerLazySingleton(
     () => ReceiveOrderFromRestaurantUseCase(repository: sl.call()),
+  );
+  sl.registerLazySingleton(
+    () => ReceiveCompletedOrderFromRestaurantUseCase(repository: sl.call()),
   );
 
   //use-case vendor
@@ -299,6 +324,11 @@ Future<void> init() async {
       repository: sl.call(),
     ),
   );
+  sl.registerLazySingleton(
+    () => OnDeleteAddonInFilterOptionInMenuUseCase(
+      repository: sl.call(),
+    ),
+  );
 
   //use-case filter option
   sl.registerLazySingleton(
@@ -318,6 +348,11 @@ Future<void> init() async {
   );
   sl.registerLazySingleton(
     () => DeleteFilterOptionUseCase(
+      repository: sl.call(),
+    ),
+  );
+  sl.registerLazySingleton(
+    () => OnDeleteAddonInFilterOptionDetailUseCase(
       repository: sl.call(),
     ),
   );

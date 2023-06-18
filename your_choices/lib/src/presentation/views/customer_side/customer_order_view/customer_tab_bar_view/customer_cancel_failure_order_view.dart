@@ -7,6 +7,7 @@ import 'package:your_choices/src/domain/entities/customer/confirm_order/confirm_
 import 'package:your_choices/src/presentation/blocs/customer_bloc/customer_order/customer_order_cubit.dart';
 import 'package:your_choices/src/presentation/views/customer_side/customer_order_view/customer_order_detail_view/customer_order_detail_view.dart';
 import 'package:your_choices/src/presentation/widgets/custom_text.dart';
+import 'package:your_choices/utilities/height_container.dart';
 
 class CustomerCancelFailureOrderView extends StatefulWidget {
   final String uid;
@@ -22,7 +23,7 @@ class CustomerCancelFailureOrderView extends StatefulWidget {
 class _CustomerCancelFailureOrderViewState extends State<CustomerCancelFailureOrderView> {
   @override
   void initState() {
-    BlocProvider.of<CustomerOrderCubit>(context).receiveOrderFromRestaurant(widget.uid);
+    BlocProvider.of<CustomerOrderCubit>(context).receiveCompletedOrderFromRestaurant(widget.uid);
     super.initState();
   }
 
@@ -30,7 +31,7 @@ class _CustomerCancelFailureOrderViewState extends State<CustomerCancelFailureOr
   Widget build(BuildContext context) {
     Size size = MediaQuery.of(context).size;
     return Scaffold(
-      backgroundColor: Colors.grey[300],
+      // backgroundColor: Colors.white,
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -38,7 +39,7 @@ class _CustomerCancelFailureOrderViewState extends State<CustomerCancelFailureOr
             padding: EdgeInsets.fromLTRB(12, 12, 12, 0),
             child: CustomText(
               text: "รายการคำสั่งซื้อ",
-              color: Colors.black,
+              color: Colors.white,
               fontSize: 20,
               fontWeight: FontWeight.w600,
             ),
@@ -63,6 +64,13 @@ class _CustomerCancelFailureOrderViewState extends State<CustomerCancelFailureOr
               final List<ConfirmOrderEntity> confirmOrderEntities = state.confirmOrderEntities
                   .where((element) => element.orderTypes == OrderTypes.failure.toString())
                   .toList();
+              confirmOrderEntities.sort(
+                (a, b) {
+                  final newA = a.createdAt!.toDate();
+                  final newB = b.createdAt!.toDate();
+                  return newB.compareTo(newA);
+                },
+              );
               if (confirmOrderEntities.isEmpty) {
                 return Expanded(
                   child: SizedBox(
@@ -92,113 +100,120 @@ class _CustomerCancelFailureOrderViewState extends State<CustomerCancelFailureOr
                   ),
                 );
               } else {
-                return ListView.separated(
-                  shrinkWrap: true,
-                  separatorBuilder: (context, index) => Divider(
-                    color: Colors.grey[300],
-                    thickness: 1.2,
-                  ),
-                  itemCount: confirmOrderEntities.length,
-                  itemBuilder: (context, index) {
-                    final ConfirmOrderEntity confirmOrderEntity = confirmOrderEntities[index];
-                    final orderId = confirmOrderEntity.orderId ?? "";
-                    final shortId = orderId.replaceAll("-", "").replaceAll(RegExp(r'[^0-9]'), '').substring(0, 4);
-                    return Column(
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.all(12.0),
-                          child: TouchableOpacity(
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => CustomerOrderDetailView(confirmOrderEntity: confirmOrderEntity),
-                                ),
-                              );
-                            },
-                            child: Container(
-                              color: Colors.white,
-                              child: Row(
+                return Expanded(
+                  child: ListView.separated(
+                    padding: EdgeInsets.zero,
+                    shrinkWrap: true,
+                    physics: const BouncingScrollPhysics(),
+                    separatorBuilder: (context, index) => const HeightContainer(height: 10),
+                    itemCount: confirmOrderEntities.length,
+                    itemBuilder: (context, index) {
+                      final ConfirmOrderEntity confirmOrderEntity = confirmOrderEntities[index];
+                      final orderId = confirmOrderEntity.orderId ?? "";
+                      final shortId = orderId.replaceAll("-", "").replaceAll(RegExp(r'[^0-9]'), '').substring(0, 4);
+                      return TouchableOpacity(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => CustomerOrderDetailView(confirmOrderEntity: confirmOrderEntity),
+                            ),
+                          );
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.all(10),
+                          margin: const EdgeInsets.symmetric(horizontal: 8),
+                          color: Colors.grey.shade100,
+                          child: Column(
+                            children: [
+                              Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
                                   Expanded(
                                     flex: 5,
                                     child: Row(
                                       children: [
-                                        Container(
-                                          padding: const EdgeInsets.all(8),
-                                          decoration: BoxDecoration(
-                                            borderRadius: BorderRadius.circular(5),
-                                            color: Colors.amber.shade900.withOpacity(0.1),
-                                            border: Border.all(
-                                              color: Colors.amber.shade900,
+                                        Expanded(
+                                          child: Container(
+                                            padding: const EdgeInsets.all(8),
+                                            decoration: BoxDecoration(
+                                              borderRadius: BorderRadius.circular(5),
+                                              color: Colors.amber.shade900.withOpacity(0.1),
+                                              border: Border.all(
+                                                color: Colors.amber.shade900,
+                                              ),
                                             ),
-                                          ),
-                                          child: Column(
-                                            mainAxisAlignment: MainAxisAlignment.center,
-                                            children: [
-                                              const CustomText(
-                                                text: "OrderId :",
-                                                color: Colors.black,
-                                                fontSize: 13,
-                                                fontWeight: FontWeight.w500,
-                                              ),
-                                              CustomText(
-                                                text: "ID$shortId",
-                                                color: Colors.black,
-                                                fontSize: 17,
-                                                fontWeight: FontWeight.bold,
-                                              ),
-                                            ],
+                                            child: Column(
+                                              mainAxisAlignment: MainAxisAlignment.center,
+                                              children: [
+                                                const CustomText(
+                                                  text: "OrderId :",
+                                                  color: Colors.black,
+                                                  fontSize: 13,
+                                                  fontWeight: FontWeight.w500,
+                                                ),
+                                                CustomText(
+                                                  text: "ID$shortId",
+                                                  color: Colors.black,
+                                                  fontSize: 17,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ],
+                                            ),
                                           ),
                                         ),
                                         const SizedBox(
                                           width: 12,
                                         ),
-                                        Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                          mainAxisAlignment: MainAxisAlignment.spaceAround,
-                                          children: [
-                                            CustomText(
-                                              text: confirmOrderEntity.vendorEntity?.resName ?? "",
-                                              color: Colors.black,
-                                              fontSize: 18,
-                                              fontWeight: FontWeight.w500,
-                                            ),
-                                            Wrap(
-                                              children: confirmOrderEntity.cartItems
-                                                      ?.map((cartItem) => CustomText(
-                                                            text:
-                                                                "${cartItem.dishesEntity?.menuName}${confirmOrderEntity.cartItems?.last == cartItem ? "" : " , "}",
-                                                            color: Colors.grey,
-                                                            fontSize: 14,
-                                                            fontWeight: FontWeight.w500,
-                                                          ))
-                                                      .toList() ??
-                                                  [],
-                                            ),
-                                            Row(
-                                              children: [
-                                                Container(
-                                                  width: 7,
-                                                  height: 7,
-                                                  decoration: const BoxDecoration(
-                                                    shape: BoxShape.circle,
-                                                    color: Colors.red,
+                                        Expanded(
+                                          flex: 2,
+                                          child: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                            children: [
+                                              CustomText(
+                                                text: confirmOrderEntity.vendorEntity?.resName ?? "",
+                                                color: Colors.black,
+                                                fontSize: 18,
+                                                fontWeight: FontWeight.w500,
+                                              ),
+                                              Wrap(
+                                                children: confirmOrderEntity.cartItems
+                                                        ?.map((cartItem) => CustomText(
+                                                              text:
+                                                                  "${cartItem.dishesEntity?.menuName}${confirmOrderEntity.cartItems?.last == cartItem ? "" : " , "}",
+                                                              color: Colors.grey,
+                                                              fontSize: 14,
+                                                              fontWeight: FontWeight.w500,
+                                                            ))
+                                                        .toList() ??
+                                                    [],
+                                              ),
+                                              Row(
+                                                children: [
+                                                  Container(
+                                                    width: 7,
+                                                    height: 7,
+                                                    decoration: const BoxDecoration(
+                                                      shape: BoxShape.circle,
+                                                      color: Colors.red,
+                                                    ),
                                                   ),
-                                                ),
-                                                const SizedBox(
-                                                  width: 5,
-                                                ),
-                                                CustomText(
-                                                  text: "ออเดอร์มีการยกเลิกหรือมีผิดพลาด",
-                                                  color: Colors.red.shade400,
-                                                  fontSize: 14,
-                                                  fontWeight: FontWeight.w500,
-                                                ),
-                                              ],
-                                            )
-                                          ],
+                                                  const SizedBox(
+                                                    width: 5,
+                                                  ),
+                                                  Expanded(
+                                                    child: CustomText(
+                                                      text: "ออเดอร์มีการยกเลิกหรือมีผิดพลาด",
+                                                      color: Colors.red.shade400,
+                                                      fontSize: 14,
+                                                      fontWeight: FontWeight.w500,
+                                                    ),
+                                                  ),
+                                                ],
+                                              )
+                                            ],
+                                          ),
                                         ),
                                       ],
                                     ),
@@ -225,18 +240,12 @@ class _CustomerCancelFailureOrderViewState extends State<CustomerCancelFailureOr
                                   ),
                                 ],
                               ),
-                            ),
+                            ],
                           ),
                         ),
-                        confirmOrderEntities.last == confirmOrderEntity
-                            ? Divider(
-                                color: Colors.grey[300],
-                                thickness: 1.2,
-                              )
-                            : Container(),
-                      ],
-                    );
-                  },
+                      );
+                    },
+                  ),
                 );
               }
             }

@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:intl/intl.dart';
-import 'package:provider/provider.dart';
 import 'package:your_choices/src/config/app_routes/on_generate_routes.dart';
 import 'package:your_choices/src/presentation/blocs/admin_bloc/admin_cubit.dart';
 import 'package:your_choices/src/presentation/blocs/customer_bloc/cart/cart_cubit.dart';
@@ -18,6 +17,8 @@ import 'package:your_choices/src/presentation/blocs/vendor_bloc/menu/menu_cubit.
 import 'package:your_choices/src/presentation/views/admin_side/admin_main_view/admin_main_view.dart';
 import 'package:your_choices/src/presentation/views/customer_side/customer_main_view/customer_main_view.dart';
 import 'package:your_choices/src/presentation/views/login_view/login_view.dart';
+import 'package:your_choices/src/presentation/views/vendor_side/add_menu_view/filter_option_detail_view/cubit/add_new_add_ons_in_filter_option_detail_cubit.dart';
+import 'package:your_choices/src/presentation/views/vendor_side/menu_view/filter_option_in_menu_detail_view/cubit/new_add_on_in_filter_option_in_menu_cubit.dart';
 import 'package:your_choices/src/presentation/views/vendor_side/today_order_view/cubit/today_order_cubit.dart';
 import 'package:your_choices/src/presentation/views/vendor_side/vendor_main_view/vendor_main_view.dart';
 import 'package:your_choices/utilities/loading_dialog.dart';
@@ -51,7 +52,7 @@ class YourChoices extends StatefulWidget {
 class _YourChoicesState extends State<YourChoices> {
   @override
   Widget build(BuildContext context) {
-    return MultiProvider(
+    return MultiBlocProvider(
       providers: [
         BlocProvider(create: (_) => di.sl<AuthCubit>()..appStarted(context)),
         BlocProvider(create: (_) => di.sl<CredentialCubit>()),
@@ -69,6 +70,8 @@ class _YourChoicesState extends State<YourChoices> {
         BlocProvider(create: (_) => di.sl<TodayOrderCubit>()),
         BlocProvider(create: (_) => di.sl<CustomerOrderCubit>()),
         BlocProvider(create: (_) => di.sl<AdminCubit>()),
+        BlocProvider(create: (_) => AddNewAddOnsInFilterOptionDetailCubit()),
+        BlocProvider(create: (_) => NewAddOnInFilterOptionInMenuCubit()),
       ],
       child: MaterialApp(
         onGenerateRoute: OnGenerateRoute.route,

@@ -46,7 +46,6 @@ class _FoodDetailViewState extends State<FoodDetailView> {
 
   @override
   Widget build(BuildContext context) {
-    Size size = MediaQuery.of(context).size;
     return Scaffold(
       backgroundColor: Colors.white,
       body: CustomScrollView(

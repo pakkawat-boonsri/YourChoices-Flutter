@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
@@ -26,7 +24,7 @@ class AuthCubit extends Cubit<AuthState> {
   Future<void> appStarted(BuildContext context) async {
     try {
       bool isSignIn = await isSignInUseCase.call();
-      
+
       if (isSignIn) {
         final String uid = await getCurrentUidUseCase.call();
         final String type = await signInRoleUseCase.call(uid);

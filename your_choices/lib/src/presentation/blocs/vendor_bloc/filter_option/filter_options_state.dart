@@ -28,3 +28,7 @@ class FilterOptionFailure extends FilterOptionState {
   @override
   List<Object?> get props => [];
 }
+
+abstract class EditFilterOptionState extends Equatable {
+  const EditFilterOptionState();
+}

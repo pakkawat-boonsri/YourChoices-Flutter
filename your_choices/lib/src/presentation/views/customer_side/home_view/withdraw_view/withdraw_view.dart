@@ -147,7 +147,7 @@ class _WithDrawViewState extends State<WithDrawView> {
                               }
 
                               final customerDeposit =
-                                  widget.customerEntity.copyWith(depositAmount: _amount.text, withdrawAmount: null).toJson();
+                                  widget.customerEntity.copyWith(depositAmount: null, withdrawAmount: _amount.text).toJson();
                               if (context.mounted) {
                                 await showDialog(
                                   context: context,

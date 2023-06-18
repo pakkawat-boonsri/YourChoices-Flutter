@@ -573,7 +573,7 @@ class _RegisterViewState extends State<RegisterView> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          "ข้อมูลลูกค้า",
+                          "ข้อมูลร้านค้า",
                           style: AppTextStyle.googleFont(
                             Colors.black,
                             40,
@@ -815,7 +815,6 @@ class _RegisterViewState extends State<RegisterView> {
                               totalPriceSell: 0,
                               type: selectingType,
                               restaurantType: restaurantType,
-                              
                             ),
                           );
                           Future.delayed(const Duration(seconds: 1)).then((value) {

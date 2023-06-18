@@ -28,6 +28,13 @@ class AdminCubit extends Cubit<AdminState> {
       try {
         final data = getTransactionFromAdminHistoryByDateTimeUseCase.call(timestamp);
         data.listen((adminTransactions) {
+          adminTransactions.sort(
+            (a, b) {
+              final newA = a.date!.toDate();
+              final newB = b.date!.toDate();
+              return newB.compareTo(newA);
+            },
+          );
           emit(AdminLoaded(transactions: adminTransactions));
         });
       } catch (e) {

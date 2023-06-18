@@ -1,20 +1,29 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
+
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:touchable_opacity/touchable_opacity.dart';
+import 'package:uuid/uuid.dart';
 import 'package:your_choices/global.dart';
-import 'package:your_choices/injection_container.dart' as di;
+import 'package:your_choices/src/domain/entities/vendor/add_ons/add_ons_entity.dart';
+import 'package:your_choices/src/domain/entities/vendor/dishes_menu/dishes_entity.dart';
 import 'package:your_choices/src/domain/entities/vendor/filter_options/filter_option_entity.dart';
-import 'package:your_choices/src/domain/usecases/firebase_usecases/customer/get_current_uid_usecase.dart';
-import 'package:your_choices/src/presentation/blocs/vendor_bloc/menu/menu_cubit.dart';
+import 'package:your_choices/src/presentation/blocs/vendor_bloc/filter_option_in_menu/filter_option_in_menu_cubit.dart';
+import 'package:your_choices/src/presentation/views/vendor_side/menu_view/filter_option_in_menu_detail_view/cubit/new_add_on_in_filter_option_in_menu_cubit.dart';
 import 'package:your_choices/src/presentation/widgets/custom_vendor_appbar.dart';
+import 'package:your_choices/utilities/loading_dialog.dart';
+import 'package:your_choices/utilities/show_flutter_toast.dart';
 
 import '../../../../../../utilities/text_style.dart';
 
 class FilterOptionInMenuDetailView extends StatefulWidget {
+  final DishesEntity dishesEntity;
   final FilterOptionEntity filterOptionEntity;
   const FilterOptionInMenuDetailView({
     Key? key,
+    required this.dishesEntity,
     required this.filterOptionEntity,
   }) : super(key: key);
 
@@ -23,39 +32,44 @@ class FilterOptionInMenuDetailView extends StatefulWidget {
 }
 
 class _FilterOptionInMenuDetailViewState extends State<FilterOptionInMenuDetailView> {
+  late bool isRequire;
+  late bool isMultipleChoice;
   late final FilterOptionEntity filterOptionEntity;
   late final TextEditingController filterOptionName;
+  final _formKey = GlobalKey<FormState>();
   RadioTypes? _options;
+  late int quantity;
+
   final TextEditingController addOnsName = TextEditingController();
   final TextEditingController addOnsPrice = TextEditingController();
 
   @override
   void initState() {
     filterOptionEntity = widget.filterOptionEntity;
+    context.read<NewAddOnInFilterOptionInMenuCubit>().init(List<AddOnsEntity>.from(widget.filterOptionEntity.addOns ?? []));
+    isRequire = widget.filterOptionEntity.isRequired ?? false;
+    isMultipleChoice = widget.filterOptionEntity.isMultiple ?? false;
+    quantity = widget.filterOptionEntity.multipleQuantity ?? 1;
     filterOptionName = TextEditingController(text: filterOptionEntity.filterName);
     super.initState();
   }
 
   @override
-  void didChangeDependencies() async {
-    BlocProvider.of<MenuCubit>(context).getMenu(
-      uid: await di.sl<GetCurrentUidUseCase>().call(),
-    );
-    super.didChangeDependencies();
-  }
-
-  @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       appBar: CustomAppbar(
         title: "รายละเอียดตัวเลือก",
         onTap: () {
           Navigator.pop(context);
+          context.read<NewAddOnInFilterOptionInMenuCubit>().onResetAddOns();
+          context.read<NewAddOnInFilterOptionInMenuCubit>().resetDeleteAddOns();
         },
       ),
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(20.0),
+      body: Padding(
+        padding: const EdgeInsets.all(20.0),
+        child: Form(
+          key: _formKey,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -123,8 +137,43 @@ class _FilterOptionInMenuDetailViewState extends State<FilterOptionInMenuDetailV
           ),
         ),
         TouchableOpacity(
-          onTap: () {
-            // todo: add filter option to menu
+          onTap: () async {
+            if (_formKey.currentState!.validate()) {
+              loadingDialog(context);
+              final currentDeleted =
+                  List<AddOnsEntity>.from(context.read<NewAddOnInFilterOptionInMenuCubit>().deletedAddOns);
+              if (currentDeleted.isNotEmpty) {
+                context.read<FilterOptionInMenuCubit>().onDeleteAddonInFilterOptionInMenu(
+                      addOnsEntity: currentDeleted,
+                      dishesEntity: widget.dishesEntity,
+                      filterOptionEntity: filterOptionEntity,
+                    );
+              } else {
+                List<AddOnsEntity> addOnsList = List.from(context.read<NewAddOnInFilterOptionInMenuCubit>().state);
+                log("$addOnsList");
+                final filterOptions = List.generate(
+                    1,
+                    (index) => FilterOptionEntity(
+                          filterId: filterOptionEntity.filterId,
+                          filterName: filterOptionName.text,
+                          isMultiple: isMultipleChoice,
+                          isRequired: isRequire,
+                          multipleQuantity: isMultipleChoice == false ? null : quantity,
+                          addOns: addOnsList,
+                        ));
+                await context
+                    .read<FilterOptionInMenuCubit>()
+                    .addFilterOptionInMenu(dishesEntity: widget.dishesEntity, filterOptions: filterOptions);
+              }
+
+              Future.delayed(const Duration(seconds: 1)).then((value) {
+                BlocProvider.of<NewAddOnInFilterOptionInMenuCubit>(context).onResetAddOns();
+                BlocProvider.of<NewAddOnInFilterOptionInMenuCubit>(context).resetDeleteAddOns();
+                Navigator.pop(context);
+                Navigator.pop(context);
+                Navigator.pop(context);
+              });
+            }
           },
           child: Container(
             alignment: Alignment.center,
@@ -349,7 +398,20 @@ class _FilterOptionInMenuDetailViewState extends State<FilterOptionInMenuDetailV
                       ),
                       TouchableOpacity(
                         onTap: () async {
-                          // todo: add addonb button
+                          await context.read<NewAddOnInFilterOptionInMenuCubit>().onAddingAddOnInFilterOptionInMenuDetail(
+                                AddOnsEntity(
+                                  addonsId: const Uuid().v1(),
+                                  addonsName: addOnsName.text,
+                                  priceType: _options.toString(),
+                                  price: _options == RadioTypes.nochange ? null : int.parse(addOnsPrice.text),
+                                ),
+                              );
+                          addOnsName.clear();
+                          addOnsPrice.clear();
+                          _options = null;
+                          if (mounted) {
+                            Navigator.pop(context);
+                          }
                         },
                         child: Container(
                           alignment: Alignment.center,
@@ -411,137 +473,219 @@ class _FilterOptionInMenuDetailViewState extends State<FilterOptionInMenuDetailV
   }
 
   Widget _buildListOfAddOnsBloc() {
-    return ListView.separated(
-      shrinkWrap: true,
-      physics: const BouncingScrollPhysics(),
-      separatorBuilder: (context, index) => const SizedBox(
-        height: 10,
-      ),
-      itemCount: filterOptionEntity.addOns?.length ?? 0,
-      itemBuilder: (context, index) {
-        final addOnsEntity = filterOptionEntity.addOns![index];
-        return Container(
-          height: 45,
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(5),
+    return BlocBuilder<NewAddOnInFilterOptionInMenuCubit, List<AddOnsEntity>>(
+      builder: (context, state) {
+        return ListView.separated(
+          shrinkWrap: true,
+          physics: const BouncingScrollPhysics(),
+          separatorBuilder: (context, index) => const SizedBox(
+            height: 10,
           ),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 10),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  addOnsEntity.addonsName ?? "No Name",
-                  style: AppTextStyle.googleFont(
-                    Colors.black,
-                    18,
-                    FontWeight.w500,
-                  ),
-                ),
-                Row(
+          itemCount: state.length,
+          itemBuilder: (context, index) {
+            final addOnsEntity = state[index];
+            return Container(
+              height: 45,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(5),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 10),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Padding(
-                      padding: const EdgeInsets.only(right: 8.0),
-                      child: addOnsEntity.price == null
-                          ? Text(
-                              "0 ฿",
-                              style: AppTextStyle.googleFont(
-                                Colors.black,
-                                14,
-                                FontWeight.normal,
-                              ),
-                            )
-                          : addOnsEntity.priceType == RadioTypes.priceIncrease.toString()
+                    Text(
+                      addOnsEntity.addonsName ?? "No Name",
+                      style: AppTextStyle.googleFont(
+                        Colors.black,
+                        18,
+                        FontWeight.w500,
+                      ),
+                    ),
+                    Row(
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.only(right: 8.0),
+                          child: addOnsEntity.price == null
                               ? Text(
-                                  "+${addOnsEntity.price ?? ""} ฿",
+                                  "0 ฿",
                                   style: AppTextStyle.googleFont(
                                     Colors.black,
                                     18,
                                     FontWeight.w500,
                                   ),
                                 )
-                              : Text(
-                                  "-${addOnsEntity.price ?? ""} ฿",
-                                  style: AppTextStyle.googleFont(
-                                    Colors.black,
-                                    18,
-                                    FontWeight.w500,
-                                  ),
-                                ),
+                              : addOnsEntity.priceType == RadioTypes.priceIncrease.toString()
+                                  ? Text(
+                                      "+${addOnsEntity.price ?? ""} ฿",
+                                      style: AppTextStyle.googleFont(
+                                        Colors.black,
+                                        18,
+                                        FontWeight.w500,
+                                      ),
+                                    )
+                                  : Text(
+                                      "-${addOnsEntity.price ?? ""} ฿",
+                                      style: AppTextStyle.googleFont(
+                                        Colors.black,
+                                        18,
+                                        FontWeight.w500,
+                                      ),
+                                    ),
+                        ),
+                        const VerticalDivider(
+                          endIndent: 7,
+                          indent: 7,
+                          color: Colors.grey,
+                          thickness: 1,
+                        ),
+                        IconButton(
+                          onPressed: () {
+                            context.read<NewAddOnInFilterOptionInMenuCubit>().addingDeletedAddOns(addOnsEntity);
+                            context
+                                .read<NewAddOnInFilterOptionInMenuCubit>()
+                                .onDeleteAddOnInFilterOptionInMenuDetail(addOnsEntity);
+                          },
+                          icon: Icon(
+                            Icons.delete,
+                            color: Colors.amber.shade900,
+                          ),
+                        )
+                      ],
                     ),
-                    const VerticalDivider(
-                      endIndent: 7,
-                      indent: 7,
-                      color: Colors.grey,
-                      thickness: 1,
-                    ),
-                    IconButton(
-                      onPressed: () {},
-                      icon: Icon(
-                        Icons.delete,
-                        color: Colors.amber.shade900,
-                      ),
-                    )
                   ],
                 ),
-              ],
-            ),
-          ),
+              ),
+            );
+          },
         );
       },
     );
   }
 
   Widget _buildCheckBoxs() {
-    return Column(
-      mainAxisSize: MainAxisSize.max,
-      children: [
-        Theme(
-          data: ThemeData.dark().copyWith(
-            unselectedWidgetColor: Colors.white,
-          ),
-          child: CheckboxListTile(
-            dense: true,
-            controlAffinity: ListTileControlAffinity.leading,
-            activeColor: Colors.amber[900],
-            contentPadding: EdgeInsets.zero,
-            title: Text(
-              "ลูกค้าจำเป็นต้องเลือกหรือไม่ ?",
-              style: AppTextStyle.googleFont(
-                Colors.white,
-                18,
-                FontWeight.normal,
-              ),
+    return StatefulBuilder(
+      builder: (context, setState) => Column(
+        mainAxisSize: MainAxisSize.max,
+        children: [
+          Theme(
+            data: ThemeData.dark().copyWith(
+              unselectedWidgetColor: Colors.white,
             ),
-            value: filterOptionEntity.isRequired,
-            onChanged: (value) {
-              // BlocProvider.of<MenuCubit>(context);
-            },
-          ),
-        ),
-        Theme(
-          data: ThemeData.dark().copyWith(
-            unselectedWidgetColor: Colors.white,
-          ),
-          child: CheckboxListTile(
-            dense: true,
-            controlAffinity: ListTileControlAffinity.leading,
-            activeColor: Colors.amber[900],
-            contentPadding: EdgeInsets.zero,
-            title: Text(
-              "ลูกค้าสามารถเลือกได้มากกว่า 1 ช้อยส์ ?",
-              style: AppTextStyle.googleFont(
-                Colors.white,
-                18,
-                FontWeight.normal,
+            child: CheckboxListTile(
+              dense: true,
+              controlAffinity: ListTileControlAffinity.leading,
+              activeColor: Colors.amber[900],
+              contentPadding: EdgeInsets.zero,
+              title: Text(
+                "ลูกค้าจำเป็นต้องเลือกหรือไม่ ?",
+                style: AppTextStyle.googleFont(
+                  Colors.white,
+                  18,
+                  FontWeight.normal,
+                ),
               ),
+              value: isRequire,
+              onChanged: (value) {
+                setState(() {
+                  isRequire = value!;
+                  if (isRequire && isMultipleChoice) {
+                    isMultipleChoice = false;
+                  }
+                });
+              },
             ),
-            value: filterOptionEntity.isMultiple,
-            onChanged: (value) {},
           ),
-        ),
-      ],
+          Theme(
+            data: ThemeData.dark().copyWith(
+              unselectedWidgetColor: Colors.white,
+            ),
+            child: CheckboxListTile(
+              dense: true,
+              controlAffinity: ListTileControlAffinity.leading,
+              activeColor: Colors.amber[900],
+              contentPadding: EdgeInsets.zero,
+              title: Text(
+                "ลูกค้าสามารถเลือกได้มากกว่า 1 ช้อยส์ ?",
+                style: AppTextStyle.googleFont(
+                  Colors.white,
+                  18,
+                  FontWeight.normal,
+                ),
+              ),
+              value: isMultipleChoice,
+              onChanged: (value) {
+                setState(() {
+                  isMultipleChoice = value!;
+                  if (isRequire && isMultipleChoice) {
+                    isRequire = false;
+                  }
+                });
+              },
+            ),
+          ),
+          const SizedBox(
+            height: 10,
+          ),
+          isMultipleChoice
+              ? Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    TouchableOpacity(
+                      onTap: quantity == 1
+                          ? () {
+                              return showFlutterToast("ไม่สามารถเลือกต่ำกว่า 1 ได้");
+                            }
+                          : () {
+                              quantity--;
+                              setState(() {});
+                            },
+                      child: Container(
+                        padding: const EdgeInsets.all(3),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(5),
+                        ),
+                        child: const Icon(
+                          Icons.remove,
+                          color: Colors.black,
+                        ),
+                      ),
+                    ),
+                    Text(
+                      "$quantity",
+                      style: AppTextStyle.googleFont(
+                        Colors.white,
+                        22,
+                        FontWeight.w500,
+                      ),
+                    ),
+                    TouchableOpacity(
+                      onTap: () {
+                        quantity++;
+                        setState(() {});
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.all(3),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(5),
+                        ),
+                        child: const Icon(
+                          Icons.add,
+                          color: Colors.black,
+                        ),
+                      ),
+                    ),
+                  ],
+                )
+              : const SizedBox.shrink(),
+          const SizedBox(
+            height: 10,
+          ),
+        ],
+      ),
     );
   }
 

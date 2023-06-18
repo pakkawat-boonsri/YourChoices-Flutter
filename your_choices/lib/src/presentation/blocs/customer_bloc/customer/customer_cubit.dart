@@ -37,8 +37,8 @@ class CustomerCubit extends Cubit<CustomerState> {
       final data = getSingleCustomerUseCase.call(uid);
       data.listen(
         (customerData) {
-          if (customerData.first.transaction?.isNotEmpty ?? false) {
-            customerData.first.transaction!.sort(
+          if (customerData.transaction?.isNotEmpty ?? false) {
+            customerData.transaction!.sort(
               (a, b) {
                 final newA = a.date!.toDate();
                 final newB = b.date!.toDate();
@@ -48,7 +48,7 @@ class CustomerCubit extends Cubit<CustomerState> {
           }
           emit(
             CustomerLoaded(
-              customerEntity: customerData.first,
+              customerEntity: customerData,
             ),
           );
         },

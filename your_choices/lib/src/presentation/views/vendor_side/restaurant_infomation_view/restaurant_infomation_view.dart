@@ -1,8 +1,12 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:touchable_opacity/touchable_opacity.dart';
+import 'package:your_choices/injection_container.dart' as di;
 import 'package:your_choices/src/config/app_routes/on_generate_routes.dart';
 import 'package:your_choices/src/domain/entities/vendor/vendor_entity.dart';
+import 'package:your_choices/src/presentation/blocs/vendor_bloc/order_history/order_history_cubit.dart';
+import 'package:your_choices/src/presentation/views/vendor_side/order_history_view.dart/order_history_view.dart';
 import 'package:your_choices/src/presentation/widgets/custom_vendor_appbar.dart';
 import 'package:your_choices/utilities/hex_color.dart';
 
@@ -61,11 +65,14 @@ class _RestaurantInfoViewState extends State<RestaurantInfoView> {
     return Column(
       children: [
         TouchableOpacity(
-          onTap: () => Navigator.pushNamed(
-            context,
-            PageConst.orderHistoryPage,
-            arguments: vendorEntity,
-          ),
+          onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => BlocProvider(
+                  create: (context) => di.sl<OrderHistoryCubit>(),
+                  child: OrderHistoryView(vendorEntity: vendorEntity),
+                ),
+              )),
           child: Container(
             margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
             width: size.width,

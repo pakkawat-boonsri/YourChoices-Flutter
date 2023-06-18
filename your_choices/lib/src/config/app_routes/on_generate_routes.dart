@@ -11,7 +11,6 @@ import 'package:your_choices/src/presentation/views/customer_side/home_view/depo
 import 'package:your_choices/src/presentation/views/customer_side/home_view/withdraw_view/withdraw_view.dart';
 import 'package:your_choices/src/presentation/views/customer_side/restaurant_view/food_detail_view/food_detail_view.dart';
 import 'package:your_choices/src/presentation/views/customer_side/restaurant_view/restaurant_detail_view/restaurant_detail_view.dart';
-import 'package:your_choices/src/presentation/views/customer_side/search_box_view/seach_box_view.dart';
 import 'package:your_choices/src/presentation/views/login_view/login_view.dart';
 import 'package:your_choices/src/presentation/views/register_view/register_view.dart';
 import 'package:your_choices/src/presentation/views/vendor_side/add_menu_view/add_filter_option_view.dart/add_filter_option_view.dart';
@@ -129,13 +128,18 @@ class OnGenerateRoute {
             );
           }
         }
-      case PageConst.searchboxPage:
-        {
-          return routeBuilder(const SeachBoxView());
-        }
+
       case PageConst.favoritePage:
         {
-          return routeBuilder(const FavoriteView());
+          if (args is CustomerEntity) {
+            return routeBuilder(FavoriteView(
+              customerEntity: args,
+            ));
+          } else {
+            return routeBuilder(
+              const NoPageFound(),
+            );
+          }
         }
       case PageConst.cartPage:
         {
@@ -225,10 +229,11 @@ class OnGenerateRoute {
         }
       case PageConst.filterOptionInMenuDetailPage:
         {
-          if (args is FilterOptionEntity) {
+          if (args is Map) {
             return routeBuilder(
               FilterOptionInMenuDetailView(
-                filterOptionEntity: args,
+                dishesEntity: args['dishesEntity'],
+                filterOptionEntity: args['filterOptionEntity'],
               ),
             );
           } else {
@@ -367,8 +372,9 @@ class NoPageFound extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
-      body: Center(
+    return Scaffold(
+      appBar: AppBar(),
+      body: const Center(
         child: Text("No Page Found Page"),
       ),
     );
