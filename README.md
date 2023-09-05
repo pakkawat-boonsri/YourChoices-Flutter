@@ -10,8 +10,10 @@ Food_Ordering System in Food Court implements by flutter!
 <img src="https://github.com/pakkawat-boonsri/YourChoices/assets/91787198/8a41c0a0-5aa4-442e-820a-ba31c08cf36b" width="200" />
 <img src="https://github.com/pakkawat-boonsri/YourChoices/assets/91787198/a51fd908-7d8a-492c-979e-0b09424f67af" width="200" />
 <img src="https://github.com/pakkawat-boonsri/YourChoices/assets/91787198/01ff1229-d937-4dc8-b78f-817b8b80c8d2" width="200" />
+
 ## Customer
-![customer_dashboard](https://github.com/pakkawat-boonsri/YourChoices/assets/91787198/30196126-f1b0-4cc2-81b4-21d18f11c85c) | 
+<img src="https://github.com/pakkawat-boonsri/YourChoices/assets/91787198/01ff1229-d937-4dc8-b78f-817b8b80c8d2" width="200" />
+
 
 ## Merchant
 
