@@ -1,11 +1,11 @@
 # YourChoices
 Food_Ordering System in Food Court implements by flutter!
 
-##Authenication
+## Authenication
 
-###Admin
+## Admin
 
-####Customer
+## Customer
 
-#####Merchant
+## Merchant
 
